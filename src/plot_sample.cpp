@@ -1,6 +1,7 @@
 // include matplotplusplus
 // NOTE: use <..> and not ".."!!
 #include <matplot/matplot.h>
+#include <vector>
 
 // add a main (one is required for every build target)
 int main(int argc, char** argv){
@@ -15,6 +16,6 @@ int main(int argc, char** argv){
     matplot::plot({1.0, 0.7, 0.4, 0.0, -0.4, -0.7, -1}, "k");
 
     matplot::show();
-    
+
     return 0;
 }
