@@ -1,15 +1,16 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.9.1)
 project(sddmm VERSION 0.1.0 LANGUAGES C CXX)
 
-find_package(Python3 COMPONENTS Interpreter Development NumPy)
-find_package(PythonLibs REQUIRED)
-include_directories(${Python_INCLUDE_DIRS})
-link_libraries(${PYTHON_LIBRARIES})
+set(RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set(LIBRARY_OUTPUT_PATH  "${CMAKE_BINARY_DIR}")
 
-# find_package(PythonLibs REQUIRED)
-# include_directories(${PYTHON_INCLUDE_DIRS})
-# target_link_libraries(<your exe or lib> ${PYTHON_LIBRARIES})
+include_directories("${CMAKE_SOURCE_DIR}/libs" "${CMAKE_SOURCE_DIR}/matplotplusplus/source")
+add_subdirectory(matplotplusplus)
+add_subdirectory(src/algos)
 
-add_subdirectory(src)
-add_executable(main ./src/main.cpp)
-target_link_libraries(main SrcLib)
+add_executable(basic_main src/main.cpp)
+target_link_libraries(basic_main AlgoLib matplot)
+
+# add a new target here
+add_executable(plot_sample src/plot_sample.cpp)
+target_link_libraries(plot_sample AlgoLib matplot)
