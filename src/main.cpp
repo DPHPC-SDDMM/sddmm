@@ -22,8 +22,8 @@
 int main(int argc, char** argv){
 #ifdef NONE
     std::cout << SDDMM::Defines::get_title_str("NONE") << std::endl;
-    std::vector<double> x = matplot::linspace(0, 2 * matplot::pi);
-    std::vector<double> y = matplot::transform(x, [](auto x) { return sin(x); });
+    std::vector<expmt_t> x = matplot::linspace(0, 2 * matplot::pi);
+    std::vector<expmt_t> y = matplot::transform(x, [](auto x) { return sin(x); });
 
     matplot::plot(x, y, "-*");
     matplot::hold(matplot::on);
@@ -35,7 +35,7 @@ int main(int argc, char** argv){
 #elif SAMPLE_ALGO
     std::cout << SDDMM::Defines::get_title_str("SAMPLE_ALGO") << std::endl;
     SDDMM::Defines::ErrPlotData data;
-    SDDMM::SampleAlgo(data, 250, 100, 500, 100);
+    SDDMM::Algo::SampleAlgo(data, 250, 100, 500, 100);
     SDDMM::Plots::err_plot(data);
 
 #elif CSR_COO

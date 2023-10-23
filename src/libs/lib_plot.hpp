@@ -40,13 +40,13 @@ namespace SDDMM {
                 y.push_back(sum/r.size());
             }
 
-            matplot::errorbar(data.x, y, err);
-            matplot::xrange({static_cast<double>(data.min), static_cast<double>(data.max)});
+            // matplot::errorbar(data.x, y, err);
+            // matplot::xrange({static_cast<double>(data.min), static_cast<double>(data.max)});
 
-            // for(int rn=0; rn<data.runtimes.size(); ++rn){
-            //     matplot::nexttile();
-            //     matplot::hist(data.runtimes.at(rn), matplot::histogram::binning_algorithm::automatic);
-            // }
+            for(int rn=0; rn<data.runtimes.size(); ++rn){
+                matplot::nexttile();
+                matplot::hist(data.runtimes.at(rn), matplot::histogram::binning_algorithm::automatic);
+            }
 
             matplot::show(); 
         }

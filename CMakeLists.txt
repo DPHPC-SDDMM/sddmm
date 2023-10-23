@@ -14,8 +14,8 @@ add_subdirectory(src/data_structures)
 
 # Mark only one
 # add_compile_definitions(NONE)
-# add_compile_definitions(SAMPLE_ALGO)
-add_compile_definitions(CSR_COO)
+add_compile_definitions(SAMPLE_ALGO)
+# add_compile_definitions(CSR_COO)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main matplot)
