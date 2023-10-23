@@ -1,4 +1,3 @@
-#include "../type_defs.h"
 #include "matrix.h"
 #include "../csr/csr.h"
 #include "../coo/coo.h"

@@ -9,7 +9,7 @@
 #include <algorithm> // std::sort
 #include <cassert>
 
-#include "../type_defs.h"
+#include "../../defines.h"
 
 namespace SDDMM{
     // forward declarations

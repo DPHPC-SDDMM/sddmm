@@ -1,26 +1,18 @@
 #pragma once
 
-#include "algo.h"
+#include "../defines.h"
 #include <vector>
 
 
 namespace SDDMM {
-    typedef std::vector<std::vector<double> > Matrix;
+    typedef std::vector<std::vector<double> > matrix;
 
-    class CSR {
+
+    class TiledAlgo {
     public:
-        std::vector<double> values;
-        std::vector<int> col_idx;
-        std::vector<int> row_ptr;
-    };
+        TiledAlgo(int argc, char **argv) {}
 
-    class TiledAlgo : public Algo {
-    public:
-        int main(int argc, char **argv, const InitParams &initParams) override {
-            return 0;
-        }
-
-        void run(const CSR& S, const Matrix& A, const Matrix& B, CSR& P, int Ti, int Tj, int Tk, int N, int M, int K) {
+        void run(const SDDMM::Defines::CSR& S, const matrix& A, const matrix& B, SDDMM::Defines::CSR& P, int Ti, int Tj, int Tk, int N, int M, int K) {
             // initialise output matrix P
             P.col_idx = S.col_idx;
             P.row_ptr = S.row_ptr;

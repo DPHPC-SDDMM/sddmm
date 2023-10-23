@@ -6,7 +6,7 @@
 #include <iostream>
 #include <iomanip>
 
-#include "../type_defs.h"
+#include "../../defines.h"
 
 
 namespace SDDMM {

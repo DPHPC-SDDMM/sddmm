@@ -1,12 +1,15 @@
-#include "defines.h"
 #include <iostream>
-#include "data_structures/type_defs.h"
+
+#include "defines.h"
+
+#include "libs/lib_plot.hpp"
+
 #include "data_structures/matrix/matrix.h"
 #include "data_structures/csr/csr.h"
 #include "data_structures/coo/coo.h"
+
 #include "algos/sample_algo.cpp"
-#include <matplot/matplot.h>
-#include "libs/lib_plot.hpp"
+#include "algos/tiled.cpp"
 
 /**
  * All algos as cpp files
