@@ -1,6 +1,6 @@
 # https://code.visualstudio.com/docs/cpp/cmake-linux
 # https://code.visualstudio.com/docs/cpp/config-linux
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.22)
 project(sddmm VERSION 0.1.0 LANGUAGES C CXX)
 
 set(RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -10,12 +10,15 @@ include_directories("${CMAKE_SOURCE_DIR}/matplotplusplus/source" "${CMAKE_SOURCE
 add_subdirectory(matplotplusplus)
 add_subdirectory(src/algos)
 add_subdirectory(src/libs)
+add_subdirectory(src/data_structures)
 
 # Mark only one
 # add_compile_definitions(NONE)
-add_compile_definitions(SAMPLE_ALGO)
+# add_compile_definitions(SAMPLE_ALGO)
+add_compile_definitions(CSR_COO)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main matplot)
 # target_link_libraries(main LibsLib)
+target_link_libraries(main DataStructuresLib)
 target_link_libraries(main AlgoLib)
