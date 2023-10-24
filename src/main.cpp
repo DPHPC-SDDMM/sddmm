@@ -10,6 +10,7 @@
 
 #include "algos/sample_algo.cpp"
 #include "algos/tiled.cpp"
+#include "algos/cuda_sample.cpp"
 
 /**
  * All algos as cpp files
@@ -32,6 +33,9 @@ int main(int argc, char** argv){
     matplot::plot({1.0, 0.7, 0.4, 0.0, -0.4, -0.7, -1}, "k");
 
     matplot::show();
+#elif CUDA_SAMPLE
+    std::cout << SDDMM::Defines::get_title_str("CUDA_SAMPLE") << std::endl;
+    SDDMM::Algo::SampleCudaAlgo();
 #elif SAMPLE_ALGO
     std::cout << SDDMM::Defines::get_title_str("SAMPLE_ALGO") << std::endl;
     SDDMM::Defines::ErrPlotData data;

@@ -1,7 +1,11 @@
 # https://code.visualstudio.com/docs/cpp/cmake-linux
 # https://code.visualstudio.com/docs/cpp/config-linux
 cmake_minimum_required(VERSION 3.22)
-project(sddmm VERSION 0.1.0 LANGUAGES C CXX)
+project(sddmm VERSION 0.1.0 LANGUAGES C CXX CUDA)
+
+find_package(CUDAToolkit REQUIRED)
+# set(CUDA_LINK_LIBRARIES_KEYWORD PUBLIC)
+# cuda_select_nvcc_arch_flags(ARCH_FLAGS)
 
 set(RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 set(LIBRARY_OUTPUT_PATH  "${CMAKE_BINARY_DIR}")
@@ -14,10 +18,14 @@ add_subdirectory(src/data_structures)
 
 # Mark only one
 # add_compile_definitions(NONE)
-add_compile_definitions(SAMPLE_ALGO)
+# add_compile_definitions(SAMPLE_ALGO)
 # add_compile_definitions(CSR_COO)
+add_compile_definitions(CUDA_SAMPLE)
 
 add_executable(main src/main.cpp)
+target_link_libraries(main CUDA::cudart)
+target_link_libraries(main CUDA::cuda_driver)
+target_link_libraries(main CudaLib)
 target_link_libraries(main matplot)
 # target_link_libraries(main LibsLib)
 target_link_libraries(main DataStructuresLib)

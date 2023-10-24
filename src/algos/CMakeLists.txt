@@ -5,3 +5,11 @@ file(GLOB SOURCES
 )
 
 add_library(AlgoLib STATIC ${SOURCES})
+
+file(GLOB CU_SOURCES
+    ./*.cuh
+    ./*.cu
+)
+
+add_library(CudaLib STATIC ${CU_SOURCES})
+set_target_properties(CudaLib PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
