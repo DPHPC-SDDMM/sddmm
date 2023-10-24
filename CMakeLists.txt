@@ -4,8 +4,6 @@ cmake_minimum_required(VERSION 3.22)
 project(sddmm VERSION 0.1.0 LANGUAGES C CXX CUDA)
 
 find_package(CUDAToolkit REQUIRED)
-# set(CUDA_LINK_LIBRARIES_KEYWORD PUBLIC)
-# cuda_select_nvcc_arch_flags(ARCH_FLAGS)
 
 set(RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 set(LIBRARY_OUTPUT_PATH  "${CMAKE_BINARY_DIR}")
