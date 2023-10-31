@@ -34,7 +34,7 @@ namespace SDDMM {
                 // iterate over columns
                 for (Types::vec_size_t j = start_idx; j < end_idx; j++) {
                     Types::vec_size_t col = col_idx[j];
-                    double value = values[j];
+                    SDDMM::Types::expmt_t value = values[j];
                     mat.data.emplace_back(COO::triplet {row, col, value});
                 }
             }

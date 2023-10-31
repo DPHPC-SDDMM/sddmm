@@ -41,12 +41,6 @@ namespace SDDMM {
             std::vector<std::vector<Types::expmt_t>> runtimes;
         };
 
-        struct CSR {
-            std::vector<Types::expmt_t> values;
-            std::vector<int> col_idx;
-            std::vector<int> row_ptr;
-        };
-
         static void vector_fill(std::vector<Types::expmt_t>& vector, Types::expmt_t start, Types::expmt_t step, Types::expmt_t end){
             vector.clear();
             while(start < end){

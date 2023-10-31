@@ -21,7 +21,7 @@ namespace SDDMM {
 
             for (Types::vec_size_t i = 0; i < n; i++) {
                 for (Types::vec_size_t j = 0; j < m; j++) {
-                    double v = (*this)(i, j);
+                    SDDMM::Types::expmt_t v = this->at(i, j);
                     if (v != 0.0) {
                         // add values and column indices
                         mat.values.push_back(v);
@@ -45,7 +45,7 @@ namespace SDDMM {
             // iterate over all rows and columns
             for (Types::vec_size_t i = 0; i < n; i++) {
                 for (Types::vec_size_t j = 0; j < m; j++) {
-                    double value = data[i * m + j];
+                    SDDMM::Types::expmt_t value = data[i * m + j];
 
                     // push a triplet
                     if (value != 0.0) {

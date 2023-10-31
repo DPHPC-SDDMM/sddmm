@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 // Libraries for randomness
 #include <random>
