@@ -26,29 +26,29 @@ namespace SDDMM {
             Types::vec_size_t K = A.m; // == B.n ==> inner dimension of dense matrices
             
             // starting row idx of the current *tile*
-            for (int ii = 0; ii < N; ii += Ti) {
+            for (Types::vec_size_t ii = 0; ii < N; ii += Ti) {
 
                 // starting column idx of the current *tile*
-                for (int jj = 0; jj < M; jj += Tj) {
+                for (Types::vec_size_t jj = 0; jj < M; jj += Tj) {
 
                     // streaming dimension
-                    for (int kk = 0; kk < K; kk += Tk) {
+                    for (Types::vec_size_t kk = 0; kk < K; kk += Tk) {
 
                         // iterate over all rows of the tile
-                        for (int i = ii; i < std::min(ii + Ti, N); i++) {
+                        for (Types::vec_size_t i = ii; i < std::min(ii + Ti, N); i++) {
 
                             // iterate over all elements in the row (i.e. all columns)
-                            for (int ptr = S.row_ptr[i]; ptr < S.row_ptr[i+1]; ptr++) {
+                            for (Types::vec_size_t ptr = S.row_ptr[i]; ptr < S.row_ptr[i+1]; ptr++) {
 
                                 // get current column index
-                                int j = S.col_idx[ptr];
+                                Types::vec_size_t j = S.col_idx[ptr];
 
                                 // check if column index j is within the current tile
                                 if (j >= jj && j < jj + Tj) {
 
                                     // compute dot product
-                                    for (int k = kk; k < std::min(kk + Tk, K); ++k) {
-                                        P.values[ptr] += A[i][k] * B[j][k];
+                                    for (Types::vec_size_t k = kk; k < std::min(kk + Tk, K); ++k) {
+                                        P.values[ptr] += A.at(i,k) * B.at(k,j);
                                     }
                                 }
                             }
@@ -58,9 +58,11 @@ namespace SDDMM {
             }
 
             // scale
-            for (int i = 0; i < S.values.size(); i++) {
+            for (Types::vec_size_t i = 0; i < S.values.size(); i++) {
                 P.values[i] *= S.values[i];
             }
+
+            return P;
         }
     }
 }

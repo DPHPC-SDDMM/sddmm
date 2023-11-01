@@ -9,7 +9,6 @@
 #include "data_structures/coo/coo.h"
 
 #include "algos/sample_algo.cpp"
-#include "algos/tiled.cpp"
 #include "algos/cuda_sample.cpp"
 
 /**

@@ -3,6 +3,8 @@
 #include <vector>
 #include "../data_structures/matrix/matrix.h"
 #include "../data_structures/csr/csr.h"
+#include <omp.h>
+#include <iostream>
 
 namespace SDDMM {
     namespace Algo {
@@ -25,22 +27,46 @@ namespace SDDMM {
             SDDMM::Types::vec_size_t o_col = 0;
             SDDMM::Types::vec_size_t o_row = 0;
             SDDMM::Types::vec_size_t s = A_sparse.row_ptr.size()-1;
-            SDDMM::Types::vec_size_t v_ind = 0;
+            SDDMM::Types::vec_size_t v_s_ind = 0;
+
+            // SDDMM::Types::vec_size_t v_t_ind = 0;
+            // SDDMM::Types::vec_size_t c_t_ind = 0;
+            // SDDMM::Types::vec_size_t r_t_ind = 0;
+
+            // std::cout << omp_get_num_threads() << std::endl;
+
             for(SDDMM::Types::vec_size_t r=0; r<s; ++r){
                 SDDMM::Types::vec_size_t from = A_sparse.row_ptr[r];
                 SDDMM::Types::vec_size_t to = A_sparse.row_ptr[r+1];
-                for(SDDMM::Types::vec_size_t ci=from; ci<to; ++ci){
-                    SDDMM::Types::vec_size_t c = A_sparse.col_idx[ci];
-                    
-                    SDDMM::Types::expmt_t inner_product = 0;
-                    for(SDDMM::Types::vec_size_t ind=0; ind < X_dense.m; ++ind){
-                        inner_product += X_dense.at(r, ind)*Y_dense.at(ind, c);
-                    }
-                    
-                    res.values[v_ind] *= inner_product;
-                    v_ind++;
+                // std::vector<Types::expmt_t> inner_products(to - from, 0.0);
+                {
+                    // this would be the threadid
+                    // openMP parallel loop
+                    // for(int inner_prod_id = 0; inner_prod_id < inner_products.size(); ++inner_prod_id){
+                        // int inner_prod_id = 0; // => this is the thread id
+                        #pragma omp parallel for num_threads(12)
+                        for(SDDMM::Types::vec_size_t ci=from; ci<to; ++ci){
+                            SDDMM::Types::vec_size_t c = A_sparse.col_idx[ci];
+                            
+                            Types::expmt_t inner_product = 0;
+                            // the ind index has to be tiled later
+                            for(SDDMM::Types::vec_size_t ind=0; ind < X_dense.m; ++ind){
+                                inner_product += X_dense.at(r, ind)*Y_dense.at(ind, c);
+                            }
+
+                            // here we have the entire inner prouct inside inner_product
+                            res.values[v_s_ind + ci - from] *= inner_product;
+                            // inner_prod_id++; // don't do in threaded version
+                        }
+                    // }
                 }
+                v_s_ind += (to - from);
             }
+
+            // So, now, we start cheating because we are too lazy to 
+            // think of a correct, efficient solution that works without cheating
+            // (Hehehehehehe... ^^ Muahahahahahaaaaaaaa XD)
+
 
             return res;
         }
