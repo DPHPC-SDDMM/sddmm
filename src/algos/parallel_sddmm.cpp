@@ -2,29 +2,34 @@
 #include "../defines.h"
 #include <vector>
 #include "../data_structures/matrix/matrix.h"
-#include "../data_structures/csr/csr.h"
+#include "../data_structures/coo/coo.h"
 #include <omp.h>
 #include <iostream>
+#include <math.h>
 
 namespace SDDMM {
     namespace Algo {
-        Types::COO ParallelSDDMM(const Types::COO& A_sparse, const Types::Matrix& X_dense, const Types::Matrix& Y_dense, int num_threads) {
+        Types::COO ParallelSDDMM(const Types::COO& A_sparse, const Types::Matrix& X_dense, const Types::Matrix& Y_dense, Types::vec_size_t num_threads) {
             assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
             assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m && "All involved matrices must be non-empty!");
             assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Matrix dimensions must match!");
 
+            
             Types::COO res;
             res.n = A_sparse.n;
             res.m = A_sparse.m;
 
-            std::vector<Types::COO::triplet> batch(num_threads, {0,0,0});
+            std::vector<Types::COO::triplet> block(num_threads, {0,0,0});
             auto s = A_sparse.data.size();
             for(SDDMM::Types::vec_size_t i=0; i<s; i+=num_threads){
+                // auto m = std::min(s - i, num_threads);
                 #pragma omp parallel
+                // for(int tn=0; tn<num_threads; ++tn)
                 {
                     auto tn = omp_get_thread_num();
                     if(i+tn < s) {
-                        auto p = A_sparse.data.at(i);
+                        auto idx = i+tn;
+                        Types::COO::triplet p = A_sparse.data.at(idx);
                         Types::expmt_t inner_product = 0;
                         
                         // the ind index has to be tiled later
@@ -33,11 +38,10 @@ namespace SDDMM {
                         }
 
                         // here we have the entire inner prouct inside inner_product
-                        batch[tn] = {p.row, p.col, p.value * inner_product};
-                        // inner_prod_id++; // don't do in threaded version
+                        block[tn] = {p.row, p.col, p.value * inner_product};
                     }
                 }
-                res.data.insert(batch.begin(), batch.end());
+                res.data.insert(res.data.end(), block.begin(), block.begin() + std::min(s - i, num_threads));
             }
 
             // // reserve space
