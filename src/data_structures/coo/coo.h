@@ -33,7 +33,7 @@ namespace SDDMM{
             struct triplet {
                 Types::vec_size_t row;
                 Types::vec_size_t col;
-                double value;
+                Types::expmt_t value;
 
                 bool operator<(const triplet& other) const {
                     if (row == other.row) {
@@ -90,7 +90,7 @@ namespace SDDMM{
                 std::uniform_int_distribution<Types::vec_size_t> row_distribution(0, n-1);
                 std::uniform_int_distribution<Types::vec_size_t> column_distribution(0, m-1);
                 // [-1, 1] values were selected because neural networks often deal with smaller values.
-                std::uniform_real_distribution<double> value_distribution(-1.0, 1.0);
+                std::uniform_real_distribution<Types::expmt_t> value_distribution(-1.0, 1.0);
 
                 // Define the data structure (hash map) which will ensure
                 // that no (row, column) duplicates are inserted.
@@ -107,7 +107,7 @@ namespace SDDMM{
 
                     if (successful_insertion)
                     {
-                        double value = value_distribution(generator); // Generate cell value.
+                        Types::expmt_t value = value_distribution(generator); // Generate cell value.
                         output.data.push_back({row, column, value}); // Add element to output.
                         --elements_remaining; // Decrease counter of further elements required to add.
                     }
@@ -128,6 +128,20 @@ namespace SDDMM{
                 }
 
                 return os;
+            }
+
+            bool operator==(const COO& other){
+                if(data.size() != other.data.size())
+                    return false;
+
+                Types::vec_size_t s = data.size();
+                for(Types::vec_size_t i=0; i<s; ++i){
+                    if(data.at(i).col != other.data.at(i).col) return false;
+                    if(data.at(i).row != other.data.at(i).row) return false;
+                    if(data.at(i).value != other.data.at(i).value) return false;
+                }
+
+                return true;
             }
 
             [[nodiscard]] CSR to_csr() const;

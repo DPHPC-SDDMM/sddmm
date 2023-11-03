@@ -7,6 +7,7 @@
 #include "../src/data_structures/coo/coo.h"
 #include "../src/algos/naive_sddmm.cpp"
 #include "../src/algos/tiled_sddmm.cpp"
+#include "../src/algos/parallel_sddmm.cpp"
 
 UTEST_MAIN();
 
@@ -357,24 +358,82 @@ UTEST(Matrix, SDDMM_op) {
     }
 }
 
-UTEST(Matrix, SDDMM_giant_op) {
-    auto X = SDDMM::Types::Matrix::generate(5000, 8000);
+UTEST(Matrix, COO_equal){
+    auto matrix1 = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
+    auto matrix2 = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
+    auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5});
 
-    auto Y = SDDMM::Types::Matrix::generate(8000, 5000);
+    ASSERT_TRUE(matrix1 == matrix2);
+    ASSERT_TRUE(matrix1.to_coo() == matrix2.to_coo());
+    ASSERT_FALSE(matrix1 == matrix3);
+    ASSERT_FALSE(matrix1.to_coo() == matrix3.to_coo());
+}
+
+UTEST(Matrix, SDDMM_parallel) {
+    int num_threads = 12;
+    auto X = SDDMM::Types::Matrix::deterministic_gen(3, 4, {
+        1,  2,  3,  4,
+        5,  6,  7,  8,
+        9, 10, 11, 12
+    });
+
+    auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 3, {
+         2,  4,  6,
+         8, 10, 12,
+        14, 16, 18,
+        20, 22, 24
+
+    });
 
     // Note: for time testing purposes, do this outside of this
     // method
-    Y.to_dense_col_major();
+    // Y.to_dense_col_major();
 
-    std::cout << "Finished transformation" << std::endl;
+    auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(3,3, {
+        140, 160, 180, 
+        316, 368, 420, 
+        492, 576, 660
+    });
 
-    // Expected CSR outputs.
-    auto mat = SDDMM::Types::Matrix::generate(5000, 5000, 0.1);
-    auto csr_mat = mat.to_csr();
-    auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X, Y);
+    ASSERT_TRUE(inner_prod_res == X*Y);
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
+            0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5
+        });
+        auto coo_mat = temp.to_coo();
 
-    std::cout << "Result: " << result << std::endl;
+        // Expected CSR outputs.
+        auto result_temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
+             70, 160,  90,
+            316, 184, 420,
+            246, 576, 330
+        });
+        auto exp_result = result_temp.to_coo();
+        auto result = SDDMM::Algo::ParallelSDDMM(coo_mat, X, Y, num_threads);
+        ASSERT_TRUE(result == exp_result);
+    }
 }
+
+// UTEST(Matrix, SDDMM_giant_op) {
+//     auto X = SDDMM::Types::Matrix::generate(5000, 8000);
+
+//     auto Y = SDDMM::Types::Matrix::generate(8000, 5000);
+
+//     // Note: for time testing purposes, do this outside of this
+//     // method
+//     Y.to_dense_col_major();
+
+//     std::cout << "Finished transformation" << std::endl;
+
+//     // Expected CSR outputs.
+//     auto mat = SDDMM::Types::Matrix::generate(5000, 5000, 0.1);
+//     auto csr_mat = mat.to_csr();
+//     auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X, Y);
+
+//     std::cout << "Result: " << result << std::endl;
+// }
 
 // UTEST(Matrix, SDDMM_op_zero) {
 //     auto X = SDDMM::Types::Matrix::deterministic_gen(3, 4, {

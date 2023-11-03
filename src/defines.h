@@ -41,6 +41,12 @@ namespace SDDMM {
             std::vector<std::vector<Types::expmt_t>> runtimes;
         };
 
+        struct RC {
+            SDDMM::Types::vec_size_t row;
+            SDDMM::Types::vec_size_t col;
+            SDDMM::Types::vec_size_t val_offset;
+        };
+
         static void vector_fill(std::vector<Types::expmt_t>& vector, Types::expmt_t start, Types::expmt_t step, Types::expmt_t end){
             vector.clear();
             while(start < end){

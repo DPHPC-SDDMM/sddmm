@@ -3,8 +3,6 @@
 #include <vector>
 #include "../data_structures/matrix/matrix.h"
 #include "../data_structures/csr/csr.h"
-#include <omp.h>
-#include <iostream>
 
 namespace SDDMM {
     namespace Algo {
@@ -29,12 +27,6 @@ namespace SDDMM {
             SDDMM::Types::vec_size_t s = A_sparse.row_ptr.size()-1;
             SDDMM::Types::vec_size_t v_s_ind = 0;
 
-            // SDDMM::Types::vec_size_t v_t_ind = 0;
-            // SDDMM::Types::vec_size_t c_t_ind = 0;
-            // SDDMM::Types::vec_size_t r_t_ind = 0;
-
-            // std::cout << omp_get_num_threads() << std::endl;
-
             for(SDDMM::Types::vec_size_t r=0; r<s; ++r){
                 SDDMM::Types::vec_size_t from = A_sparse.row_ptr[r];
                 SDDMM::Types::vec_size_t to = A_sparse.row_ptr[r+1];
@@ -44,7 +36,7 @@ namespace SDDMM {
                     // openMP parallel loop
                     // for(int inner_prod_id = 0; inner_prod_id < inner_products.size(); ++inner_prod_id){
                         // int inner_prod_id = 0; // => this is the thread id
-                        #pragma omp parallel for num_threads(12)
+                        // #pragma omp parallel for num_threads(12)
                         for(SDDMM::Types::vec_size_t ci=from; ci<to; ++ci){
                             SDDMM::Types::vec_size_t c = A_sparse.col_idx[ci];
                             
