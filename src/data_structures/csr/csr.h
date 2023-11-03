@@ -68,22 +68,38 @@ namespace SDDMM{
                 res.values.reserve(values.size());
                 res.col_idx.reserve(col_idx.size());
                 res.row_ptr.reserve(row_ptr.size());
-                std::copy(values.begin(), values.end(), std::back_inserter(res.values));
-                std::copy(col_idx.begin(), col_idx.end(), std::back_inserter(res.col_idx));
-                std::copy(row_ptr.begin(), row_ptr.end(), std::back_inserter(res.row_ptr));
 
-                SDDMM::Types::vec_size_t o_col = 0;
-                SDDMM::Types::vec_size_t o_row = 0;
-                SDDMM::Types::vec_size_t s = row_ptr.size()-1;
-                SDDMM::Types::vec_size_t v_ind = 0;
-                for(SDDMM::Types::vec_size_t r=0; r<s; ++r){
-                    SDDMM::Types::vec_size_t from = row_ptr[r];
-                    SDDMM::Types::vec_size_t to = row_ptr[r+1];
-                    for(SDDMM::Types::vec_size_t ci=from; ci<to; ++ci){
-                        SDDMM::Types::vec_size_t c = col_idx[ci];
-                        res.values[v_ind] *= other.at(r, c);
+                Types::vec_size_t o_col = 0;
+                Types::vec_size_t o_row = 0;
+                Types::vec_size_t s = row_ptr.size()-1;
+                Types::vec_size_t v_ind = 0;
+                
+                // init val
+                Types::vec_size_t new_ci = 0;
+                res.row_ptr.push_back(new_ci);
+
+                // row_ptr
+                for(Types::vec_size_t r=0; r<s; ++r){
+                    
+                    Types::vec_size_t from = row_ptr[r];
+                    Types::vec_size_t to = row_ptr[r+1];
+
+                    // col_idx
+                    Types::vec_size_t ci;
+                    for(ci=from; ci<to; ++ci){
+                        
+                        Types::vec_size_t c = col_idx[ci];
+                        Types::expmt_t new_value = values[v_ind] * other.at(r, c);
+                        
+                        if(new_value > 0){
+                            res.values.push_back(new_value);
+                            res.col_idx.push_back(c);
+                            new_ci++;
+                        }
                         v_ind++;
                     }
+
+                    res.row_ptr.push_back(new_ci);
                 }
 
                 return res;
