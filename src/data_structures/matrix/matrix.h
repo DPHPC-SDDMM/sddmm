@@ -23,7 +23,6 @@ namespace SDDMM {
 
         class Matrix {
         private:
-            static constexpr SDDMM::Types::expmt_t EPSILON = 1e-9;
             MatrixFormat _format = MatrixFormat::RowMajor;
 
             void flip_matrix_format(){
@@ -69,7 +68,7 @@ namespace SDDMM {
 
             // generates an NxM Matrix with elements in range [min,max] and desired sparsity (sparsity 0.7 means that
             // the matrix will be 70% empty)
-            static Matrix generate(Types::vec_size_t n, Types::vec_size_t m, SDDMM::Types::expmt_t sparsity = 1.0, SDDMM::Types::expmt_t min = -1.0, SDDMM::Types::expmt_t max = 1.0) {
+            static Matrix generate(Types::vec_size_t n, Types::vec_size_t m, float sparsity = 1.0, SDDMM::Types::expmt_t min = -1.0, SDDMM::Types::expmt_t max = 1.0) {
                 std::random_device rd;
                 std::mt19937 gen(rd());
                 std::uniform_real_distribution<> value_dist(min, max);
@@ -103,7 +102,9 @@ namespace SDDMM {
                 for (Types::vec_size_t i = 0; i < n; i++) {
                     for (Types::vec_size_t j = 0; j < m; j++) {
                         // allow a margin for FP comparisons
-                        if (std::abs(this->at(i,j) - other.at(i,j)) > EPSILON) {
+                        Types::expmt_t a = this->at(i,j);
+                        Types::expmt_t b = other.at(i,j);
+                        if (std::abs(a - b) > Defines::epsilon) {
                             return false;
                         }
                     }
