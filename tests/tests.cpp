@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdio>
 #include <vector>
 #include <math.h>
 #include "test_helpers.hpp"
@@ -301,7 +302,7 @@ UTEST(Matrix, Hadamard) {
         auto dense = SDDMM::Types::Matrix::deterministic_gen(1, 1, {
             0.5
         });
-        
+
         auto temp = SDDMM::Types::Matrix::deterministic_gen(1, 1, {
             1
         });
@@ -458,6 +459,7 @@ UTEST(Matrix, COO_equal){
 }
 
 UTEST(Matrix, SDDMM_parallel) {
+    const SDDMM::Types::vec_size_t max_thread_num = 50;
     {
         auto X = SDDMM::Types::Matrix::deterministic_gen(5, 4, {
             1,  2,  3,  4,
@@ -502,7 +504,8 @@ UTEST(Matrix, SDDMM_parallel) {
             1036,  576, 1268,  692, 1500,
              654, 1456,  802, 1752,  950,
         });
-        for(int num_threads = 1; num_threads<30; ++num_threads){
+
+        for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
             auto result = SDDMM::Algo::ParallelSDDMM(coo_mat, X, Y, num_threads);
@@ -510,11 +513,134 @@ UTEST(Matrix, SDDMM_parallel) {
         }
     }
     {
-        // auto X = SDDMM::Types::Matrix::generate(500, 800);
-        // auto Y = SDDMM::Types::Matrix::generate(800, 500);        
-        // auto mat = SDDMM::Types::Matrix::generate(500, 500, 0.1); 
-        // auto csr_mat = mat.to_coo();
+        auto X = SDDMM::Types::Matrix::deterministic_gen(5, 4, {
+            6,  -1,  0,  0,
+            5,   6,  7,  8,
+            0,   0,  0,  0,
+            13, 14, 15, 16,
+            17, 18, 19, 20
+        });
 
+        auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 5, {
+             2,  4,  6,  8, 10,
+            12, 14, 16, 18, 20,
+            22, 24, 26, 28, 30,
+            32, 34, 36, 38, 40
+        });
+
+        auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(5,5, {
+               0,   10,   20,   30,   40,
+             492,  544,  596,  648,  700,
+               0,    0,    0,    0,    0,
+            1036, 1152, 1268, 1384, 1500,
+            1308, 1456, 1604, 1752, 1900
+        });
+
+        auto res = X*Y;
+        ASSERT_TRUE(inner_prod_res == res);
+
+        auto temp = SDDMM::Types::Matrix::deterministic_gen(5, 5, {
+            0.5, 1.0, 0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5, 1.0, 0.5
+        });
+        auto coo_mat = temp.to_coo();
+
+        // Expected CSR outputs.
+        auto result_temp = SDDMM::Types::Matrix::deterministic_gen(5, 5, {
+               0,   10,   10,   30,   20,
+             492,  272,  596,  324,  700,
+               0,    0,    0,    0,    0,
+            1036,  576, 1268,  692, 1500,
+             654, 1456,  802, 1752,  950
+        });
+
+        for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
+            omp_set_num_threads(num_threads);
+            auto exp_result = result_temp.to_coo();
+            auto result = SDDMM::Algo::ParallelSDDMM(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result == exp_result);
+        }
+    }
+    {
+        auto X = SDDMM::Types::Matrix::deterministic_gen(1, 1, {
+            1
+        });
+
+        auto Y = SDDMM::Types::Matrix::deterministic_gen(1, 1, {
+             2
+        });
+
+        auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(1,1, {
+               2
+        });
+
+        auto res = X*Y;
+        ASSERT_TRUE(inner_prod_res == res);
+
+        auto temp = SDDMM::Types::Matrix::deterministic_gen(1, 1, {
+            0.5
+        });
+        auto coo_mat = temp.to_coo();
+
+        // Expected CSR outputs.
+        auto result_temp = SDDMM::Types::Matrix::deterministic_gen(1, 1, {
+               1
+        });
+
+        for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
+            omp_set_num_threads(num_threads);
+            auto exp_result = result_temp.to_coo();
+            auto result = SDDMM::Algo::ParallelSDDMM(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result == exp_result);
+        }
+    }
+    {
+        // std::cout << "Generate matrix" << std::endl;
+        // auto X = SDDMM::Types::Matrix::generate(5000, 8000);
+        // auto Y = SDDMM::Types::Matrix::generate(8000, 5000);
+        // auto mat = SDDMM::Types::Matrix::generate(5000, 500, 0.1);
+
+        // std::cout << "Matrix to coo" << std::endl;
+        // auto coo_mat = mat.to_coo();
+        // std::cout << "Reference hadamard" << std::endl;
+        // auto exp_result = coo_mat.hadamard(X*Y);
+
+        // std::cout << "Go with the interesting stuff" << std::endl;
+        // omp_set_num_threads(32);
+        // auto result = SDDMM::Algo::ParallelSDDMM(coo_mat, X, Y, 32);
+        // ASSERT_TRUE(result == exp_result);
+    }
+}
+
+UTEST(Matrix, Generator_to_file){
+    std::string target_folder = ".";
+    target_folder += SDDMM::Defines::path_separator;
+    for(int i=1; i<100; i*=10)
+    {
+        auto X = SDDMM::Types::Matrix::generate(i*5, i*8, 0.0f);
+        auto Y = SDDMM::Types::Matrix::generate(i*8, i*5, 0.0f);
+        auto mat = SDDMM::Types::Matrix::generate(i*5, i*5, 0.1f);
+        auto coo_mat = mat.to_coo();
+        auto exp_result = coo_mat.hadamard(X*Y);
+
+        std::string name = SDDMM::Types::COO::hadamard_to_file(
+            target_folder, coo_mat, 0.1f, X, 0.0f, Y, 0.0f);
+
+        SDDMM::Types::COO out_sparse;
+        SDDMM::Types::Matrix out_X(0,0);
+        SDDMM::Types::Matrix out_Y(0,0);
+        SDDMM::Types::COO::hadamard_from_file(
+            target_folder + name,
+            out_sparse, out_X, out_Y);
+
+        ASSERT_TRUE(out_sparse == coo_mat);
+        ASSERT_TRUE(X == out_X);
+        ASSERT_TRUE(Y == out_Y);
+
+        std::remove((target_folder + name).c_str());
     }
 }
 
