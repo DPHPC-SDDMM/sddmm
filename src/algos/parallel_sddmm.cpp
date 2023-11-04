@@ -19,10 +19,10 @@ namespace SDDMM {
             res.n = A_sparse.n;
             res.m = A_sparse.m;
 
-            std::vector<Types::COO::triplet> block(num_threads, {0,0,0});
             auto s = A_sparse.data.size();
-            for(SDDMM::Types::vec_size_t i=0; i<s; i+=num_threads){
+            for(Types::vec_size_t i=0; i<s; i+=num_threads){
                 // auto m = std::min(s - i, num_threads);
+                std::vector<Types::COO::triplet> block(num_threads, {0,0,0});
                 #pragma omp parallel
                 // for(int tn=0; tn<num_threads; ++tn)
                 {
@@ -41,7 +41,11 @@ namespace SDDMM {
                         block[tn] = {p.row, p.col, p.value * inner_product};
                     }
                 }
-                res.data.insert(res.data.end(), block.begin(), block.begin() + std::min(s - i, num_threads));
+                for(Types::COO::triplet& elem : block){
+                    if(elem.value != 0){
+                        res.data.push_back(elem);
+                    }
+                }
             }
 
             // // reserve space
