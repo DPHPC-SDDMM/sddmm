@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 // Libraries for randomness
 #include <random>
 // Libraries for exception handling
@@ -10,6 +11,7 @@
 #include <map>
 #include <algorithm> // std::sort
 #include <cassert>
+#include <chrono>
 
 #include "../../defines.h"
 #include "../matrix/matrix.h"
@@ -137,9 +139,12 @@ namespace SDDMM{
 
                 Types::vec_size_t s = data.size();
                 for(Types::vec_size_t i=0; i<s; ++i){
-                    if(data.at(i).col != other.data.at(i).col) return false;
-                    if(data.at(i).row != other.data.at(i).row) return false;
-                    if(data.at(i).value != other.data.at(i).value) return false;
+                    auto a = std::fabs(data.at(i).col - other.data.at(i).col);
+                    if(a > Defines::epsilon) return false;
+                    auto b = std::fabs(data.at(i).row - other.data.at(i).row);
+                    if(b  > Defines::epsilon) return false;
+                    auto c = std::abs(data.at(i).value - other.data.at(i).value);
+                    if(c  > Defines::epsilon) return false;
                 }
 
                 return true;
@@ -167,6 +172,160 @@ namespace SDDMM{
                 }
 
                 return res;
+            }
+
+            static std::string hadamard_to_file(
+                std::string path, 
+                const SDDMM::Types::COO& sparse, 
+                const float sparse_sparsity,
+                const SDDMM::Types::Matrix& X, 
+                const float X_sparsity,
+                const SDDMM::Types::Matrix& Y,
+                const float Y_sparsity)
+            {
+                auto last = path[path.size()-1];
+                assert(last == SDDMM::Defines::path_separator && "path must end with a path separator / or \\");
+
+                auto created_at = std::chrono::system_clock::now();
+                auto created_at_t = std::chrono::system_clock::to_time_t(created_at);
+                std::string time = std::string(std::ctime(&created_at_t));
+                std::replace(time.begin(), time.end(), ' ', '_');
+                time = time.substr(0, time.size()-1);
+
+                std::stringstream name;
+                name << "hadamard_S-" << sparse.n << "x" << sparse.m << "-" << sparse_sparsity 
+                     << "_X-" << X.n << "x" << X.m << "-" << X_sparsity 
+                     << "_Y-" << Y.n << "x" << Y.m << "-" << Y_sparsity 
+                     << "___" << time
+                     << "___" << created_at.time_since_epoch().count()
+                     << ".txt";
+
+                std::ofstream output_file;
+                output_file.open(path + name.str());
+                output_file << sparse.n << " " << sparse.m << "\n";
+                for(const triplet& val : sparse.data){
+                    output_file << val.row << " " << val.col << " " << std::setprecision(12) << val.value << "|";
+                }
+                output_file << "\n" << X.n << " " << X.m << "\n";
+                for(const SDDMM::Types::expmt_t& val : X.data){
+                    output_file << std::setprecision(12) << val << " ";
+                }
+                output_file << "\n" << Y.n << " " << Y.m << "\n";
+                for(const SDDMM::Types::expmt_t& val : Y.data){
+                    output_file << std::setprecision(12) << val << " ";
+                }
+                output_file << "\n";
+                output_file.close();
+                return name.str();
+            }
+
+            static void hadamard_from_file(
+                std::string file_name, 
+                SDDMM::Types::COO& out_sparse, 
+                SDDMM::Types::Matrix& out_X, 
+                SDDMM::Types::Matrix& out_Y)
+            {
+                std::ifstream input_file;
+                input_file.open(file_name);
+
+                int state = 0;
+                while(!input_file.eof()){
+                    std::string input;
+                    std::getline(input_file, input, '\n');
+                    if(state == 0){
+                        // size of sparse matrix
+                        auto nums = string_to_num_vec(input);
+                        out_sparse.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
+                        out_sparse.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
+                        state++;
+                    }
+                    else if(state == 1){
+                        // value triplets of sparse matrix
+                        out_sparse.data = string_to_triplets(input);
+                        state++;
+                    }
+                    else if(state == 2){
+                        // size of X
+                        auto nums = string_to_num_vec(input);
+                        out_X.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
+                        out_X.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
+                        state++;
+                    }
+                    else if(state == 3){
+                        // values of X
+                        out_X.data = string_to_num_vec(input);
+                        state++;
+                    }
+                    else if(state == 4){
+                        // size of Y
+                        auto nums = string_to_num_vec(input);
+                        out_Y.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
+                        out_Y.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
+                        state++;
+                    }
+                    else if(state == 5){
+                        // values of Y
+                        out_Y.data = string_to_num_vec(input);
+                        state++;
+                    }
+                }
+
+                
+            }
+
+            static std::vector<triplet> string_to_triplets(std::string input){
+                std::vector<triplet> values;
+                std::stringstream temp;
+                for(char s : input){
+                    if(s == '|'){
+                        std::string str = temp.str();
+                        triplet t = string_to_triplet(str);
+                        values.push_back(t);
+                        temp.str(std::string());
+                    }
+                    else{
+                        temp << s;
+                    }
+                }
+                return values;
+            }
+
+            static triplet string_to_triplet(std::string input){
+                std::vector<SDDMM::Types::expmt_t> vals = string_to_num_vec(input);
+                triplet t = {
+                    static_cast<SDDMM::Types::vec_size_t>(vals[0]),
+                    static_cast<SDDMM::Types::vec_size_t>(vals[1]),
+                    static_cast<SDDMM::Types::expmt_t>(vals[2])
+                };
+
+                return t;
+            }
+
+            static std::vector<SDDMM::Types::expmt_t> string_to_num_vec(std::string input){
+                std::vector<SDDMM::Types::expmt_t> values;
+                std::stringstream temp;
+                for(char s : input){
+                    if(s == ' '){
+                        std::string t = temp.str();
+                        if(!t.empty()){
+                            SDDMM::Types::expmt_t val = std::stod(t);
+                            val = std::round(1e12*val)/1e12;
+                            values.push_back(static_cast<SDDMM::Types::expmt_t>(val));
+                        }
+                        temp.str(std::string());
+                    }
+                    else{
+                        temp << s;
+                    }
+                }
+                // last one
+                std::string t = temp.str();
+                if(!t.empty()){
+                    SDDMM::Types::expmt_t val = std::stod(t);
+                    val = std::round(1e12*val)/1e12;
+                    values.push_back(static_cast<SDDMM::Types::expmt_t>(val));
+                }
+                return values;
             }
 
             [[nodiscard]] CSR to_csr() const;
