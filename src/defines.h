@@ -14,7 +14,7 @@ namespace SDDMM {
     */
     namespace Types {
         /**
-         * This is the data type used for all experiments!!
+         * This is the data type used for all experiments!
         */
         typedef float expmt_t;
 
@@ -22,7 +22,6 @@ namespace SDDMM {
          * These are all other data types that like to have aggregated names
         */
         typedef std::vector<expmt_t>::size_type vec_size_t;
-        typedef std::vector<std::vector<expmt_t>> matrix_t;
     }
     
     /**

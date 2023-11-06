@@ -2,6 +2,11 @@
  * Exercise 1 of hpc
  * 
  * A simple double loop with some performance measurement
+ * 
+ * It is currently implemented, so that the plotting library "matplotlibplusplus"
+ * (https://alandefreitas.github.io/matplotplusplus/)
+ * can be tested.
+ * See the (public) constructor `SampleAlgo(Defines::ErrPlotData&, ...)`.
 */
 
 #include "../defines.h"

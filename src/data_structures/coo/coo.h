@@ -133,7 +133,7 @@ namespace SDDMM{
 
             /**
              * @param other: A reference to a sparse matrix.
-             * @returns Whether all elements of both matrices are equal within an error margin of Defines::epsilon.
+             * @returns Whether all elements of both matrices are equal within an error margin of `Defines::epsilon`.
             */
             bool operator==(const COO& other){
                 if(data.size() != other.data.size())
@@ -318,19 +318,20 @@ namespace SDDMM{
                 std::vector<SDDMM::Types::expmt_t> values;
                 std::stringstream temp;
                 for(char s : input){
-                    if(s == ' '){
-                        std::string t = temp.str();
+                    if(s == ' '){ // Element (number) of file is finished 
+                        std::string t = temp.str(); // Copy content of buffer
                         if(!t.empty()){
                             SDDMM::Types::expmt_t val = std::stod(t);
                             val = std::round(1e12*val)/1e12;
                             values.push_back(static_cast<SDDMM::Types::expmt_t>(val));
                         }
-                        temp.str(std::string());
+                        temp.str(std::string()); // Empty content of buffer
                     }
                     else{
-                        temp << s;
+                        temp << s; // Read character from file 
                     }
                 }
+                //? Why is this not captured by the above loop?
                 // last one
                 std::string t = temp.str();
                 if(!t.empty()){
