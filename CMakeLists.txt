@@ -99,3 +99,5 @@ target_link_libraries(cuda_tiled_sddmm_tests CudaLib)
 target_link_libraries(cuda_tiled_sddmm_tests matplot)
 target_link_libraries(cuda_tiled_sddmm_tests DataStructuresLib)
 target_link_libraries(cuda_tiled_sddmm_tests AlgoLib)
+
+# https://linuxhint.com/install-latest-version-nvidia-cuda-ubuntu-22-04-lts/

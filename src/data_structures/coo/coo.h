@@ -166,8 +166,8 @@ namespace SDDMM{
                 // reserve space
                 res.data.reserve(data.size());
 
-                Types::vec_size_t o_col = 0;
-                Types::vec_size_t o_row = 0;
+                // Types::vec_size_t o_col = 0;
+                // Types::vec_size_t o_row = 0;
                 Types::vec_size_t s = data.size();
                 for(Types::vec_size_t t=0; t<s; ++t){
                     auto temp = data.at(t);
