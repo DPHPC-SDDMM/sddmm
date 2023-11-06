@@ -25,14 +25,12 @@ namespace SDDMM{
         class COO {
         public:
             /**
-             * 'triplet' is a triplet of (vec_size_t, vec_size_t, double), whose elements represent:
+             * 'triplet' is a triplet of (Types::vec_size_t, Types::vec_size_t, Types::expmt_t), whose elements represent:
              * 0: row index
              * 1: column index
              * 2: value of cell
              * respectively.
             */
-
-            // structs could be a bit easier to access than tuples but that's up for a discussion
             struct triplet {
                 Types::vec_size_t row;
                 Types::vec_size_t col;
@@ -45,7 +43,7 @@ namespace SDDMM{
 
                     return row < other.row;
                 }
-            };
+            }; // structs could be a bit easier to access than tuples but that's up for a discussion
 
             std::vector<triplet> data;
             Types::vec_size_t n, m;
@@ -133,6 +131,10 @@ namespace SDDMM{
                 return os;
             }
 
+            /**
+             * @param other: A reference to a sparse matrix.
+             * @returns Whether all elements of both matrices are equal within an error margin of Defines::epsilon.
+            */
             bool operator==(const COO& other){
                 if(data.size() != other.data.size())
                     return false;
@@ -150,6 +152,10 @@ namespace SDDMM{
                 return true;
             }
 
+            /**
+             * @param other: A reference to a dense matrix.
+             * @returns The per-element product of the input dense matrix with this one.
+            */
             COO hadamard(const Matrix& other){
                 assert(n>0 && m>0 && other.n>0 && other.m>0 && "All involved matrices must be non-empty!");
                 assert(n==other.n && m==other.m && "Matrix dimensions must match!");
@@ -229,45 +235,52 @@ namespace SDDMM{
                 input_file.open(file_name);
 
                 int state = 0;
+                // Variable which stores the numerical content of a single line of the file.
+                std::vector<SDDMM::Types::expmt_t> nums;
                 while(!input_file.eof()){
                     std::string input;
                     std::getline(input_file, input, '\n');
-                    if(state == 0){
-                        // size of sparse matrix
-                        auto nums = string_to_num_vec(input);
-                        out_sparse.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
-                        out_sparse.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
-                        state++;
+                    /*
+                    NOTE: 
+                    Although in most cases a switch-case block is harder to maintain than multiple if-elses,
+                    switch statements are generally faster than nested if-else statements.
+                    This is because during compilation the compiler generates a jump table
+                    that is used to select the path of execution.
+                    Since our software is performance-critical,
+                    as minimally useful as it may be in practice, it should be considered.
+                    */
+                    switch (state){
+                        case 0: // size of sparse matrix
+                            nums = string_to_num_vec(input);
+                            out_sparse.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
+                            out_sparse.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
+                            break;
+                        
+                        case 1: // value triplets of sparse matrix
+                            out_sparse.data = string_to_triplets(input);
+                            break;
+                        
+                        case 2: // size of X
+                            nums = string_to_num_vec(input);
+                            out_X.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
+                            out_X.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
+                            break;
+
+                        case 3: // values of X
+                            out_X.data = string_to_num_vec(input);
+                            break;
+
+                        case 4: // size of Y
+                            nums = string_to_num_vec(input);
+                            out_Y.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
+                            out_Y.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
+                            break;
+
+                        case 5: // values of Y
+                            out_Y.data = string_to_num_vec(input);
+                            break;
                     }
-                    else if(state == 1){
-                        // value triplets of sparse matrix
-                        out_sparse.data = string_to_triplets(input);
-                        state++;
-                    }
-                    else if(state == 2){
-                        // size of X
-                        auto nums = string_to_num_vec(input);
-                        out_X.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
-                        out_X.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
-                        state++;
-                    }
-                    else if(state == 3){
-                        // values of X
-                        out_X.data = string_to_num_vec(input);
-                        state++;
-                    }
-                    else if(state == 4){
-                        // size of Y
-                        auto nums = string_to_num_vec(input);
-                        out_Y.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
-                        out_Y.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
-                        state++;
-                    }
-                    else if(state == 5){
-                        // values of Y
-                        out_Y.data = string_to_num_vec(input);
-                        state++;
-                    }
+                    state++; // Transition to the next state of reading
                 }
 
                 
