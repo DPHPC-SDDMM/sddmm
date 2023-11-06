@@ -3,6 +3,45 @@
 cmake_minimum_required(VERSION 3.22)
 project(sddmm VERSION 0.1.0 LANGUAGES C CXX CUDA)
 
+file(READ "./.cuda_arch" CUDA_ARCH)
+
+if("${CUDA_ARCH}" STREQUAL "")
+    message(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< :-) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+    message(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    message("   .cuda_arch doesn't exists. Visit")
+    message("   https://developer.nvidia.com/cuda-gpus")
+    message("   to find your GPU and correct architecture number. Then create file .cuda_arch")
+    message("   inside toplevel folder and write the architecture number in it WITHOUT! spaces")
+    message("   or newlines")
+    message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+    message(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> (-: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+    message("")
+
+    ############################################################################################
+    # if everything else fails, use this cmake-"code" snipsel and check the output. Maybe
+    # you get a bunch of possibilities for compatible cuda architectures
+    ############################################################################################
+    # read .cuda_arch to get number for achitecture
+    # include(FindCUDA/select_compute_arch)
+    # CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS_1)
+    # string(STRIP "${INSTALLED_GPU_CCS_1}" INSTALLED_GPU_CCS_2)
+    # string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
+    # string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
+    # message("========================= Available CUDA architecture =========================")
+    # message("${CUDA_ARCH_LIST}")
+    # message(">>>>>>>>>>>>>>>>>>>> This is a hack but it seems to work.. <<<<<<<<<<<<<<<<<<<<")
+    # message("========================= --------------------------- =========================")
+
+else()
+    message("========================= --------------------------- =========================")
+    message("Using cuda arch ${CUDA_ARCH}")
+    message("===============================================================================")
+    message("")
+endif()
+
+
 find_package(OpenMP)
 
 find_package(CUDAToolkit REQUIRED)
