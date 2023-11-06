@@ -10,7 +10,7 @@
 
 namespace SDDMM {
     namespace Algo {
-        void CudaTiledSDDMM(const Types::COO& A_sparse, const Types::Matrix& X_dense, const Types::Matrix& Y_dense) {
+        Types::COO CudaTiledSDDMM(const Types::COO& A_sparse, const Types::Matrix& X_dense, const Types::Matrix& Y_dense) {
             assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
             assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m && "All involved matrices must be non-empty!");
             assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Matrix dimensions must match!");
@@ -38,6 +38,8 @@ namespace SDDMM {
                 dense_size_y, 
                 out_sparse.data.data()
             );
+
+            return out_sparse;
         }
     }
 }

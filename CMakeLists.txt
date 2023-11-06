@@ -49,7 +49,7 @@ find_package(CUDAToolkit REQUIRED)
 set(RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 set(LIBRARY_OUTPUT_PATH  "${CMAKE_BINARY_DIR}")
 
-include_directories("${CMAKE_SOURCE_DIR}/matplotplusplus/source" "${CMAKE_SOURCE_DIR}/libs" "${CMAKE_SOURCE_DIR}/algos")
+include_directories("/usr/local/cuda/include" "${CMAKE_SOURCE_DIR}/matplotplusplus/source" "${CMAKE_SOURCE_DIR}/libs" "${CMAKE_SOURCE_DIR}/algos")
 add_subdirectory(matplotplusplus)
 add_subdirectory(src/algos)
 add_subdirectory(src/libs)
