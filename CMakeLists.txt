@@ -81,3 +81,21 @@ target_link_libraries(test1 matplot)
 # target_link_libraries(main LibsLib)
 target_link_libraries(test1 DataStructuresLib)
 target_link_libraries(test1 AlgoLib)
+
+# Check
+# https://forums.developer.nvidia.com/t/nvlink-fatal-could-not-open-input-file-when-linking-with-empty-static-library/208517/2
+# for [build] nvlink fatal   : Could not open input file '/usr/lib/x86_64-linux-gnu/libpthread.a'
+#  => use the dummy-symbols method. Example: add libpthread.a inside /usr/lib/x86_64-linux-gnu/libpthread.a containing
+#       /* Weak references in glibc that must be filled if glibc is to be
+#          thread safe.  */
+#       EXTERN(dummy_1)
+#       EXTERN(dummy_2)
+#       EXTERN(dummy_3)
+add_executable(cuda_tiled_sddmm_tests tests/cuda_tiled_sddmm_tests.cpp)
+target_link_libraries(cuda_tiled_sddmm_tests OpenMP::OpenMP_CXX)
+target_link_libraries(cuda_tiled_sddmm_tests CUDA::cudart)
+target_link_libraries(cuda_tiled_sddmm_tests CUDA::cuda_driver)
+target_link_libraries(cuda_tiled_sddmm_tests CudaLib)
+target_link_libraries(cuda_tiled_sddmm_tests matplot)
+target_link_libraries(cuda_tiled_sddmm_tests DataStructuresLib)
+target_link_libraries(cuda_tiled_sddmm_tests AlgoLib)
