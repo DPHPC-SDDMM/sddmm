@@ -30,7 +30,7 @@ if("${CUDA_ARCH}" STREQUAL "")
     # string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
     # string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
     # message("========================= Available CUDA architecture =========================")
-    # message("${CUDA_ARCH_LIST}")
+    # message("${INSTALLED_GPU_CCS_1}")
     # message(">>>>>>>>>>>>>>>>>>>> This is a hack but it seems to work.. <<<<<<<<<<<<<<<<<<<<")
     # message("========================= --------------------------- =========================")
 
@@ -54,6 +54,7 @@ add_subdirectory(matplotplusplus)
 add_subdirectory(src/algos)
 add_subdirectory(src/libs)
 add_subdirectory(src/data_structures)
+add_subdirectory(src/cuda_examples)
 add_subdirectory(tests)
 
 # Mark only one
@@ -101,3 +102,14 @@ target_link_libraries(cuda_tiled_sddmm_tests DataStructuresLib)
 target_link_libraries(cuda_tiled_sddmm_tests AlgoLib)
 
 # https://linuxhint.com/install-latest-version-nvidia-cuda-ubuntu-22-04-lts/
+
+add_executable(cuda_example_tests tests/cuda_example_tests.cpp)
+target_link_libraries(cuda_example_tests OpenMP::OpenMP_CXX)
+target_link_libraries(cuda_example_tests CUDA::cudart)
+target_link_libraries(cuda_example_tests CUDA::cuda_driver)
+# target_link_libraries(cuda_example_tests CudaLib)
+target_link_libraries(cuda_example_tests CudaExpCu)
+target_link_libraries(cuda_example_tests CudaExp)
+target_link_libraries(cuda_example_tests matplot)
+target_link_libraries(cuda_example_tests DataStructuresLib)
+target_link_libraries(cuda_example_tests AlgoLib)
