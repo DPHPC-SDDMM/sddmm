@@ -12,5 +12,6 @@ __global__ void k_cuda(SDDMM::Types::expmt_t *in, SDDMM::Types::expmt_t *out, SD
 void run_k(SDDMM::Types::expmt_t *in, SDDMM::Types::expmt_t *out, SDDMM::Types::vec_size_t len, SDDMM::Types::expmt_t x) {
     // M thread blocks with T threads each
     // <<<M, T>>>
-    k_cuda<<<1,256>>>(in, out, len, x);
+    int thread_num = 256;
+    k_cuda<<<1,thread_num>>>(in, out, len, x);
 }
