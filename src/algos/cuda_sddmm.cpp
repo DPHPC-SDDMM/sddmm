@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "../data_structures/matrix/matrix.h"
 #include "../data_structures/coo/coo.h"
+#include <iostream>
 
 #include "../defines.h"
 
@@ -10,34 +11,61 @@
 
 namespace SDDMM {
     namespace Algo {
-        Types::COO CudaTiledSDDMM(const Types::COO& A_sparse, const Types::Matrix& X_dense, const Types::Matrix& Y_dense) {
+        Types::COO cuda_tiled_sddmm(const Types::COO& A_sparse, const Types::Matrix& X_dense, const Types::Matrix& Y_dense) {
             assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
             assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m && "All involved matrices must be non-empty!");
             assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Matrix dimensions must match!");
 
-            
+            Types::vec_size_t inner_dense_dimension = X_dense.m;
+
+            // get sparse data length and produce one in bytes
+            Types::vec_size_t sparse_len = A_sparse.data.size();
+            Types::vec_size_t sparse_len_d = sizeof(Types::COO::triplet) * sparse_len;
+            Types::vec_size_t x_dense_len = X_dense.data.size();
+            Types::vec_size_t x_dense_len_d = sizeof(Types::expmt_t) * x_dense_len;
+            Types::vec_size_t y_dense_len = Y_dense.data.size();
+            Types::vec_size_t y_dense_len_d = sizeof(Types::expmt_t) * y_dense_len;
+
+            Types::COO::triplet* out_d;
+            cudaMalloc(reinterpret_cast<void**>(&out_d), sparse_len_d);
+
+            Types::COO::triplet* A_sparse_d;
+            Types::expmt_t* X_dense_d;
+            Types::expmt_t* Y_dense_d;
+            cudaMalloc(reinterpret_cast<void**>(&A_sparse_d), sparse_len_d);
+            cudaMalloc(reinterpret_cast<void**>(&X_dense_d), x_dense_len_d);
+            cudaMalloc(reinterpret_cast<void**>(&Y_dense_d), y_dense_len_d);
+
+            cudaMemcpy(A_sparse_d, A_sparse.data.data(), sparse_len_d, cudaMemcpyHostToDevice);
+            cudaMemcpy(X_dense_d, X_dense.data.data(), x_dense_len_d, cudaMemcpyHostToDevice);
+            cudaMemcpy(Y_dense_d, Y_dense.data.data(), y_dense_len_d, cudaMemcpyHostToDevice);
+
+            cudaTiledSDDMM(
+                A_sparse_d, X_dense_d, Y_dense_d, sparse_len,
+                X_dense.m, Y_dense.m, out_d
+            );
+
+            Types::COO::triplet* out = new Types::COO::triplet[sparse_len];
+            cudaMemcpy(out, out_d, sparse_len_d, cudaMemcpyDeviceToHost);
+
+            cudaFree(A_sparse_d);
+            cudaFree(X_dense_d);
+            cudaFree(Y_dense_d);
+            cudaFree(out_d);
+
             Types::COO out_sparse;
             out_sparse.n = A_sparse.n;
             out_sparse.m = A_sparse.m;
+            out_sparse.data.reserve(A_sparse.data.size());
             // make some space
-            out_sparse.data.resize(A_sparse.data.size());
-
-            size_t sp_base_size = sizeof(SDDMM::Types::COO::triplet);
-            size_t dense_base_size = sizeof(SDDMM::Types::expmt_t);
-
-            Types::vec_size_t sp_size = A_sparse.data.size()*sp_base_size;
-            Types::vec_size_t dense_size_x = X_dense.data.size()*dense_base_size;
-            Types::vec_size_t dense_size_y = Y_dense.data.size()*dense_base_size;
-
-            cuda_tiled_sddmm(
-                A_sparse.data.data(), 
-                sp_size,
-                X_dense.data.data(),
-                dense_size_x,
-                Y_dense.data.data(),
-                dense_size_y, 
-                out_sparse.data.data()
-            );
+            auto s = A_sparse.data.size();
+            for(Types::vec_size_t i=0; i<s; ++i){
+                auto v = out[i];
+                if(v.value != 0) {
+                    out_sparse.data.push_back(v);
+                }
+            }
+            out_sparse.data.shrink_to_fit();
 
             return out_sparse;
         }

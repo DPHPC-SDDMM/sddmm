@@ -1,48 +1,51 @@
 #include "cuda_sddmm.cuh"
 
 __global__ void k_sddmm(
-    SDDMM::Types::COO::triplet* a_sparse,
-    SDDMM::Types::expmt_t* x_dense,
-    SDDMM::Types::expmt_t* y_dense,
-    SDDMM::Types::COO::triplet* out_sparse
+    SDDMM::Types::COO::triplet* A_sparse_d, 
+    SDDMM::Types::expmt_t* X_dense_d,
+    SDDMM::Types::expmt_t* Y_dense_d,
+    SDDMM::Types::vec_size_t X_m, 
+    SDDMM::Types::vec_size_t Y_m,
+    SDDMM::Types::COO::triplet* out_d
 ) {
     int index = threadIdx.x;
     int stride = blockDim.x;
+    int blockNum = blockIdx.x;
+
+    SDDMM::Types::vec_size_t access_ind = index + blockNum*stride;
+    SDDMM::Types::COO::triplet p = A_sparse_d[access_ind];
+    SDDMM::Types::expmt_t inner_product = 0;
+    
+    // the ind index has to be tiled later
+    // X == X_n x X_m
+    // Y == Y_n x Y_m
+    // ==> X_m == Y_n (if Y_n existed)
+    for(SDDMM::Types::vec_size_t ind=0; ind < X_m; ++ind){
+        inner_product += X_dense_d[p.row * X_m + ind]*Y_dense_d[ind * Y_m + p.col];
+    }
+
+    out_d[access_ind] = SDDMM::Types::COO::triplet{
+        .row = p.row, 
+        .col = p.col, 
+        .value = p.value * inner_product
+    };
 }
 
-void cuda_tiled_sddmm(
-    const SDDMM::Types::COO::triplet* a_sparse,
-    const SDDMM::Types::vec_size_t a_size,
-    const SDDMM::Types::expmt_t* x_dense,
-    const SDDMM::Types::vec_size_t x_size,
-    const SDDMM::Types::expmt_t* y_dense,
-    const SDDMM::Types::vec_size_t y_size,
-    SDDMM::Types::COO::triplet* out_sparse
+void cudaTiledSDDMM(
+    SDDMM::Types::COO::triplet* A_sparse_d, 
+    SDDMM::Types::expmt_t* X_dense_d,
+    SDDMM::Types::expmt_t* Y_dense_d,
+    SDDMM::Types::vec_size_t sparse_len,
+    SDDMM::Types::vec_size_t X_m, 
+    SDDMM::Types::vec_size_t Y_m,
+    SDDMM::Types::COO::triplet* out_d
 ) 
 {
-    // SDDMM::Types::COO::triplet* a_sparse_d;
-    // SDDMM::Types::expmt_t* x_dense_d;
-    // SDDMM::Types::expmt_t* y_dense_d;
-    // SDDMM::Types::COO::triplet* out_sparse_d;
-
-    const void* a_sparse_loc =  reinterpret_cast<const void*>(a_sparse);
-    void* out_sparse_loc =  reinterpret_cast<void*>(out_sparse);
-    const void* x_dense_loc =  reinterpret_cast<const void*>(x_dense);
-    const void* y_dense_loc =  reinterpret_cast<const void*>(y_dense);
-
-    cudaMalloc(&a_sparse_loc, a_size);
-    cudaMalloc(&out_sparse_loc, a_size);
-    cudaMalloc(&x_dense_loc, x_size);
-    cudaMalloc(&y_dense_loc, y_size);
-
-    SDDMM::Types::COO::triplet* a_sparse_d;
-    SDDMM::Types::expmt_t* x_dense_d;
-    SDDMM::Types::expmt_t* y_dense_d;
-    SDDMM::Types::COO::triplet* out_sparse_d;
-
-    cudaMemcpy(a_sparse_d, a_sparse_loc, a_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(x_dense_d, x_dense_loc, x_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_dense_d, y_dense_loc, y_size, cudaMemcpyHostToDevice);
-
-    k_sddmm<<<1,1>>>(a_sparse_d, x_dense_d, y_dense_d, out_sparse_d);
+    // how many blocks do we need?
+    SDDMM::Types::vec_size_t block_num = 
+        static_cast<SDDMM::Types::vec_size_t>(
+            std::ceil(
+                static_cast<double>(sparse_len) / static_cast<double>(SDDMM::Defines::warp_size)
+            ));
+    k_sddmm<<<block_num, SDDMM::Defines::warp_size>>>(A_sparse_d, X_dense_d, Y_dense_d, X_m, Y_m, out_d);
 }

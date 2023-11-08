@@ -41,7 +41,7 @@ UTEST(Cuda_tiled_SDDMM, Init_test) {
         });
         auto coo_mat = temp.to_coo();
 
-        // Expected CSR outputs.
+        // Expected COO outputs.
         auto result_temp = SDDMM::Types::Matrix::deterministic_gen(5, 5, {
              110,  240,  130,  280,  150,
              492,  272,  596,  324,  700,
@@ -53,7 +53,7 @@ UTEST(Cuda_tiled_SDDMM, Init_test) {
         // for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
         // omp_set_num_threads(num_threads);
         auto exp_result = result_temp.to_coo();
-        auto result = SDDMM::Algo::CudaTiledSDDMM(coo_mat, X, Y);
+        auto result = SDDMM::Algo::cuda_tiled_sddmm(coo_mat, X, Y);
         ASSERT_TRUE(result == exp_result);
         // }
     }
