@@ -30,6 +30,7 @@ namespace SDDMM {
     class Defines {
     public:
         static constexpr SDDMM::Types::expmt_t epsilon = 1e-6;
+        static constexpr int warp_size = 32;
 
         struct InitParams {
             int sampleParam;
