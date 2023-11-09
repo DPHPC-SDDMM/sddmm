@@ -57,7 +57,7 @@ namespace SDDMM {
                 n_cpu_threads(n_cpu_threads)
             {}
 
-            // ([sparse_num_row x sparse_num_inner] * [sparse_num_inner x sparse_num_col])..hadamard..([sparse_num_row x sparse_num_col])
+            // ([sparse_num_row x dense_num_inner] * [dense_num_inner x sparse_num_col])..hadamard..([sparse_num_row x sparse_num_col])
             const Types::vec_size_t sparse_num_row;
             const Types::vec_size_t sparse_num_col; 
             const Types::vec_size_t dense_num_inner;
@@ -73,6 +73,7 @@ namespace SDDMM {
                 s << "<NxK,KxM>Had<NxM>" 
                  << "N" << sparse_num_row 
                  << "_M" << sparse_num_col 
+                 << "_K" << dense_num_inner
                  << "_sparsity-" << sparsity
                  << "_iters-" << n_experiment_iterations
                  << "_cpu-t-" << n_cpu_threads;
@@ -93,6 +94,9 @@ namespace SDDMM {
                  << info.to_string()
                  << "_[" << time << "]"
                  << ".txt";
+
+            std::ofstream output_file;
+            output_file.open(name.str());
         }
     };
 
@@ -103,23 +107,6 @@ namespace SDDMM {
     public:
         static constexpr SDDMM::Types::expmt_t epsilon = 1e-6;
         static constexpr int warp_size = 32;
-
-        // struct InitParams {
-        //     int sampleParam;
-        // };
-
-        // struct ErrPlotData {
-        //     Types::expmt_t min;
-        //     Types::expmt_t max;
-        //     std::vector<Types::time_duration_unit> x;
-        //     std::vector<std::vector<Types::time_duration_unit>> runtimes;
-        // };
-
-        // struct RC {
-        //     SDDMM::Types::vec_size_t row;
-        //     SDDMM::Types::vec_size_t col;
-        //     SDDMM::Types::vec_size_t val_offset;
-        // };
 
         static void vector_fill(std::vector<Types::expmt_t>& vector, Types::expmt_t start, Types::expmt_t step, Types::expmt_t end){
             vector.clear();
