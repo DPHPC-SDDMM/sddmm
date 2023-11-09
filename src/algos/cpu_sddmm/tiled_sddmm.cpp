@@ -7,6 +7,33 @@
 
 namespace SDDMM {
     namespace Algo {
+        /**
+         * @brief Computes the Sampled Dense-Dense Matrix Multiplication (SDDMM) operation
+         * __with memory tiling__
+         * using a single CPU thread (sequential processing) with a sparse matrix in the CSR matrix representation format.
+         * The SDDMM consists of a Hadamard product (i.e. element-wise multiplication) between
+         * - the dense matrix product AB between A and B and
+         * - a sparse matrix S
+         * 
+         * @param S: A sparse matrix using the CSR matrix representation format.
+         * @param A: The left-hand side (LHS) of the dense matrix product.
+         * @param B: The right-hand side (RHS) of the dense matrix product.
+         * @param Ti: The number of rows (of matrix S) that a tile will be consisted of (a.k.a the "height" of the tile).
+         * @param Tj: The number of columns (of matrix S) that a tile will be consisted of (a.k.a the "width" of the tile).
+         * @param Tk: The size of the tile over the inner dimension of matrices A and B.
+         * @param measurements: Optional variable pointer which stores the time required to perform the operation. The duration time measure unit is defined in @ref "defines.h"
+         * @returns (A @ B) * S
+         * 
+         * @remark Potential zero values arising during computations are ignored, so as to comply with the COO format. 
+         * 
+         * @warning Dimensionality of matrices are expected to match each operation used, i.e.
+         *  1) If X in R^{n x k}, then Y must be in R^{k x m}
+         *  2) A_sparse must be in R^{n x k}
+         * 
+         * @sa
+         * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+         * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+        */
         Types::CSR tiled_sddmm(
             const Types::CSR& S, 
             const Types::Matrix& A, 
@@ -67,10 +94,14 @@ namespace SDDMM {
             for (Types::vec_size_t i = 0; i < s; i++) {
                 auto val = intermediate[i];
                 if(val != 0){
-                    P.values.push_back(S.values[i] * val);   
+                    P.values.push_back(S.values[i] * val);
                 }
             }
 
+
+            // Recomputing the CSR format, due to the fact that
+            // 0 values might have been computed during the DDMM operation.
+            // NOTE: Remember that we only considered `val != 0` for the values of P.
             Types::vec_size_t ind = 0;
             Types::vec_size_t new_ci = 0;
             Types::vec_size_t rs = S.row_ptr.size()-1;

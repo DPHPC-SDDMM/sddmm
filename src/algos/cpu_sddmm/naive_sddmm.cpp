@@ -8,6 +8,30 @@
 
 namespace SDDMM {
     namespace Algo {
+        /**
+         * @brief Computes the Sampled Dense-Dense Matrix Multiplication (SDDMM) operation
+         * __using a single CPU thread (sequential processing)__ with a sparse matrix in the CSR matrix representation format.
+         * The SDDMM consists of a Hadamard product (i.e. element-wise multiplication) between
+         * - the dense matrix product XY between X_dense and Y_dense and
+         * - a sparse matrix
+         * 
+         * @param A_sparse: A sparse matrix using the CSR matrix representation format.
+         * @param X_dense: The left-hand side (LHS) of the dense matrix product.
+         * @param Y_dense: The right-hand side (RHS) of the dense matrix product.
+         * @param num_threads: The number of threads which will be utilized for performing this operation.
+         * @param measurements: Optional variable pointer which stores the time required to perform the operation. The duration time measure unit is defined in @ref "defines.h"
+         * @returns (X @ Y) * A_sparse
+         * 
+         * @remark Potential zero values arising during computations are ignored, so as to comply with the CSR format. 
+         * 
+         * @warning Dimensionality of matrices are expected to match each operation used, i.e.
+         *  1) If X in R^{n x k}, then Y must be in R^{k x m}
+         *  2) A_sparse must be in R^{n x k}
+         * 
+         * @sa
+         * - [CSR matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+         * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+        */
         Types::CSR naive_sddmm(
             const Types::CSR& A_sparse, 
             const Types::Matrix& X_dense, 
@@ -76,14 +100,41 @@ namespace SDDMM {
                 measurements->durations.push_back(duration);
             }
 
-            // So, now, we start cheating because we are too lazy to 
-            // think of a correct, efficient solution that works without cheating
-            // (Hehehehehehe... ^^ Muahahahahahaaaaaaaa XD)
-
+            // Shrink the size of the data structures in case zero-valued inner products appeared,
+            // thus requiring less than initial space predicted (i.e. memory amount equal to the input sparse matrix ).
+            res.values.shrink_to_fit();
+            res.col_idx.shrink_to_fit();
+            res.row_ptr.shrink_to_fit();
 
             return res;
         }
 
+        
+
+        /**
+         * @brief Computes the Sampled Dense-Dense Matrix Multiplication (SDDMM) operation
+         * __using a single CPU thread (sequential processing)__ with a sparse matrix in the COO matrix representation format.
+         * The SDDMM consists of a Hadamard product (i.e. element-wise multiplication) between
+         * - the dense matrix product XY between X_dense and Y_dense and
+         * - a sparse matrix
+         * 
+         * @param A_sparse: A sparse matrix using the COO matrix representation format.
+         * @param X_dense: The left-hand side (LHS) of the dense matrix product.
+         * @param Y_dense: The right-hand side (RHS) of the dense matrix product.
+         * @param num_threads: The number of threads which will be utilized for performing this operation.
+         * @param measurements: Optional variable pointer which stores the time required to perform the operation. The duration time measure unit is defined in @ref "defines.h"
+         * @returns (X @ Y) * A_sparse
+         * 
+         * @remark Potential zero values arising during computations are ignored, so as to comply with the COO format. 
+         * 
+         * @warning Dimensionality of matrices are expected to match each operation used, i.e.
+         *  1) If X in R^{n x k}, then Y must be in R^{k x m}
+         *  2) A_sparse must be in R^{n x k}
+         * 
+         * @sa
+         * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Compressed_sparse_row_(CSR,_CRS_or_Yale_format))
+         * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+        */
         Types::COO naive_sddmm(
             const Types::COO& A_sparse, 
             const Types::Matrix& X_dense, 
@@ -102,7 +153,7 @@ namespace SDDMM {
 
             auto s = A_sparse.data.size();
             for(Types::vec_size_t i=0; i<s; i++){
-                // auto m = std::min(s - i, num_threads); //? Why was this commented out? The logic makes since, as we don't utilize more threads than required.
+                // auto m = std::min(s - i, num_threads); // This line is commented out to resemble the *constant* number of threads when calling CUDA.
 
                 Types::COO::triplet p = A_sparse.data.at(i);
                 Types::expmt_t inner_product = 0;
@@ -123,6 +174,10 @@ namespace SDDMM {
                 Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
                 measurements->durations.push_back(duration);
             }
+
+            // Shrink the size of the data structures in case zero-valued inner products appeared,
+            // thus requiring less than initial space predicted (i.e. memory amount equal to the input sparse matrix ).
+            res.data.shrink_to_fit();
 
             return res;
         }
