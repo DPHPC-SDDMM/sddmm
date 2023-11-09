@@ -8,6 +8,9 @@ __global__ void k_sddmm(
     SDDMM::Types::vec_size_t Y_m,
     SDDMM::Types::COO::triplet* out_d
 ) {
+    // Each CUDA thread is responsible for computing one entry
+    // of the output sparse matrix `out_d`.
+    
     int index = threadIdx.x;
     int stride = blockDim.x;
     int blockNum = blockIdx.x;
@@ -41,7 +44,7 @@ void CudaTiledSDDMM(
     SDDMM::Types::COO::triplet* out_d
 ) 
 {
-    // how many blocks do we need?
+    // How many blocks do we need to fit the required threads?
     SDDMM::Types::vec_size_t block_num = 
         static_cast<SDDMM::Types::vec_size_t>(
             std::ceil(

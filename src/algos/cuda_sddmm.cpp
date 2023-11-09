@@ -63,8 +63,8 @@ namespace SDDMM {
             Types::COO out_sparse;
             out_sparse.n = A_sparse.n;
             out_sparse.m = A_sparse.m;
-            out_sparse.data.reserve(A_sparse.data.size());
-            // make some space
+            out_sparse.data.reserve(A_sparse.data.size()); // pre-emptively allocate the required memory
+
             auto s = A_sparse.data.size();
             for(Types::vec_size_t i=0; i<s; ++i){
                 auto v = out[i];
@@ -72,7 +72,6 @@ namespace SDDMM {
                     out_sparse.data.push_back(v);
                 }
             }
-            out_sparse.data.shrink_to_fit();
 
             auto end = std::chrono::high_resolution_clock::now();
 
@@ -80,6 +79,9 @@ namespace SDDMM {
                 Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
                 measurements->durations.push_back(duration);
             }
+
+            out_sparse.data.shrink_to_fit(); // SDDMM may have less entries than A_sparse, due to zero inner products forming.
+
 
             return out_sparse;
         }
