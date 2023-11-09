@@ -11,6 +11,8 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <iomanip>
+#include <cassert>
 
 namespace SDDMM {
 
@@ -35,13 +37,13 @@ namespace SDDMM {
     class Results {
     public:
         struct ExperimentData {
-            Types::vec_size_t n_iterations;
             std::string label;
             std::vector<Types::time_duration_unit> durations;
         };
 
         struct ExperimentInfo {
             ExperimentInfo(
+                std::string experiment_name,
                 Types::vec_size_t sparse_num_row,
                 Types::vec_size_t sparse_num_col,
                 Types::vec_size_t dense_num_inner,
@@ -49,6 +51,7 @@ namespace SDDMM {
                 Types::vec_size_t n_experiment_iterations,
                 Types::vec_size_t n_cpu_threads
             ) :
+                experiment_name(experiment_name),
                 sparse_num_row(sparse_num_row),
                 sparse_num_col(sparse_num_col),
                 dense_num_inner(dense_num_inner),
@@ -56,6 +59,8 @@ namespace SDDMM {
                 n_experiment_iterations(n_experiment_iterations),
                 n_cpu_threads(n_cpu_threads)
             {}
+
+            const std::string experiment_name;
 
             // ([sparse_num_row x dense_num_inner] * [dense_num_inner x sparse_num_col])..hadamard..([sparse_num_row x sparse_num_col])
             const Types::vec_size_t sparse_num_row;
@@ -80,9 +85,27 @@ namespace SDDMM {
 
                 return s.str();
             }
+
+            std::string to_info(){
+                std::stringstream s;
+                s << "[INFO]\n"
+                 << "sparse_num_row " << sparse_num_row << "\n"
+                 << "sparse_num_col " << sparse_num_col << "\n"
+                 << "dense_num_inner " << dense_num_inner << "\n"
+                 << "sparsity " << sparsity << "\n"
+                 << "n_experiment_iterations " << n_experiment_iterations << "\n"
+                 << "n_cpu_threads " << n_cpu_threads << "\n"
+                 << "[/INFO]";
+
+                return s.str();
+            }
         };
 
-        static void to_file(std::string filename, ExperimentInfo& info, const std::vector<ExperimentData>& data){
+        static std::string to_file(ExperimentInfo& info, const std::vector<ExperimentData>& data){
+            for(auto d : data){
+                assert(d.durations.size() > 0 && "All ExperimentData structs must contain result data");
+            }
+
             auto created_at = std::chrono::system_clock::now();
             auto created_at_t = std::chrono::system_clock::to_time_t(created_at);
             std::string time = std::string(std::ctime(&created_at_t));
@@ -90,13 +113,28 @@ namespace SDDMM {
             time = time.substr(0, time.size()-1);
 
             std::stringstream name;
-            name << filename 
+            name << "../../results/" << info.experiment_name
                  << info.to_string()
                  << "_[" << time << "]"
                  << ".txt";
 
             std::ofstream output_file;
             output_file.open(name.str());
+            output_file << info.to_info() << "\n";
+            output_file << "[DATA]\n" ;
+            for(auto d : data){
+                output_file << "[L] " << d.label << "\n";
+                size_t s = d.durations.size()-1;
+                output_file << "[D] ";
+                for(size_t i=0; i<s; ++i){
+                    output_file << std::setprecision(12) << d.durations.at(i) << " ";
+                }
+                output_file << std::setprecision(12) << d.durations.at(s) << "\n";
+            }
+            output_file << "[/DATA]\n" ;
+
+            output_file.close();
+            return name.str();
         }
     };
 
@@ -163,7 +201,7 @@ namespace SDDMM {
 #endif
     };
 
-    namespace TEXT_COLORS {
+    namespace TEXT {
         /**
         * Name            FG  BG
         * Black           30  40
@@ -240,6 +278,26 @@ namespace SDDMM {
             static std::string Magenta(std::string message) { return MAGENTA + message + END; }
             static std::string Cyan(std::string message) { return CYAN + message + END; }
             static std::string White(std::string message) { return WHITE + message + END; }
+        };
+
+        class Gadgets {
+            public:
+            /**
+             * 1 <= current <= total
+            */
+            static void print_progress(int current, int total){
+                std::cout << "\r" << GREEN << "[" << current << " / " << total << "]     " << END;
+                if(current < total) std::cout << std::flush;
+                else std::cout << std::endl;
+            }
+
+            static void print_line(int length, std::string color){
+                std::cout << color;
+                for(int i=0; i<length; ++i){
+                    std::cout << "=";
+                }
+                std::cout << END << std::endl;
+            }
         };
     }
 }

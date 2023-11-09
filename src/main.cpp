@@ -47,7 +47,15 @@ int main(int argc, char** argv){
     // int64_t duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 
     // std::cout << duration << std::endl;
-    SDDMM::Results::ExperimentInfo info(500, 500, 800, 0.1f, 200, 32);
+    SDDMM::Results::ExperimentInfo info(
+        "test_benchmark",
+        500,  /* sparse_num_rows */
+        500,  /* sparse_num_cols */
+        800,  /* dense_inner_dim */
+        0.1f, /* sparsity */
+        2,  /* n_experiments_num */
+        32    /* n_cpu_threads */
+    );
     SDDMM::Experiments::benchmark_sddmm(info);
 #endif
     return 0;
