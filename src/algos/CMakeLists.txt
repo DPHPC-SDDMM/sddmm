@@ -2,13 +2,18 @@ cmake_minimum_required(VERSION 3.22)
 
 file(GLOB SOURCES
     ./*.cpp
+    ./cpu_sddmm/*.cpp
+    ./sample/*.cpp
+    ./cuda_sddmm/*.cpp
 )
 
 add_library(AlgoLib STATIC ${SOURCES})
 
 file(GLOB CU_SOURCES
-    ./*.cuh
-    ./*.cu
+    ./cuda_sddmm/*.cuh
+    ./cuda_sddmm/*.cu
+    ./cuda_sample/*.cuh
+    ./cuda_sample/*.cu
 )
 
 add_library(CudaLib STATIC ${CU_SOURCES})

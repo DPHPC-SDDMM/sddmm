@@ -1,9 +1,9 @@
 
 #include <vector>
 #include <chrono>
-#include "../defines.h"
-#include "../data_structures/matrix/matrix.h"
-#include "../data_structures/csr/csr.h"
+#include "../../defines.h"
+#include "../../data_structures/matrix/matrix.h"
+#include "../../data_structures/csr/csr.h"
 
 namespace SDDMM {
     namespace Algo {
@@ -12,7 +12,7 @@ namespace SDDMM {
             const Types::Matrix& A, 
             const Types::Matrix& B, 
             int Ti, int Tj, int Tk,
-            Defines::ExperimentData* measurements = nullptr
+            Results::ExperimentData* measurements = nullptr
         ) {
             
             auto start = std::chrono::high_resolution_clock::now();

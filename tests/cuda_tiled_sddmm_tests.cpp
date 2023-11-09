@@ -1,5 +1,5 @@
 #include "test_helpers.hpp"
-#include "../src/algos/cuda_sddmm.cpp"
+#include "../src/algos/cuda_sddmm/cuda_sddmm.cpp"
 
 UTEST_MAIN();
 

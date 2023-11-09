@@ -2,16 +2,14 @@
 
 #include "defines.h"
 
-#include "libs/lib_plot.hpp"
+// #include "libs/lib_plot.hpp"
 
-#include "data_structures/matrix/matrix.h"
-#include "data_structures/csr/csr.h"
-#include "data_structures/coo/coo.h"
+// #include "data_structures/matrix/matrix.h"
+// #include "data_structures/csr/csr.h"
+// #include "data_structures/coo/coo.h"
+#include "experiments/sddmm_benchmark.cpp"
 
-#include "algos/sample_algo.cpp"
-#include "algos/cuda_sample.cpp"
-
-#include <chrono>
+// #include <chrono>
 
 /**
  * All algos as cpp files
@@ -49,6 +47,8 @@ int main(int argc, char** argv){
     // int64_t duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 
     // std::cout << duration << std::endl;
+    SDDMM::Results::ExperimentInfo info(500, 500, 800, 0.1f, 200, 32);
+    SDDMM::Experiments::benchmark_sddmm(info);
 #endif
     return 0;
 }

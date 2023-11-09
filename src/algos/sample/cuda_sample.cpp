@@ -7,7 +7,7 @@
 #include <cuda_runtime.h>
 #include <assert.h>
 
-#include "../defines.h"
+#include "../../defines.h"
 
 #include "cuda_sample.cuh"
 extern "C" void run(float* d_out, float* d_a, float* d_b, int N);

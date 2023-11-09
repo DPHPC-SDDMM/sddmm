@@ -6,9 +6,9 @@
 #include "../src/data_structures/matrix/matrix.h"
 #include "../src/data_structures/csr/csr.h"
 #include "../src/data_structures/coo/coo.h"
-#include "../src/algos/naive_sddmm.cpp"
-#include "../src/algos/tiled_sddmm.cpp"
-#include "../src/algos/parallel_sddmm.cpp"
+#include "../src/algos/cpu_sddmm/naive_sddmm.cpp"
+#include "../src/algos/cpu_sddmm/tiled_sddmm.cpp"
+#include "../src/algos/cpu_sddmm/parallel_sddmm.cpp"
 
 UTEST_MAIN();
 

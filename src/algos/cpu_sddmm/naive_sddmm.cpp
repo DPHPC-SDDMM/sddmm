@@ -1,10 +1,10 @@
 
 #include <vector>
 #include <chrono>
-#include "../defines.h"
-#include "../data_structures/matrix/matrix.h"
-#include "../data_structures/csr/csr.h"
-#include "../data_structures/coo/coo.h"
+#include "../../defines.h"
+#include "../../data_structures/matrix/matrix.h"
+#include "../../data_structures/csr/csr.h"
+#include "../../data_structures/coo/coo.h"
 
 namespace SDDMM {
     namespace Algo {
@@ -12,7 +12,7 @@ namespace SDDMM {
             const Types::CSR& A_sparse, 
             const Types::Matrix& X_dense, 
             const Types::Matrix& Y_dense,
-            Defines::ExperimentData* measurements = nullptr
+            Results::ExperimentData* measurements = nullptr
         ) {
             assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
             assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m && "All involved matrices must be non-empty!");
@@ -88,7 +88,7 @@ namespace SDDMM {
             const Types::COO& A_sparse, 
             const Types::Matrix& X_dense, 
             const Types::Matrix& Y_dense, 
-            Defines::ExperimentData* measurements = nullptr
+            Results::ExperimentData* measurements = nullptr
         ) {
             assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
             assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m>0 && "All involved matrices must be non-empty!");
