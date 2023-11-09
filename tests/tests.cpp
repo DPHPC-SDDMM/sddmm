@@ -366,38 +366,34 @@ UTEST(Matrix, Flip) {
 }
 
 UTEST(Matrix, SDDMM_op) {
-    auto X = SDDMM::Types::Matrix::deterministic_gen(3, 4, {
-        1,  2,  3,  4,
-        5,  6,  7,  8,
-        9, 10, 11, 12
-    });
-
-    auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 3, {
-         2,  4,  6,
-         8, 10, 12,
-        14, 16, 18,
-        20, 22, 24
-
-    });
-
-    // Note: for time testing purposes, do this outside of this
-    // method
-    Y.to_dense_col_major();
-
-    auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(3,3, {
-        140, 160, 180, 
-        316, 368, 420, 
-        492, 576, 660
-    });
-
-    ASSERT_TRUE(inner_prod_res == X*Y);
     {
+        auto X = SDDMM::Types::Matrix::deterministic_gen(3, 4, {
+            1,  2,  3,  4,
+            5,  6,  7,  8,
+            9, 10, 11, 12
+        });
+
+        auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 3, {
+            2,  4,  6,
+            8, 10, 12,
+            14, 16, 18,
+            20, 22, 24
+
+        });
+
+        auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(3,3, {
+            140, 160, 180, 
+            316, 368, 420, 
+            492, 576, 660
+        });
+
+        ASSERT_TRUE(inner_prod_res == X*Y);
+
         auto temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
             0.5, 1.0, 0.5,
             1.0, 0.5, 1.0,
             0.5, 1.0, 0.5
         });
-        auto csr_mat = temp.to_csr();
 
         // Expected CSR outputs.
         auto result_temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
@@ -405,17 +401,48 @@ UTEST(Matrix, SDDMM_op) {
             316, 184, 420,
             246, 576, 330
         });
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+
         auto exp_result = result_temp.to_csr();
-        auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X, Y);
-        ASSERT_TRUE(result == exp_result);
+        auto exp_result_coo = result_temp.to_coo();
+        auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
+        ASSERT_TRUE(result1 == exp_result);
+        auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
+        ASSERT_TRUE(result2 == exp_result_coo);
+        auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
+        ASSERT_TRUE(result3 == exp_result);
+        auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
+        ASSERT_TRUE(result4 == exp_result);
     }
     {
+        auto X = SDDMM::Types::Matrix::deterministic_gen(3, 4, {
+            1,  2,  3,  4,
+            5,  6,  7,  8,
+            9, 10, 11, 12
+        });
+
+        auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 3, {
+            2,  4,  6,
+            8, 10, 12,
+            14, 16, 18,
+            20, 22, 24
+
+        });
+
+        auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(3,3, {
+            140, 160, 180, 
+            316, 368, 420, 
+            492, 576, 660
+        });
+
+        ASSERT_TRUE(inner_prod_res == X*Y);
+
         auto temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
             0.5, 0.0, 0.5,
             0.0, 0.5, 0.0,
             0.5, 0.0, 0.5
         });
-        auto csr_mat = temp.to_csr();
 
         // Expected CSR outputs.
         auto result_temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
@@ -423,17 +450,97 @@ UTEST(Matrix, SDDMM_op) {
               0, 184,   0,
             246,   0, 330
         });
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+
         auto exp_result = result_temp.to_csr();
-        auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X, Y);
-        ASSERT_TRUE(result == exp_result);
+        auto exp_result_coo = result_temp.to_coo();
+        auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
+        ASSERT_TRUE(result1 == exp_result);
+        auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
+        ASSERT_TRUE(result2 == exp_result_coo);
+        auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
+        ASSERT_TRUE(result3 == exp_result);
+        auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
+        ASSERT_TRUE(result4 == exp_result);
     }
     {
+        auto X = SDDMM::Types::Matrix::deterministic_gen(3, 4, {
+            1,  2,  3,  4,
+            5,  6,  7,  8,
+            9, 10, 11, 12
+        });
+
+        auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 3, {
+            2,  4,  6,
+            8, 10, 12,
+            14, 16, 18,
+            20, 22, 24
+
+        });
+
+        auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(3,3, {
+            140, 160, 180, 
+            316, 368, 420, 
+            492, 576, 660
+        });
+
+        ASSERT_TRUE(inner_prod_res == X*Y);
+
+        auto temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
+            -0.5, 0.0, 0.5,
+            0.0, 0.5, 0.0,
+            0.5, 0.0, 0.5
+        });
+
+        // Expected CSR outputs.
+        auto result_temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
+             -70,   0,  90,
+              0, 184,   0,
+            246,   0, 330
+        });
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+        
+        auto exp_result = result_temp.to_csr();
+        auto exp_result_coo = result_temp.to_coo();
+        auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
+        ASSERT_TRUE(result1 == exp_result);
+        auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
+        ASSERT_TRUE(result2 == exp_result_coo);
+        auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
+        ASSERT_TRUE(result3 == exp_result);
+        auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
+        ASSERT_TRUE(result4 == exp_result);
+    }
+    {
+        auto X = SDDMM::Types::Matrix::deterministic_gen(3, 4, {
+            1,  2,  3,  4,
+            5,  6,  7,  8,
+            9, 10, 11, 12
+        });
+
+        auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 3, {
+            2,  4,  6,
+            8, 10, 12,
+            14, 16, 18,
+            20, 22, 24
+
+        });
+
+        auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(3,3, {
+            140, 160, 180, 
+            316, 368, 420, 
+            492, 576, 660
+        });
+
+        ASSERT_TRUE(inner_prod_res == X*Y);
+
         auto temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0
         });
-        auto csr_mat = temp.to_csr();
 
         // Expected CSR outputs.
         auto result_temp = SDDMM::Types::Matrix::deterministic_gen(3, 3, {
@@ -441,12 +548,22 @@ UTEST(Matrix, SDDMM_op) {
               0,   0,   0,
               0,   0,   0
         });
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+        
         auto exp_result = result_temp.to_csr();
-        auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X, Y);
-        ASSERT_TRUE(result == exp_result);
+        auto exp_result_coo = result_temp.to_coo();
+        auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
+        ASSERT_TRUE(result1 == exp_result);
+        auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
+        ASSERT_TRUE(result2 == exp_result_coo);
+        auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
+        ASSERT_TRUE(result3 == exp_result);
+        auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
+        ASSERT_TRUE(result4 == exp_result);
     }
     {
-        auto X1 = SDDMM::Types::Matrix::deterministic_gen(5, 4, {
+        auto X = SDDMM::Types::Matrix::deterministic_gen(5, 4, {
             6,  -1,  0,  0,
             5,   6,  7,  8,
             0,   0,  0,  0,
@@ -454,14 +571,14 @@ UTEST(Matrix, SDDMM_op) {
             17, 18, 19, 20
         });
 
-        auto Y1 = SDDMM::Types::Matrix::deterministic_gen(4, 5, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 5, {
              2,  4,  6,  8, 10,
             12, 14, 16, 18, 20,
             22, 24, 26, 28, 30,
             32, 34, 36, 38, 40
         });
 
-        auto inner_prod_res1 = SDDMM::Types::Matrix::deterministic_gen(5,5, {
+        auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(5,5, {
                0,   10,   20,   30,   40,
              492,  544,  596,  648,  700,
                0,    0,    0,    0,    0,
@@ -469,8 +586,8 @@ UTEST(Matrix, SDDMM_op) {
             1308, 1456, 1604, 1752, 1900
         });
 
-        auto res = X1*Y1;
-        ASSERT_TRUE(inner_prod_res1 == res);
+        auto res = X*Y;
+        ASSERT_TRUE(inner_prod_res == res);
 
         auto temp = SDDMM::Types::Matrix::deterministic_gen(5, 5, {
             0.5, 1.0, 0.5, 1.0, 0.5,
@@ -479,7 +596,6 @@ UTEST(Matrix, SDDMM_op) {
             1.0, 0.5, 1.0, 0.5, 1.0,
             0.5, 1.0, 0.5, 1.0, 0.5
         });
-        auto csr_mat = temp.to_csr();
 
         // Expected CSR outputs.
         auto result_temp = SDDMM::Types::Matrix::deterministic_gen(5, 5, {
@@ -490,9 +606,19 @@ UTEST(Matrix, SDDMM_op) {
              654, 1456,  802, 1752,  950
         });
 
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+        
         auto exp_result = result_temp.to_csr();
-        auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X1, Y1);
-        ASSERT_TRUE(result == exp_result);
+        auto exp_result_coo = result_temp.to_coo();
+        auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
+        ASSERT_TRUE(result1 == exp_result);
+        auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
+        ASSERT_TRUE(result2 == exp_result_coo);
+        auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
+        ASSERT_TRUE(result3 == exp_result);
+        auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
+        ASSERT_TRUE(result4 == exp_result);
     }
 }
 
@@ -557,7 +683,7 @@ UTEST(Matrix, SDDMM_parallel) {
         for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
-            auto result = SDDMM::Algo::ParallelSDDMM(coo_mat, X, Y, num_threads);
+            auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
             ASSERT_TRUE(result == exp_result);
         }
     }
@@ -609,7 +735,7 @@ UTEST(Matrix, SDDMM_parallel) {
         for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
-            auto result = SDDMM::Algo::ParallelSDDMM(coo_mat, X, Y, num_threads);
+            auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
             ASSERT_TRUE(result == exp_result);
         }
     }
@@ -642,7 +768,7 @@ UTEST(Matrix, SDDMM_parallel) {
         for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
-            auto result = SDDMM::Algo::ParallelSDDMM(coo_mat, X, Y, num_threads);
+            auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
             ASSERT_TRUE(result == exp_result);
         }
     }
@@ -659,7 +785,7 @@ UTEST(Matrix, SDDMM_parallel) {
 
         // std::cout << "Go with the interesting stuff" << std::endl;
         // omp_set_num_threads(32);
-        // auto result = SDDMM::Algo::ParallelSDDMM(coo_mat, X, Y, 32);
+        // auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, 32);
         // ASSERT_TRUE(result == exp_result);
     }
 }
@@ -707,7 +833,7 @@ UTEST(Matrix, Generator_to_file){
 //     // Expected CSR outputs.
 //     auto mat = SDDMM::Types::Matrix::generate(5000, 5000, 0.1);
 //     auto csr_mat = mat.to_csr();
-//     auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X, Y);
+//     auto result = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
 
 //     std::cout << "Result: " << result << std::endl;
 // }
@@ -753,7 +879,7 @@ UTEST(Matrix, Generator_to_file){
 //             246, 576, 330
 //         });
 //         auto exp_result = result_temp.to_csr();
-//         auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X, Y);
+//         auto result = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
 //         ASSERT_TRUE(result == exp_result);
 //     }
 // }
@@ -794,8 +920,8 @@ UTEST(Matrix, SDDMM_tiled_op) {
             246, 576, 330
         });
         auto exp_result = result_temp.to_csr();
-        // auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X, Y);
-        auto result = SDDMM::Algo::TiledSDDMM(csr_mat, X, Y, 8, 8, 8);
+        // auto result = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
+        auto result = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
         ASSERT_TRUE(result == exp_result);
     }
 

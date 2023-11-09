@@ -56,12 +56,14 @@ add_subdirectory(src/libs)
 add_subdirectory(src/data_structures)
 add_subdirectory(src/cuda_examples)
 add_subdirectory(tests)
+add_subdirectory(src/experiments)
 
 # Mark only one
 # add_compile_definitions(NONE)
 # add_compile_definitions(SAMPLE_ALGO)
 # add_compile_definitions(CSR_COO)
 # add_compile_definitions(CUDA_SAMPLE)
+# add_compile_definitions(SDDMM_BENCHMARK)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main OpenMP::OpenMP_CXX)
@@ -72,6 +74,7 @@ target_link_libraries(main matplot)
 # target_link_libraries(main LibsLib)
 target_link_libraries(main DataStructuresLib)
 target_link_libraries(main AlgoLib)
+target_link_libraries(main ExperimentLib)
 
 add_executable(test1 tests/tests.cpp)
 target_link_libraries(test1 OpenMP::OpenMP_CXX)

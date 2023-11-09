@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <string>
+#include <chrono>
 
 namespace SDDMM {
 
@@ -22,6 +23,9 @@ namespace SDDMM {
          * These are all other data types that like to have aggregated names
         */
         typedef std::vector<expmt_t>::size_type vec_size_t;
+
+        typedef std::chrono::microseconds time_measure_unit;
+        typedef int64_t time_duration_unit;
     }
     
     /**
@@ -36,11 +40,15 @@ namespace SDDMM {
             int sampleParam;
         };
 
+        struct ExperimentData {
+            std::vector<Types::time_duration_unit> durations;
+        };
+
         struct ErrPlotData {
             Types::expmt_t min;
             Types::expmt_t max;
-            std::vector<Types::expmt_t> x;
-            std::vector<std::vector<Types::expmt_t>> runtimes;
+            std::vector<Types::time_duration_unit> x;
+            std::vector<std::vector<Types::time_duration_unit>> runtimes;
         };
 
         struct RC {

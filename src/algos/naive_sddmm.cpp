@@ -1,15 +1,24 @@
 
-#include "../defines.h"
 #include <vector>
+#include <chrono>
+#include "../defines.h"
 #include "../data_structures/matrix/matrix.h"
 #include "../data_structures/csr/csr.h"
+#include "../data_structures/coo/coo.h"
 
 namespace SDDMM {
     namespace Algo {
-        Types::CSR NaiveSDDMM(const Types::CSR& A_sparse, const Types::Matrix& X_dense, const Types::Matrix& Y_dense) {
+        Types::CSR naive_sddmm(
+            const Types::CSR& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense,
+            Defines::ExperimentData* measurements = nullptr
+        ) {
             assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
             assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m && "All involved matrices must be non-empty!");
             assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Matrix dimensions must match!");
+
+            auto start = std::chrono::high_resolution_clock::now();
 
             Types::CSR res;
             res.n = A_sparse.n;
@@ -60,10 +69,60 @@ namespace SDDMM {
                 res.row_ptr.push_back(new_ci);
             }
 
+            auto end = std::chrono::high_resolution_clock::now();
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
+
             // So, now, we start cheating because we are too lazy to 
             // think of a correct, efficient solution that works without cheating
             // (Hehehehehehe... ^^ Muahahahahahaaaaaaaa XD)
 
+
+            return res;
+        }
+
+        Types::COO naive_sddmm(
+            const Types::COO& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
+            Defines::ExperimentData* measurements = nullptr
+        ) {
+            assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
+            assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m>0 && "All involved matrices must be non-empty!");
+            assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Matrix dimensions must match!");
+
+            auto start = std::chrono::high_resolution_clock::now();
+
+            Types::COO res;
+            res.n = A_sparse.n;
+            res.m = A_sparse.m;
+
+            auto s = A_sparse.data.size();
+            for(Types::vec_size_t i=0; i<s; i++){
+                // auto m = std::min(s - i, num_threads); //? Why was this commented out? The logic makes since, as we don't utilize more threads than required.
+
+                Types::COO::triplet p = A_sparse.data.at(i);
+                Types::expmt_t inner_product = 0;
+                
+                // the ind index has to be tiled later
+                for(SDDMM::Types::vec_size_t ind=0; ind < X_dense.m; ++ind){
+                    inner_product += X_dense.at(p.row, ind)*Y_dense.at(ind, p.col);
+                }
+
+                if(inner_product != 0){ // Comply with the definition of a COO matrix (i.e. hold only non-zero values).
+                    res.data.push_back({p.row, p.col, p.value * inner_product});
+                }
+            }
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
 
             return res;
         }
