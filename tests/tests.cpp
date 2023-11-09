@@ -445,6 +445,55 @@ UTEST(Matrix, SDDMM_op) {
         auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X, Y);
         ASSERT_TRUE(result == exp_result);
     }
+    {
+        auto X1 = SDDMM::Types::Matrix::deterministic_gen(5, 4, {
+            6,  -1,  0,  0,
+            5,   6,  7,  8,
+            0,   0,  0,  0,
+            13, 14, 15, 16,
+            17, 18, 19, 20
+        });
+
+        auto Y1 = SDDMM::Types::Matrix::deterministic_gen(4, 5, {
+             2,  4,  6,  8, 10,
+            12, 14, 16, 18, 20,
+            22, 24, 26, 28, 30,
+            32, 34, 36, 38, 40
+        });
+
+        auto inner_prod_res1 = SDDMM::Types::Matrix::deterministic_gen(5,5, {
+               0,   10,   20,   30,   40,
+             492,  544,  596,  648,  700,
+               0,    0,    0,    0,    0,
+            1036, 1152, 1268, 1384, 1500,
+            1308, 1456, 1604, 1752, 1900
+        });
+
+        auto res = X1*Y1;
+        ASSERT_TRUE(inner_prod_res1 == res);
+
+        auto temp = SDDMM::Types::Matrix::deterministic_gen(5, 5, {
+            0.5, 1.0, 0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5, 1.0, 0.5
+        });
+        auto csr_mat = temp.to_csr();
+
+        // Expected CSR outputs.
+        auto result_temp = SDDMM::Types::Matrix::deterministic_gen(5, 5, {
+               0,   10,   10,   30,   20,
+             492,  272,  596,  324,  700,
+               0,    0,    0,    0,    0,
+            1036,  576, 1268,  692, 1500,
+             654, 1456,  802, 1752,  950
+        });
+
+        auto exp_result = result_temp.to_csr();
+        auto result = SDDMM::Algo::NaiveSDDMM(csr_mat, X1, Y1);
+        ASSERT_TRUE(result == exp_result);
+    }
 }
 
 UTEST(Matrix, COO_equal){
