@@ -11,7 +11,7 @@ namespace SDDMM {
         public:
         static void benchmark_sddmm(Results::ExperimentInfo& info){
             
-            TEXT::Gadgets::print_line(100, TEXT::BRIGHT_RED);
+            TEXT::Gadgets::print_colored_line(100, '=', TEXT::BRIGHT_RED);
 
             std::cout << TEXT::Cast::Cyan("Generate matrix") << std::endl;
             auto X = Types::Matrix::generate(info.sparse_num_row, info.dense_num_inner);
@@ -85,6 +85,7 @@ namespace SDDMM {
             }
             // =========================================
 
+            std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
             Results::to_file(info, {
                 parallel_sddmm,
                 naive_sddmm_coo,

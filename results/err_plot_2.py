@@ -3,7 +3,7 @@ import data
 import numpy as np
  
 if __name__ == '__main__':
-    data_file = 'test_benchmark<NxK,KxM>Had<NxM>N500_M500_K800_sparsity-0.1_iters-50_cpu-t-24_[Fri_Nov_10_15:29:07_2023].txt'
+    data_file = 'test_benchmark<NxK,KxM>Had<NxM>N500_M500_K800_sparsity-0.1_iters-100_cpu-t-24_[Fri_Nov_10_15:47:03_2023].txt'
     d = data.Data(data_file)
 
     x = d.data.keys()
