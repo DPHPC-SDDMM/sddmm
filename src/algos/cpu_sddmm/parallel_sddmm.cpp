@@ -3,6 +3,7 @@
 #include <iostream>
 #include <math.h>
 #include "../../defines.h"
+#include "../../results.h"
 #include "../../data_structures/matrix/matrix.h"
 #include "../../data_structures/coo/coo.h"
 

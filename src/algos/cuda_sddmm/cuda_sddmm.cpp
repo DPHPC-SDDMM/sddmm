@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include "../../defines.h"
+#include "../../results.h"
 #include "../../data_structures/matrix/matrix.h"
 #include "../../data_structures/coo/coo.h"
 

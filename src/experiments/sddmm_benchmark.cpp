@@ -4,6 +4,7 @@
 #include "../algos/cpu_sddmm/parallel_sddmm.cpp"
 #include "../algos/cuda_sddmm/cuda_sddmm.cpp"
 #include "../algos/cpu_sddmm/tiled_sddmm.cpp"
+#include "../results.h"
 
 namespace SDDMM {
     class Experiments {
@@ -32,7 +33,7 @@ namespace SDDMM {
 
             for(auto x=0; x<info.n_experiment_iterations; ++x)
             {
-                omp_set_num_threads(32);
+                omp_set_num_threads(info.n_cpu_threads);
                 auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, info.n_cpu_threads, &parallel_sddmm);
                 TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
             }

@@ -5,6 +5,7 @@
 #include "../../data_structures/matrix/matrix.h"
 #include "../../data_structures/csr/csr.h"
 #include "../../data_structures/coo/coo.h"
+#include "../../results.h"
 
 namespace SDDMM {
     namespace Algo {

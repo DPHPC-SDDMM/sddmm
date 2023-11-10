@@ -2,6 +2,7 @@
 #include <vector>
 #include <chrono>
 #include "../../defines.h"
+#include "../../results.h"
 #include "../../data_structures/matrix/matrix.h"
 #include "../../data_structures/csr/csr.h"
 

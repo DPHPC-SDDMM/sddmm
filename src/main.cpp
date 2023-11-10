@@ -27,20 +27,20 @@ int main(int argc, char** argv){
     matplot::show();
 #endif
 
-#if CUDA_SAMPLE
+#ifdef CUDA_SAMPLE
     std::cout << SDDMM::Defines::get_title_str("CUDA_SAMPLE") << std::endl;
     SDDMM::Algo::SampleCudaAlgo();
 #endif
 
-#if SDDMM_BENCHMARK
+#ifdef SDDMM_BENCHMARK
     SDDMM::Results::ExperimentInfo info(
         "test_benchmark",
         500,  /* sparse_num_rows */
         500,  /* sparse_num_cols */
         800,  /* dense_inner_dim */
         0.1f, /* sparsity */
-        2,  /* n_experiments_num */
-        32    /* n_cpu_threads */
+        10,  /* n_experiments_num */
+        24    /* n_cpu_threads */
     );
     SDDMM::Experiments::benchmark_sddmm(info);
 #endif
