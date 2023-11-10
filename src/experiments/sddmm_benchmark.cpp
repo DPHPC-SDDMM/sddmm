@@ -53,7 +53,7 @@ namespace SDDMM {
 
             Results::ExperimentData naive_sddmm_csr;
             naive_sddmm_csr.label = "naive (CSR,CPU)";
-            std::cout << TEXT::Cast::Cyan("..(3/5)..") << "parallel_sddmm(CSR) ..." << std::endl;
+            std::cout << TEXT::Cast::Cyan("..(3/5)..") << "naive_sddmm(CSR) ..." << std::endl;
             for(auto x=0; x<info.n_experiment_iterations; ++x)
             {
                 auto result = SDDMM::Algo::naive_sddmm(csr_mat, X, Y, &naive_sddmm_csr);

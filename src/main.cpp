@@ -39,7 +39,7 @@ int main(int argc, char** argv){
         500,  /* sparse_num_cols */
         800,  /* dense_inner_dim */
         0.1f, /* sparsity */
-        10,  /* n_experiments_num */
+        50,  /* n_experiments_num */
         24    /* n_cpu_threads */
     );
     SDDMM::Experiments::benchmark_sddmm(info);
