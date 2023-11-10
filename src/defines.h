@@ -98,6 +98,8 @@ namespace SDDMM {
     };
 
     namespace TEXT {
+
+        typedef std::string color_t;
         /**
         * Name            FG  BG
         * Black           30  40
@@ -119,40 +121,40 @@ namespace SDDMM {
         */
 
         // basic text colors
-        static const std::string BLACK =        "\x1B[30m";
-        static const std::string RED =     "\x1B[31m";
-        static const std::string GREEN =   "\x1B[32m";
-        static const std::string YELLOW =  "\x1B[33m";
-        static const std::string BLUE =    "\x1B[34m";
-        static const std::string MAGENTA = "\x1B[35m";
-        static const std::string CYAN =    "\x1B[36m";
-        static const std::string WHITE =   "\x1B[37m";
+        static const color_t BLACK =   "\x1B[30m";
+        static const color_t RED =     "\x1B[31m";
+        static const color_t GREEN =   "\x1B[32m";
+        static const color_t YELLOW =  "\x1B[33m";
+        static const color_t BLUE =    "\x1B[34m";
+        static const color_t MAGENTA = "\x1B[35m";
+        static const color_t CYAN =    "\x1B[36m";
+        static const color_t WHITE =   "\x1B[37m";
 
-        static const std::string BRIGHT_BLACK =   "\x1B[90m";
-        static const std::string BRIGHT_RED =     "\x1B[91m";
-        static const std::string BRIGHT_GREEN =   "\x1B[92m";
-        static const std::string BRIGHT_YELLOW =  "\x1B[93m";
-        static const std::string BRIGHT_BLUE =    "\x1B[94m";
-        static const std::string BRIGHT_MAGENTA = "\x1B[95m";
-        static const std::string BRIGHT_CYAN =    "\x1B[96m";
-        static const std::string BRIGHT_WHITE =   "\x1B[97m";
+        static const color_t BRIGHT_BLACK =   "\x1B[90m";
+        static const color_t BRIGHT_RED =     "\x1B[91m";
+        static const color_t BRIGHT_GREEN =   "\x1B[92m";
+        static const color_t BRIGHT_YELLOW =  "\x1B[93m";
+        static const color_t BRIGHT_BLUE =    "\x1B[94m";
+        static const color_t BRIGHT_MAGENTA = "\x1B[95m";
+        static const color_t BRIGHT_CYAN =    "\x1B[96m";
+        static const color_t BRIGHT_WHITE =   "\x1B[97m";
 
         // format terminator
-        static const std::string END = "\x1B[0m";
+        static const color_t END = "\x1B[0m";
 
         // error headers
-        static const std::string TRACE_TITLE =   "\x1B[3;44;97m";
-        static const std::string LOG_TITLE =     "\x1B[3;42;97m";
-        static const std::string MESSAGE_TITLE = "\x1B[3;107;30m";
-        static const std::string WARN_TITLE =    "\x1B[3;43;97m";
-        static const std::string ERROR_TITLE =   "\x1B[3;41;97m";
-        static const std::string FATAL_TITLE =   "\x1B[3;45;97m";
+        static const color_t TRACE_TITLE =   "\x1B[3;44;97m";
+        static const color_t LOG_TITLE =     "\x1B[3;42;97m";
+        static const color_t MESSAGE_TITLE = "\x1B[3;107;30m";
+        static const color_t WARN_TITLE =    "\x1B[3;43;97m";
+        static const color_t ERROR_TITLE =   "\x1B[3;41;97m";
+        static const color_t FATAL_TITLE =   "\x1B[3;45;97m";
 
         // text highlighters
-        static const std::string HIGHLIGHT_YELLOW = "\x1B[3;43;30m";
-        static const std::string HIGHLIGHT_GREEN = "\x1B[3;102;30m";
-        static const std::string HIGHLIGHT_CYAN = "\x1B[3;46;30m";
-        static const std::string HIGHLIGHT_RED = "\x1B[3;41;97m";
+        static const color_t HIGHLIGHT_YELLOW = "\x1B[3;43;30m";
+        static const color_t HIGHLIGHT_GREEN = "\x1B[3;102;30m";
+        static const color_t HIGHLIGHT_CYAN = "\x1B[3;46;30m";
+        static const color_t HIGHLIGHT_RED = "\x1B[3;41;97m";
 
         class Cast {
             public:
@@ -187,10 +189,10 @@ namespace SDDMM {
                 else std::cout << std::endl;
             }
 
-            static void print_line(int length, std::string color){
+            static void print_colored_line(int length, char c, std::string color){
                 std::cout << color;
                 for(int i=0; i<length; ++i){
-                    std::cout << "=";
+                    std::cout << c;
                 }
                 std::cout << END << std::endl;
             }
