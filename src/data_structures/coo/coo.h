@@ -140,13 +140,14 @@ namespace SDDMM{
                     return false;
 
                 Types::vec_size_t s = data.size();
+                const Types::expmt_t epsilon = Defines::epsilon;
                 for(Types::vec_size_t i=0; i<s; ++i){
                     auto a = std::fabs(data.at(i).col - other.data.at(i).col);
-                    if(a > Defines::epsilon) return false;
+                    if(a > epsilon) return false;
                     auto b = std::fabs(data.at(i).row - other.data.at(i).row);
-                    if(b  > Defines::epsilon) return false;
+                    if(b  > epsilon) return false;
                     auto c = std::abs(data.at(i).value - other.data.at(i).value);
-                    if(c  > Defines::epsilon) return false;
+                    if(c  > epsilon) return false;
                 }
 
                 return true;

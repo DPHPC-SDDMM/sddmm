@@ -63,6 +63,8 @@ add_subdirectory(src/experiments)
 # add_compile_definitions(CSR_COO)
 # add_compile_definitions(CUDA_SAMPLE)
 # add_compile_definitions(SDDMM_BENCHMARK)
+
+add_compile_definitions(USE_LOW_PRECISION)
 add_compile_definitions(UNROLLING_BENCHMARK)
 
 add_executable(main src/main.cpp)
