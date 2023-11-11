@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <cassert>
+#include <functional>
 
 #include "defines.h"
 
@@ -18,6 +19,98 @@ namespace SDDMM{
         struct ExperimentData {
             std::string label;
             std::vector<Types::time_duration_unit> durations;
+        };
+
+        struct EmptyExperimentInfo {
+            const std::string experiment_name;
+            const Types::vec_size_t n_experiment_iterations;
+
+            EmptyExperimentInfo(
+                std::string experiment_name,
+                Types::vec_size_t n_experiment_iterations
+            ) 
+            : 
+                n_experiment_iterations(n_experiment_iterations),
+                experiment_name(experiment_name) 
+            {}
+
+            std::string to_string(){
+                std::stringstream s;
+                  s << "_nIt-" << n_experiment_iterations;
+                
+                return s.str();
+            }
+
+            std::string to_info() {
+                std::stringstream s;
+                s << "[INFO]\n"
+                  << "experiment_name " << experiment_name << "\n"
+                  << "n_experiment_iterations " << n_experiment_iterations << "\n"
+                  << "[/INFO]";
+                
+                return s.str();
+            }
+        };
+
+        struct SerialExperimentInfo {
+            std::string experiment_name;
+            const Types::vec_size_t tile_size_row;
+            const Types::vec_size_t tile_size_inner;
+            const Types::vec_size_t tile_size_col;
+            const Types::vec_size_t x_num_row;
+            const Types::vec_size_t xy_num_inner;
+            const Types::vec_size_t y_num_col;
+            const Types::vec_size_t n_experiment_iterations;
+
+            SerialExperimentInfo(
+                std::string experiment_name,
+                Types::vec_size_t tile_size_row,
+                Types::vec_size_t tile_size_inner,
+                Types::vec_size_t tile_size_col,
+                Types::vec_size_t x_num_row,
+                Types::vec_size_t xy_num_inner,
+                Types::vec_size_t y_num_col,
+                Types::vec_size_t n_experiment_iterations
+            )
+            :
+                experiment_name(experiment_name),
+                tile_size_row(tile_size_row),
+                tile_size_inner(tile_size_inner),
+                tile_size_col(tile_size_col),
+                x_num_row(x_num_row),
+                xy_num_inner(xy_num_inner),
+                y_num_col(y_num_col),
+                n_experiment_iterations(n_experiment_iterations)
+            {}
+
+            std::string to_string() {
+                std::stringstream s;
+                s << "_tsR-" << tile_size_row
+                  << "_tsI-" << tile_size_inner
+                  << "_tsC-" << tile_size_col
+                  << "_dsR-" << x_num_row
+                  << "_dsI-" << xy_num_inner
+                  << "_dsC-" << y_num_col
+                  << "_nIt-" << n_experiment_iterations;
+                
+                return s.str();
+            }
+
+            std::string to_info() {
+                std::stringstream s;
+                s << "[INFO]\n"
+                  << "experiment_name " << experiment_name << "\n"
+                  << "tile_size_row " << tile_size_row << "\n"
+                  << "tile_size_inner " << tile_size_inner << "\n"
+                  << "tile_size_col " << tile_size_col << "\n"
+                  << "x_num_row " << x_num_row << "\n"
+                  << "xy_num_inner " << xy_num_inner << "\n"
+                  << "y_num_col " << y_num_col << "\n"
+                  << "n_experiment_iterations " << n_experiment_iterations << "\n"
+                  << "[/INFO]";
+                
+                return s.str();
+            }
         };
 
         struct ExperimentInfo {
@@ -68,6 +161,7 @@ namespace SDDMM{
             std::string to_info(){
                 std::stringstream s;
                 s << "[INFO]\n"
+                 << "experiment_name " << experiment_name << "\n"
                  << "sparse_num_row " << sparse_num_row << "\n"
                  << "sparse_num_col " << sparse_num_col << "\n"
                  << "dense_num_inner " << dense_num_inner << "\n"
@@ -80,7 +174,11 @@ namespace SDDMM{
             }
         };
 
-        static std::string to_file(ExperimentInfo& info, const std::vector<ExperimentData>& data){
+        static std::string to_file(
+            const std::string experiment_name,
+            const std::string desc_string, 
+            const std::string info_string, 
+            const std::vector<ExperimentData>& data){
             for(auto d : data){
                 assert(d.durations.size() > 0 && "All ExperimentData structs must contain result data");
             }
@@ -92,14 +190,14 @@ namespace SDDMM{
             time = time.substr(0, time.size()-1);
 
             std::stringstream name;
-            name << "../../results/" << info.experiment_name
-                 << info.to_string()
+            name << "../../results/" << experiment_name
+                 << desc_string
                  << "_[" << time << "]"
                  << ".txt";
 
             std::ofstream output_file;
             output_file.open(name.str());
-            output_file << info.to_info() << "\n";
+            output_file << info_string << "\n";
             output_file << "[DATA]\n" ;
             for(auto d : data){
                 output_file << "[L] " << d.label << "\n";
