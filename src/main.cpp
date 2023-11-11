@@ -1,6 +1,7 @@
 #include <iostream>
 #include "defines.h"
 #include "experiments/sddmm_benchmark.cpp"
+#include "experiments/unrolling_benchmark.cpp"
 
 // #include <chrono>
 
@@ -43,6 +44,22 @@ int main(int argc, char** argv){
         24    /* n_cpu_threads */
     );
     SDDMM::Experiments::benchmark_sddmm(info);
+#endif
+
+#ifdef UNROLLING_BENCHMARK
+    SDDMM::Results::SerialExperimentInfo info(
+        "Serial unrolling benchmark",
+        50,   /*tile_size_row            */
+        30,   /*tile_size_inner          */
+        60,   /*tile_size_col            */
+
+        1000,   /*x_num_row                */
+        1500,   /*xy_num_inner             */
+        2000,   /*y_num_col                */
+
+        10 /*n_experiment_iterations  */
+    );
+    SDDMM::Experiments::unrolling_benchmark(info);
 #endif
     return 0;
 }
