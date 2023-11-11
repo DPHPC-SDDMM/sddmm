@@ -2,6 +2,8 @@
 /.vscode/*
 .cuda_arch
 
+*.pyc
+
 # Prerequisites
 *.d
 
