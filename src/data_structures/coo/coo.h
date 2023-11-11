@@ -166,13 +166,13 @@ namespace SDDMM{
                 // reserve space
                 res.data.reserve(data.size());
 
-                Types::vec_size_t o_col = 0;
-                Types::vec_size_t o_row = 0;
+                // Types::vec_size_t o_col = 0;
+                // Types::vec_size_t o_row = 0;
                 Types::vec_size_t s = data.size();
                 for(Types::vec_size_t t=0; t<s; ++t){
                     auto temp = data.at(t);
                     Types::expmt_t new_val = temp.value * other.at(temp.row, temp.col);
-                    if(new_val > 0){
+                    if(new_val != 0){
                         res.data.push_back({temp.row, temp.col, new_val});
                     }
                 }

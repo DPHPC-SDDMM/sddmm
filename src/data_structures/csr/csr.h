@@ -91,7 +91,7 @@ namespace SDDMM{
                         Types::vec_size_t c = col_idx[ci];
                         Types::expmt_t new_value = values[v_ind] * other.at(r, c);
                         
-                        if(new_value > 0){
+                        if(new_value != 0){
                             res.values.push_back(new_value);
                             res.col_idx.push_back(c);
                             new_ci++;

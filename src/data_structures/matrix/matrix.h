@@ -143,7 +143,7 @@ namespace SDDMM {
                 return newM;
             }
 
-            const MatrixFormat format() const {
+             MatrixFormat format() const {
                 return _format;
             }
 
