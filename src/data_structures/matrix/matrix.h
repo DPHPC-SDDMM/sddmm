@@ -105,7 +105,7 @@ namespace SDDMM {
                         Types::expmt_t a = this->at(i,j);
                         Types::expmt_t b = other.at(i,j);
                         if (std::abs(a - b) > Defines::epsilon) {
-                            std::cout << std::setprecision(16) << a << " " << std::setprecision(16) << b << std::endl;
+                            // std::cout << i << " " << j << " " << std::setprecision(16) << a << " " << std::setprecision(16) << b << std::endl;
                             return false;
                         }
                     }

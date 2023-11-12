@@ -48,7 +48,7 @@ int main(int argc, char** argv){
 #ifdef UNROLLING_BENCHMARK
     // needs even sizes because one of the experiments divides by 2
     SDDMM::Results::SerialExperimentInfo info(
-        "Serial unrolling benchmark",
+        "Serial unrolling benchmark [Release]",
         50,   /*tile_size_row            */
         30,   /*tile_size_inner          */
         60,   /*tile_size_col            */
@@ -58,7 +58,7 @@ int main(int argc, char** argv){
         // 384,   /*y_num_col                */
 
         512,   /*x_num_row                */
-        1024,   /*xy_num_inner             */
+        1024,   /*xy_num_inner            */
         384,   /*y_num_col                */
 
         100 /*n_experiment_iterations  */

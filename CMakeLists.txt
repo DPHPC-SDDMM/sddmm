@@ -41,6 +41,7 @@ else()
     message("")
 endif()
 
+add_compile_options(-mavx2)
 
 find_package(OpenMP)
 
