@@ -1,6 +1,7 @@
 #include <iostream>
 #include "experiments/sddmm_benchmark.cpp"
 #include "experiments/unrolling_benchmark.cpp"
+#include "experiments/cache_benchmark.cpp"
 
 // #include <chrono>
 
@@ -64,6 +65,25 @@ int main(int argc, char** argv){
         100 /*n_experiment_iterations  */
     );
     SDDMM::Experiments::unrolling_benchmark(info);
+#endif
+
+#ifdef TYPES_BENCHMARK
+    // 8192*2048 = 16777216
+    SDDMM::Results::CacheExperimentInfo types_info(
+        "Types benchmarks",
+        0,0,8192,2048,
+        250
+    );
+    SDDMM::Experiments::types_benchmark(types_info);
+#endif
+
+#ifdef CACHE_BENCHMARK
+    SDDMM::Results::CacheExperimentInfo cache_info(
+        "Vec vs PP vs C benchmarks",
+        0,0,8192,2048,
+        250
+    );
+    SDDMM::Experiments::arr_vs_vec_vs_ptr_benchmark(cache_info);
 #endif
     return 0;
 }

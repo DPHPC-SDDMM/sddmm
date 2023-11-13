@@ -52,6 +52,57 @@ namespace SDDMM{
             }
         };
 
+        struct CacheExperimentInfo {
+            const std::string experiment_name;               
+            const Types::vec_size_t r_tile_size;
+            const Types::vec_size_t c_tile_size;
+            const Types::vec_size_t r_num;
+            const Types::vec_size_t c_num;
+            const Types::vec_size_t n_experiment_iterations;
+
+            CacheExperimentInfo(
+                std::string experiment_name,
+                Types::vec_size_t r_tile_size,
+                Types::vec_size_t c_tile_size,
+                Types::vec_size_t r_num,
+                Types::vec_size_t c_num,
+                Types::vec_size_t n_experiment_iterations
+            )
+            :
+                experiment_name(experiment_name),
+                r_tile_size(r_tile_size),
+                c_tile_size(c_tile_size),
+                r_num(r_num),
+                c_num(c_num),
+                n_experiment_iterations(n_experiment_iterations)
+            {}
+
+            std::string to_string() {
+                std::stringstream s;
+                s << "rTS" << r_tile_size
+                  << "_cTS" << c_tile_size
+                  << "_rNum" << r_num
+                  << "_cNum" << c_num
+                  << "_nIt" << n_experiment_iterations;
+                
+                return s.str();
+            }
+
+            std::string to_info() {
+                std::stringstream s;
+                s << "[INFO]\n"
+                  << "experiment_name " << experiment_name << "\n"
+                  << "r_tile_size " << r_tile_size << "\n"
+                  << "c_tile_size " << c_tile_size << "\n"
+                  << "r_num " << r_num << "\n"
+                  << "c_num " << c_num << "\n"
+                  << "n_experiment_iterations " << n_experiment_iterations << "\n"
+                  << "[/INFO]";
+                
+                return s.str();
+            }
+        };
+
         struct SerialExperimentInfo {
             std::string experiment_name;
             const Types::vec_size_t tile_size_row;
