@@ -39,7 +39,11 @@ namespace SDDMM {
     */
     class Defines {
     public:
+    #ifdef USE_LOW_PRECISION
+        static constexpr SDDMM::Types::expmt_t epsilon = 1e-3;
+    #else
         static constexpr SDDMM::Types::expmt_t epsilon = 1e-6;
+    #endif
         static constexpr int warp_size = 32;
 
         static void vector_fill(std::vector<Types::expmt_t>& vector, Types::expmt_t start, Types::expmt_t step, Types::expmt_t end){

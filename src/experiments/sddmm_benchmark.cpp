@@ -7,15 +7,14 @@
 #include "../results.h"
 
 namespace SDDMM {
-    class Experiments {
-        public:
-        static void benchmark_sddmm(Results::ExperimentInfo& info){
+    namespace Experiments {
+        void benchmark_sddmm(Results::ExperimentInfo& info){
             
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::BRIGHT_RED);
 
             std::cout << TEXT::Cast::Cyan("Generate matrix") << std::endl;
-            auto X = Types::Matrix::generate(info.sparse_num_row, info.dense_num_inner);
-            auto Y = Types::Matrix::generate(info.dense_num_inner, info.sparse_num_col);
+            auto X = Types::Matrix::generate(info.sparse_num_row, info.dense_num_inner, 0.0);
+            auto Y = Types::Matrix::generate(info.dense_num_inner, info.sparse_num_col, 0.0);
             auto sparse_mat = Types::Matrix::generate(info.sparse_num_row, info.sparse_num_col, info.sparsity);
 
             std::cout << TEXT::Cast::Cyan("Matrix to coo") << std::endl;
@@ -86,7 +85,7 @@ namespace SDDMM {
             // =========================================
 
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
-            Results::to_file(info, {
+            Results::to_file(info.experiment_name, info.to_string(), info.to_info(), {
                 parallel_sddmm,
                 naive_sddmm_coo,
                 naive_sddmm_csr,
