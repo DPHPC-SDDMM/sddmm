@@ -67,8 +67,9 @@ add_subdirectory(src/experiments)
 # add_compile_definitions(TYPES_BENCHMARK)
 add_compile_definitions(CACHE_BENCHMARK)
 
-# add_compile_definitions(USE_LOW_PRECISION)
+add_compile_definitions(USE_LOW_PRECISION)
 # add_compile_definitions(UNROLLING_BENCHMARK)
+add_compile_definitions(UNROLLING_BENCHMARK_2)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main OpenMP::OpenMP_CXX)

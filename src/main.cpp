@@ -2,6 +2,7 @@
 #include "experiments/sddmm_benchmark.cpp"
 #include "experiments/unrolling_benchmark.cpp"
 #include "experiments/cache_benchmark.cpp"
+#include "experiments/unrolling_benchmark_2.cpp"
 
 // #include <chrono>
 
@@ -85,5 +86,27 @@ int main(int argc, char** argv){
     );
     SDDMM::Experiments::arr_vs_vec_vs_ptr_benchmark(cache_info);
 #endif
+
+#ifdef UNROLLING_BENCHMARK_2
+    // needs even sizes because one of the experiments divides by 2
+    SDDMM::Results::SerialExperimentInfo info(
+        "Serial unrolling benchmark 2 [Release]",
+        50,   /*tile_size_row            */
+        30,   /*tile_size_inner          */
+        60,   /*tile_size_col            */
+
+        // 256,   /*x_num_row                */
+        // 512,   /*xy_num_inner             */
+        // 384,   /*y_num_col                */
+
+        512,   /*x_num_row                */
+        1024,   /*xy_num_inner            */
+        384,   /*y_num_col                */
+
+        100 /*n_experiment_iterations  */
+    );
+    SDDMM::Experiments::unrolling_benchmark_2(info);
+#endif
+
     return 0;
 }

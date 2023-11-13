@@ -18,11 +18,11 @@ def break_lines(string, line_length):
 
 
 if __name__ == '__main__':
-    data_file = 'Serial unrolling benchmark_tsR-50_tsI-30_tsC-60_dsR-512_dsI-1024_dsC-384_nIt-100_[Sat_Nov_11_18:59:27_2023].txt'
+    data_file = 'Serial unrolling benchmark 2_tsR-50_tsI-30_tsC-60_dsR-512_dsI-1024_dsC-384_nIt-100_[Sun_Nov_12_13:02:11_2023].txt'
     d_debug = data.Data(data_file)
 
     x_debug = [break_lines(s, 10) for s in  d_debug.data.keys()]
-    y_debug = np.array([np.average(dd) for dd in d_debug.data.values()]) / 1000.0
+    y_debug = np.array([np.median(dd) for dd in d_debug.data.values()]) / 1000.0
     y_std_debug = np.array([np.std(dd) for dd in d_debug.data.values()]) / 1000.0
     p_y_std_debug = np.round(100.0 / y_debug * y_std_debug, 3)
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     for i in range(len(x_debug)):
         plt.text(i, y_debug[i], str(y_debug[i]) + "[us] +-" + str(p_y_std_debug[i]) + "%")
 
-    data_file = 'Serial unrolling benchmark [Release]_tsR-50_tsI-30_tsC-60_dsR-512_dsI-1024_dsC-384_nIt-100_[Sun_Nov_12_02:22:30_2023].txt'
+    data_file = 'Serial unrolling benchmark 2 [Release]_tsR-50_tsI-30_tsC-60_dsR-512_dsI-1024_dsC-384_nIt-100_[Sun_Nov_12_13:04:48_2023].txt'
     d_release = data.Data(data_file)
 
     x_release = [break_lines(s, 10) for s in  d_release.data.keys()]
