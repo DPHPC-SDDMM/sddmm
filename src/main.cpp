@@ -81,7 +81,7 @@ int main(int argc, char** argv){
 #ifdef CACHE_BENCHMARK
     SDDMM::Results::CacheExperimentInfo cache_info(
         "Vec vs PP vs C benchmarks",
-        0,0,8192,2048,
+        0,0,10000,1000,
         250
     );
     SDDMM::Experiments::arr_vs_vec_vs_ptr_benchmark(cache_info);

@@ -310,12 +310,12 @@ namespace SDDMM {
 
         void arr_vs_vec_vs_ptr_benchmark(Results::CacheExperimentInfo& info){
             std::vector<Results::ExperimentData> results {
-                CacheExperiments::sum_array_rows_vec<int>(1, 6, info, 0, 0),
-                CacheExperiments::sum_array_rows_pp<int>(2, 6, info, 0, 0),
-                CacheExperiments::sum_array_rows_c<int>(3, 6, info, 0, 0),
-                CacheExperiments::sum_array_cols_vec<int>(4, 6, info, 0, 0),
-                CacheExperiments::sum_array_cols_pp<int>(5, 6, info, 0, 0),
-                CacheExperiments::sum_array_cols_c<int>(6, 6, info, 0, 0)
+                CacheExperiments::sum_array_rows_vec<int64_t>(1, 6, info, 0, 0),
+                CacheExperiments::sum_array_rows_pp<int64_t>(2, 6, info, 0, 0),
+                CacheExperiments::sum_array_rows_c<int64_t>(3, 6, info, 0, 0),
+                CacheExperiments::sum_array_cols_vec<int64_t>(4, 6, info, 0, 0),
+                CacheExperiments::sum_array_cols_pp<int64_t>(5, 6, info, 0, 0),
+                CacheExperiments::sum_array_cols_c<int64_t>(6, 6, info, 0, 0)
             };
 
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
