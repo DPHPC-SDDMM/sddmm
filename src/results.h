@@ -85,7 +85,7 @@ namespace SDDMM{
 
             std::string to_string() {
                 std::stringstream s;
-                s << "_tsR-" << tile_size_row
+                s << "tsR-" << tile_size_row
                   << "_tsI-" << tile_size_inner
                   << "_tsC-" << tile_size_col
                   << "_dsR-" << x_num_row
@@ -147,7 +147,7 @@ namespace SDDMM{
 
             std::string to_string(){
                 std::stringstream s;
-                s << "<NxK,KxM>Had<NxM>" 
+                s << "[NxK,KxM]Had[NxM]" 
                  << "N" << sparse_num_row 
                  << "_M" << sparse_num_col 
                  << "_K" << dense_num_inner
@@ -186,11 +186,12 @@ namespace SDDMM{
             auto created_at = std::chrono::system_clock::now();
             auto created_at_t = std::chrono::system_clock::to_time_t(created_at);
             std::string time = std::string(std::ctime(&created_at_t));
-            std::replace(time.begin(), time.end(), ' ', '_');
+            // std::replace(time.begin(), time.end(), ' ', '_');
+            std::replace(time.begin(), time.end(), ':', '-');
             time = time.substr(0, time.size()-1);
 
             std::stringstream name;
-            name << "../../results/" << experiment_name
+            name << "../../results/" << experiment_name << "__"
                  << desc_string
                  << "_[" << time << "]"
                  << ".txt";
