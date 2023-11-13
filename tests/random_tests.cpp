@@ -286,23 +286,6 @@ UTEST(Random, Vanilla_Mult_Use_Loc_Var_Unroll_sep_acc) {
 }
 
 #ifdef __AVX2__
-// UTEST(Random, Vec_instr_1){
-//     __m256 a = _mm256_set_ps(8.0, 7.0, 6.0, 5.0, 
-//                              4.0, 3.0, 2.0, 1.0);
-//     __m256 b = _mm256_set_ps(18.0, 17.0, 16.0, 15.0, 
-//                              14.0, 13.0, 12.0, 11.0);
-
-//     __m256 c = _mm256_add_ps(a, b);
-
-//     float d[8];
-//     _mm256_storeu_ps(d, c);
-
-//     std::cout << "result equals " << d[0] << "," << d[1]
-//               << "," << d[2] << "," << d[3] << ","
-//               << d[4] << "," << d[5] << "," << d[6] << ","
-//               << d[7] << std::endl;
-// }
-
 UTEST(Random, Vanilla_Mult_Test){
     using namespace SDDMM;
 
@@ -407,3 +390,59 @@ UTEST(Random, Vanilla_Mult_Vectorized) {
     ASSERT_TRUE(r1 == res);
 }
 #endif
+
+UTEST(Random, Vanilla_Mult_Winner_Adapt) {
+    // generate data
+    using namespace SDDMM;
+    
+    SDDMM::Results::SerialExperimentInfo info(
+        "t1",
+        10,30,20,
+        19,31,23,10
+    );
+
+    auto X = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
+    auto Y = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
+
+    // auto X = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
+    // auto Y = SDDMM::Types::Matrix::deterministic_gen(3, 2, {1,2,3,4,5,6});
+    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {22, 28, 49, 64});
+    auto res = X*Y;
+
+    Types::Matrix r1(info.x_num_row, info.y_num_col);
+    Types::vec_size_t ni = 0;
+    const Types::vec_size_t j = 4;
+    const Types::vec_size_t s = info.xy_num_inner;
+    for(auto r=0; r<info.x_num_row; ++r){
+        for(auto c=0; c<info.y_num_col; ++c){
+            // precalculate the access index for the target
+            Types::vec_size_t xyi = ni+c;
+            Types::expmt_t var_1 = 0;
+            Types::expmt_t var_2 = 0;
+            Types::expmt_t var_3 = 0;
+            Types::expmt_t var_4 = 0;
+            Types::vec_size_t i;
+            for(i=0; i<s; i+=j){
+                const Types::vec_size_t i0 = i+0;
+                const Types::vec_size_t i1 = i+1;
+                const Types::vec_size_t i2 = i+2;
+                const Types::vec_size_t i3 = i+3;
+
+                bool t0 = i0 < s;
+                bool t1 = i1 < s;
+                bool t2 = i2 < s;
+                bool t3 = i3 < s;
+
+                var_1 += t0 ? X.data[r*info.xy_num_inner + i0] * Y.data[i0*info.y_num_col + c] : 0;
+                var_2 += t1 ? X.data[r*info.xy_num_inner + i1] * Y.data[i1*info.y_num_col + c] : 0;
+                var_3 += t2 ? X.data[r*info.xy_num_inner + i2] * Y.data[i2*info.y_num_col + c] : 0;
+                var_4 += t3 ? X.data[r*info.xy_num_inner + i3] * Y.data[i3*info.y_num_col + c] : 0;
+            }
+
+            r1.data[xyi] = var_1 + var_2 + var_3 + var_4;
+        }
+        ni += info.y_num_col;
+    }
+
+    ASSERT_TRUE(r1 == res);
+}
