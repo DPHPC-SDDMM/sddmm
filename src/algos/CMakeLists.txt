@@ -5,6 +5,7 @@ file(GLOB SOURCES
     ./cpu_sddmm/*.cpp
     ./sample/*.cpp
     ./cuda_sddmm/*.cpp
+    ./sm-l2-sddmm/*.cpp
 )
 
 add_library(AlgoLib STATIC ${SOURCES})
@@ -14,6 +15,8 @@ file(GLOB CU_SOURCES
     ./cuda_sddmm/*.cu
     ./cuda_sample/*.cuh
     ./cuda_sample/*.cu
+    ./sm-l2-sddmm/*.cuh
+    ./sm-l2-sddmm/*.cu
 )
 
 add_library(CudaLib STATIC ${CU_SOURCES})

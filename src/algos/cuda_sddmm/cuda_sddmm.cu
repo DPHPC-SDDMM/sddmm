@@ -28,9 +28,9 @@ __global__ void k_sddmm(
     }
 
     out_d[access_ind] = SDDMM::Types::COO::triplet{
-        .row = p.row, 
-        .col = p.col, 
-        .value = p.value * inner_product
+        p.row,
+        p.col,
+        p.value * inner_product
     };
 }
 
