@@ -119,7 +119,7 @@ namespace SDDMM {
             }
 
             template<typename T>
-            static T sum_vec_1d(std::vector<T> vec, Types::vec_size_t r_num, Types::vec_size_t c_num){
+            static T sum_vec_1d(const std::vector<T>& vec, Types::vec_size_t r_num, Types::vec_size_t c_num){
                 T sum = static_cast<T>(0);
                 for(Types::vec_size_t r=0; r<r_num; ++r){
                     for(Types::vec_size_t c=0; c<c_num; ++c){
@@ -130,7 +130,20 @@ namespace SDDMM {
             }
 
             template<typename T>
-            static T sum_vec_1d_cols(std::vector<T> vec, Types::vec_size_t r_num, Types::vec_size_t c_num){
+            static T sum_vec_iterator_1d(const std::vector<T>& vec, Types::vec_size_t r_num, Types::vec_size_t c_num){
+                T sum = static_cast<T>(0);
+                auto iter = vec.begin();
+                for(Types::vec_size_t r=0; r<r_num; ++r){
+                    for(Types::vec_size_t c=0; c<c_num; ++c){
+                        sum += *iter;
+                        iter++;
+                    }
+                }
+                return sum;
+            }
+
+            template<typename T>
+            static T sum_vec_1d_cols(const std::vector<T>& vec, Types::vec_size_t r_num, Types::vec_size_t c_num){
                 T sum = static_cast<T>(0);
                 for(Types::vec_size_t c=0; c<c_num; ++c){
                     for(Types::vec_size_t r=0; r<r_num; ++r){
@@ -141,7 +154,7 @@ namespace SDDMM {
             }
 
             template<typename T>
-            static T sum_vec_2d(std::vector<std::vector<T>> vec_2d, Types::vec_size_t r_num, Types::vec_size_t c_num){
+            static T sum_vec_2d(const std::vector<std::vector<T>>& vec_2d, Types::vec_size_t r_num, Types::vec_size_t c_num){
                 T sum = static_cast<T>(0);
                 for(Types::vec_size_t r=0; r<r_num; ++r){
                     for(Types::vec_size_t c=0; c<c_num; ++c){
@@ -152,7 +165,7 @@ namespace SDDMM {
             }
 
             template<typename T>
-            static T sum_vec_2d_cols(std::vector<std::vector<T>> vec_2d, Types::vec_size_t r_num, Types::vec_size_t c_num){
+            static T sum_vec_2d_cols(const std::vector<std::vector<T>>& vec_2d, Types::vec_size_t r_num, Types::vec_size_t c_num){
                 T sum = static_cast<T>(0);
                 for(Types::vec_size_t c=0; c<c_num; ++c){
                     for(Types::vec_size_t r=0; r<r_num; ++r){
@@ -161,6 +174,17 @@ namespace SDDMM {
                 }
                 return sum;
             }
+
+            // template<typename T>
+            // static T mat_mult_vec_1d(std::vector<std::vector<T>> vec_2d, Types::vec_size_t r_num, Types::vec_size_t c_num){
+            //     T sum = static_cast<T>(0);
+            //     for(Types::vec_size_t c=0; c<c_num; ++c){
+            //         for(Types::vec_size_t r=0; r<r_num; ++r){
+            //             sum += vec_2d[r][c];
+            //         }
+            //     }
+            //     return sum;
+            // }
 
             public:
             template<typename T>
@@ -390,6 +414,8 @@ namespace SDDMM {
                     auto start = std::chrono::high_resolution_clock::now();
                     
                     total += sum_vec_1d(vec, r_num, c_num);
+                    // total += sum_vec_iterator_1d(vec, r_num, c_num);
+                    // total += sum_arr_1d(vec.data(), r_num, c_num);
                     
                     auto end = std::chrono::high_resolution_clock::now();
                     if(n > 0){

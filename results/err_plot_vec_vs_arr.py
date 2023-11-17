@@ -18,7 +18,7 @@ def break_lines(string, line_length):
 
 
 if __name__ == '__main__':
-    data_file = 'Vec vs PP vs C benchmarks__rTS0_cTS0_rNum5000_cNum5000_nIt50_[Fri Nov 17 12-41-07 2023].txt'
+    data_file = 'Vec vs PP vs C benchmarks [Release]__rTS0_cTS0_rNum5000_cNum5000_nIt50_[Fri Nov 17 16-05-13 2023].txt'
     d_debug = data.Data(data_file)
 
     x_debug = [break_lines(s, 10) for s in  d_debug.data.keys()]
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     for i in range(len(x_debug)):
         plt.text(i, y_debug[i], str(y_debug[i]) + "[us] +-" + str(p_y_std_debug[i]) + "%")
 
-    data_file = 'Vec vs PP vs C benchmarks [Release]__rTS0_cTS0_rNum5000_cNum5000_nIt50_[Fri Nov 17 13-19-33 2023].txt'
+    data_file = 'Vec vs PP vs C benchmarks [Release]__rTS0_cTS0_rNum5000_cNum5000_nIt50_[Fri Nov 17 16-11-45 2023].txt'
     d_release = data.Data(data_file)
 
     x_release = [break_lines(s, 10) for s in  d_release.data.keys()]
