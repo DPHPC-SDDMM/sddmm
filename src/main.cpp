@@ -73,7 +73,7 @@ int main(int argc, char** argv){
     SDDMM::Results::CacheExperimentInfo types_info(
         "Types benchmarks",
         0,0,8192,2048,
-        250
+        50
     );
     SDDMM::Experiments::types_benchmark(types_info);
 #endif
