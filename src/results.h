@@ -52,15 +52,35 @@ namespace SDDMM{
             }
         };
 
+        /**
+         * A data structure which includes the parameterization of a serial experiment.
+         * An "experiment" in this context is a process/program which includes
+         * some degree of randomness and as such requires to be executed multiple times,
+         * so as to collect data, which in turn will be utilized to draw conclusions.
+         * Its characterization as "serial" is derived from the fact that all iterations of the program run on a *single CPU core*.
+         * 
+         * The struct's attributes are:
+         * - `std::string experiment_name`
+         * - `const Types::vec_size_t tile_size_row`
+         * - `const Types::vec_size_t tile_size_row`
+         * - `const Types::vec_size_t tile_size_col`
+         * - `const Types::vec_size_t x_num_row`
+         * - `const Types::vec_size_t xy_num_inner`
+         * - `const Types::vec_size_t y_num_row`
+         * 
+         * The struct's functions are:
+         * - `std::string to_string`
+         * - `std::string to_info`
+        */
         struct SerialExperimentInfo {
-            std::string experiment_name;
-            const Types::vec_size_t tile_size_row;
-            const Types::vec_size_t tile_size_inner;
-            const Types::vec_size_t tile_size_col;
-            const Types::vec_size_t x_num_row;
-            const Types::vec_size_t xy_num_inner;
-            const Types::vec_size_t y_num_col;
-            const Types::vec_size_t n_experiment_iterations;
+            std::string experiment_name; // An identifier, which is used when this struct is "stringified"
+            const Types::vec_size_t tile_size_row; // The number of rows which each tile (of the sparse matrix) include, a.k.a the "tile height".
+            const Types::vec_size_t tile_size_inner; // The number of rows/columns of the dense matrices will be used in the computation of a single tile.
+            const Types::vec_size_t tile_size_col; // The number of columns which each tile (of the sparse matrix) include, a.k.a the "tile width".
+            const Types::vec_size_t x_num_row; // The number of rows of the dense matrix X, which is the left-hand-side (LHS) of the dense matrix multiplication XY.
+            const Types::vec_size_t xy_num_inner; // The number of columns of the dense matrix X, which (by the definition of matrix multiplication) is identical to the number of rows of matrix Y.
+            const Types::vec_size_t y_num_col; // The number of rows of the dense matrix Y, which is the right-hand-side (RHS) of the dense matrix multiplication XY.
+            const Types::vec_size_t n_experiment_iterations; // The number of repetitions that the program will be executed.
 
             SerialExperimentInfo(
                 std::string experiment_name,
@@ -83,6 +103,10 @@ namespace SDDMM{
                 n_experiment_iterations(n_experiment_iterations)
             {}
 
+            /**
+             * @return String of the format
+             * "tsR-<tile_size_row>_tsI-<tile_size_inner>_tsC-<tle_size_col>_dsr-<x_num_row>_dsI-<xy_num_inner>_dsC-<y_num_col>_n_it-<n_experiment_iterations>"
+            */
             std::string to_string() {
                 std::stringstream s;
                 s << "tsR-" << tile_size_row
@@ -96,6 +120,10 @@ namespace SDDMM{
                 return s.str();
             }
 
+            /**
+             * @return A nicely formatted string.
+             * @note This function is usually used when writing the [INFO] section of an output file.
+            */
             std::string to_info() {
                 std::stringstream s;
                 s << "[INFO]\n"
@@ -113,6 +141,31 @@ namespace SDDMM{
             }
         };
 
+
+        /**
+         * A data structure which includes the parameterization of a (potentially) parallel experiment.
+         * An "experiment" in this context is a process/program which includes
+         * some degree of randomness and as such requires to be executed multiple times,
+         * so as to collect data, which in turn will be utilized to draw conclusions.
+         * Its characterization as "parallel" is derived from the fact that the iterations of the program run on *multiple CPU core*.
+         * 
+         * The struct's attributes are:
+         * - `std::string experiment_name`
+         * - `const Types::vec_size_t sparse_num_row`
+         * - `const Types::vec_size_t sparse_num_col`
+         * - `const Types::vec_size_t dense_num_inner`
+         * - `float sparsity`
+         * - `const Types::vec_size_t n_experiment_iterations`
+         * - `const Types::vec_size_t n_cpu_threads`
+         * 
+         * The struct's functions are:
+         * - `std::string to_string`
+         * - `std::string to_info`
+         * 
+         * @note In order for the sparse and dense matrix to be valid, it is impled that:
+         * @note `sparse_num_row`: are the number of rows of matrix `X` in the subsequent `X*Y` dense-with-dense matrix product.
+         * @note `sparse_num_col` are the number of columns of matrix `Y` in the subsequent `X*Y` dense-with-dense matrix product.
+        */
         struct ExperimentInfo {
             ExperimentInfo(
                 std::string experiment_name,
@@ -145,6 +198,10 @@ namespace SDDMM{
             // number of threads for cpu side multithreading
             const Types::vec_size_t n_cpu_threads;
 
+            /**
+             * @return String of the format
+             * "[NxK, KxM]Had[NxM]N<sparse_num_row>_M<sparse_num_col>_K<dense_num_inner>_sparsity-<sparsity>_iters-<n_experiment_iterations>_cpu-t<n_cpu_threads>"
+            */
             std::string to_string(){
                 std::stringstream s;
                 s << "[NxK,KxM]Had[NxM]" 
@@ -158,6 +215,10 @@ namespace SDDMM{
                 return s.str();
             }
 
+            /**
+             * @return A nicely formatted string.
+             * @note This function is usually used when writing the [INFO] section of an output file.
+            */
             std::string to_info(){
                 std::stringstream s;
                 s << "[INFO]\n"

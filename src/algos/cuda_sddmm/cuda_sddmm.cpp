@@ -19,8 +19,8 @@ namespace SDDMM {
             Results::ExperimentData* measurements = nullptr
         ) {
             assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
-            assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m && "All involved matrices must be non-empty!");
-            assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Matrix dimensions must match!");
+            assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m > 0 && "All involved matrices must be non-empty!");
+            assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Sparse and dense matrices dimensions must match!");
 
             auto start = std::chrono::high_resolution_clock::now();
 

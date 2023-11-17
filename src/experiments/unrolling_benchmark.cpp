@@ -22,6 +22,22 @@ namespace SDDMM {
                      + std::string(")..");
             }
             public:
+            /**
+             * Computes dense-with-dense matrix multiplication without any optimizations,
+             * i.e. using the definition of matrix multiplication.
+             * 
+             * @param cur_exp: The ID of the experiment TYPE.
+             * @param tot_exp: The total number of experiment types(!) in which this experiment set belongs in.
+             * @param X: The left-hand side (LHS) of the matrix multiplication X*Y.
+             * @param Y: The right-hand side of the matrix multiplication X*Y.
+             * @param exp_res: The expected result of the matrix multiplication operation between the input parameters `X` and `Y`.
+             * @param info: Configuration of the experiment.
+             * 
+             * @note No optimization is done in-code. However, the compiler itself might perform optimizations of its own in "Release" mode.
+             * @note `info`: The content should agree with the other parameters of the function (e.g. matrices `X` and `Y`), but it is not checked.
+             * @note `tot_exp`: No checks takes place for the validity of the value (i.e. its positivity).
+             * @note `cur_exp`: No checks takes place for the validity of the value (w.r.t `tot_exp` or its positivity).
+            */
             static Results::ExperimentData naive(
                 int cur_exp,
                 int tot_exp,
@@ -59,6 +75,12 @@ namespace SDDMM {
                 return data;
             }
 
+            /** 
+             * In order to reduce the frequency with which a computation is performed,
+             * precomputation of part of data access index is performed.
+             * This is also known as "code motion".
+             * @note This is an optimization often done in compilers, but it is uncertain where in the code it does it.
+            */
             static Results::ExperimentData precalc_mult_loop(
                 int cur_exp,
                 int tot_exp,
@@ -77,6 +99,7 @@ namespace SDDMM {
                     Types::Matrix r1(info.x_num_row, info.y_num_col);
                     for(auto r=0; r<info.x_num_row; ++r){
                         for(auto c=0; c<info.y_num_col; ++c){
+                            // NEW OPTIMIZATION IS HERE!
                             // precalculate the access index for the target
                             Types::vec_size_t txy = r*info.y_num_col + c;
                             for(auto i=0; i<info.xy_num_inner; ++i){
@@ -98,6 +121,13 @@ namespace SDDMM {
                 return data;
             }
 
+            /**
+             * In addition to the optimization of the `precalc_mult_loop` function,
+             * perform what is known as "Strength reduction".
+             * Instead of having the compiler execute a more costly (in terms of operation cycles)
+             * operation (multiplication in this case), have it do a simpler, but equivalent operation instead
+             * (in this case addition).
+            */
             static Results::ExperimentData add_mult_loop(
                 int cur_exp,
                 int tot_exp,
@@ -114,7 +144,7 @@ namespace SDDMM {
                 {
                     auto start = std::chrono::high_resolution_clock::now();
                     Types::Matrix r1(info.x_num_row, info.y_num_col);
-                    Types::vec_size_t ni = 0;
+                    Types::vec_size_t ni = 0; // NEW OPTIMIZATION IS HERE!
                     for(auto r=0; r<info.x_num_row; ++r){
                         for(auto c=0; c<info.y_num_col; ++c){
                             // precalculate the access index for the target
@@ -123,7 +153,9 @@ namespace SDDMM {
                                 r1.data[xyi] += X.data[r*info.xy_num_inner + i] * Y.data[i*info.y_num_col + c];
                             }
                         }
-                        ni += info.y_num_col;
+                        ni += info.y_num_col; // NEW OPTIMIZATION IS HERE!
+                        // Remember: Previously r*info.y_num_col was done each time (where only r increments).
+                        // However, multiplication is more often than not a more expensive operation.
                     }
                     auto end = std::chrono::high_resolution_clock::now();
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
@@ -139,6 +171,14 @@ namespace SDDMM {
                 return data;
             }
 
+            /**
+             * In addition to the optimization of the `precalc_mult_loop` function,
+             * "memory aliasing" is removed.
+             * "Removing memory aliasing" in this case refers to introducing local array element copies
+             * that are reused.
+             * As a side effect, introducing local variables reduces the attempts to accessing the memory,
+             * since the local variable is (probably) already stored in cache.
+            */
             static Results::ExperimentData accum_var(
                 int cur_exp,
                 int tot_exp,
@@ -159,11 +199,11 @@ namespace SDDMM {
                         for(auto c=0; c<info.y_num_col; ++c){
                             // precalculate the access index for the target
                             Types::vec_size_t txy = r*info.y_num_col + c;
-                            Types::expmt_t var = 0;
+                            Types::expmt_t var = 0; // NEW OPTIMIZATION IS HERE!
                             for(auto i=0; i<info.xy_num_inner; ++i){
-                                var += X.data[r*info.xy_num_inner + i] * Y.data[i*info.y_num_col + c];
+                                var += X.data[r*info.xy_num_inner + i] * Y.data[i*info.y_num_col + c]; // NEW OPTIMIZATION IS HERE!
                             }
-                            r1.data[txy] = var;
+                            r1.data[txy] = var; // NEW OPTIMIZATION IS HERE!
                         }
                     }
                     auto end = std::chrono::high_resolution_clock::now();
@@ -180,6 +220,10 @@ namespace SDDMM {
                 return data;
             }
 
+
+            /**
+             * Combines optimization of `add_mult_loop` and `accum_var`
+            */
             static Results::ExperimentData add_and_loc_acc_mult_loop(
                 int cur_exp,
                 int tot_exp,
@@ -223,6 +267,13 @@ namespace SDDMM {
                 return data;
             }
 
+            /**
+             * In addition to the optimizations in `add_and_loc_acc_mult_loop`,
+             * "loop unrolling" is introduced inside the inner loop of the matrix multiplication,
+             * i.e. the inner product of one row of X and one row of Y.
+             * In this case, the loop unrolls only TWO (2) elements of the rows/columns.
+             * For more information on loop unrolling, check https://en.wikipedia.org/wiki/Loop_unrolling 
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_2(
                 int cur_exp,
                 int tot_exp,
@@ -274,6 +325,13 @@ namespace SDDMM {
                 return data;
             }
 
+            /**
+             * In addition to the optimizations in `add_and_loc_acc_mult_loop`,
+             * "loop unrolling" is introduced inside the inner loop of the matrix multiplication,
+             * i.e. the inner product of one row of X and one row of Y.
+             * In this case, the loop unrolls only FOUR (4) elements of the rows/columns.
+             * For more information on loop unrolling, check https://en.wikipedia.org/wiki/Loop_unrolling 
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_4(
                 int cur_exp,
                 int tot_exp,
@@ -327,6 +385,13 @@ namespace SDDMM {
                 return data;
             }
 
+            /**
+             * In addition to the optimizations in `add_and_loc_acc_mult_loop`,
+             * "loop unrolling" is introduced inside the inner loop of the matrix multiplication,
+             * i.e. the inner product of one row of X and one row of Y.
+             * In this case, the loop unrolls only EIGHT (8) elements of the rows/columns.
+             * For more information on loop unrolling, check https://en.wikipedia.org/wiki/Loop_unrolling 
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_8(
                 int cur_exp,
                 int tot_exp,
@@ -384,6 +449,14 @@ namespace SDDMM {
                 return data;
             }
 
+
+            /**
+             * In addition to the optimizations in `add_and_loc_acc_mult_loop`,
+             * "loop unrolling" is introduced inside the inner loop of the matrix multiplication,
+             * i.e. the inner product of one row of X and one row of Y.
+             * In this case, the loop unrolls only SIXTEEN (16) elements of the rows/columns.
+             * For more information on loop unrolling, check https://en.wikipedia.org/wiki/Loop_unrolling 
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_16(
                 int cur_exp,
                 int tot_exp,
@@ -450,6 +523,14 @@ namespace SDDMM {
                 return data;
             }
 
+
+            /**
+             * In addition to the optimizations in `add_and_loc_acc_mult_loop`,
+             * "loop unrolling" is introduced inside the inner loop of the matrix multiplication,
+             * i.e. the inner product of one row of X and one row of Y.
+             * In this case, the loop unrolls only THRITY TWO (32) elements of the rows/columns.
+             * For more information on loop unrolling, check https://en.wikipedia.org/wiki/Loop_unrolling 
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_32(
                 int cur_exp,
                 int tot_exp,
@@ -534,6 +615,10 @@ namespace SDDMM {
                 return data;
             }
 
+            /**
+             * In addition to the properties of `add_and_loc_acc_unrol_inner_loop_mult_loop_4` functions,
+             * a single (!) local variable is introduced for the same purpose explained in `accum_var`.
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_4_reassoc(
                 int cur_exp,
                 int tot_exp,
@@ -590,6 +675,11 @@ namespace SDDMM {
                 return data;
             }
 
+
+            /**
+             * In addition to the properties of `add_and_loc_acc_unrol_inner_loop_mult_loop_8` functions,
+             * a single (!) local variable is introduced for the same purpose explained in `accum_var`.
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_8_reassoc(
                 int cur_exp,
                 int tot_exp,
@@ -613,7 +703,7 @@ namespace SDDMM {
                         for(auto c=0; c<info.y_num_col; ++c){
                             // precalculate the access index for the target
                             Types::vec_size_t xyi = ni+c;
-                            Types::expmt_t var = 0;
+                            Types::expmt_t var = 0; // NEW OPTIMIZATION IS HERE!
                             Types::vec_size_t i;
                             for(i=0; i<s; i+=j){
                                 var += X.data[r*info.xy_num_inner + i+0] * Y.data[(i+0)*info.y_num_col + c] 
@@ -652,6 +742,10 @@ namespace SDDMM {
                 return data;
             }
 
+            /**
+             * In addition to the properties of `add_and_loc_acc_unrol_inner_loop_mult_loop_2` functions,
+             * TWO (!) local variables is introduced for the same purpose explained in `accum_var`.
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_2_sep_acc(
                 int cur_exp,
                 int tot_exp,
@@ -681,8 +775,8 @@ namespace SDDMM {
                         for(auto c=0; c<info.y_num_col; ++c){
                             // precalculate the access index for the target
                             Types::vec_size_t xyi = ni+c;
-                            Types::expmt_t var_1 = 0;
-                            Types::expmt_t var_2 = 0;
+                            Types::expmt_t var_1 = 0; // NEW OPTIMIZATION IS HERE!
+                            Types::expmt_t var_2 = 0; // NEW OPTIMIZATION IS HERE!
                             Types::vec_size_t i;
                             for(i=0; i<s; i+=j){
                                 var_1 += X.data[r*info.xy_num_inner + i+0] * Y.data[(i+0)*info.y_num_col + c];
@@ -710,6 +804,10 @@ namespace SDDMM {
                 return data;
             }
 
+            /**
+             * In addition to the properties of `add_and_loc_acc_unrol_inner_loop_mult_loop_4` functions,
+             * FOUR (4) local variables are introduced for the same purpose explained in `accum_var`.
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_4_sep_acc(
                 int cur_exp,
                 int tot_exp,
@@ -739,6 +837,7 @@ namespace SDDMM {
                         for(auto c=0; c<info.y_num_col; ++c){
                             // precalculate the access index for the target
                             Types::vec_size_t xyi = ni+c;
+                            // NEW OPTIMIZATION IS HERE!
                             Types::expmt_t var_1 = 0;
                             Types::expmt_t var_2 = 0;
                             Types::expmt_t var_3 = 0;
@@ -772,6 +871,11 @@ namespace SDDMM {
                 return data;
             }
 
+
+            /**
+             * In addition to the properties of `add_and_loc_acc_unrol_inner_loop_mult_loop_8` functions,
+             * EIGHT (8) local variables are introduced for the same purpose explained in `accum_var`.
+            */
             static Results::ExperimentData add_and_loc_acc_unrol_inner_loop_mult_loop_8_sep_acc(
                 int cur_exp,
                 int tot_exp,
@@ -801,6 +905,7 @@ namespace SDDMM {
                         for(auto c=0; c<info.y_num_col; ++c){
                             // precalculate the access index for the target
                             Types::vec_size_t xyi = ni+c;
+                            // NEW OPTIMIZATION IS HERE!
                             Types::expmt_t var_1 = 0;
                             Types::expmt_t var_2 = 0;
                             Types::expmt_t var_3 = 0;
@@ -842,6 +947,10 @@ namespace SDDMM {
                 return data;
             }
 
+            /**
+             * Identical to `add_and_loc_acc_unrol_inner_loop_mult_loop_8_sep_acc`,
+             * but added intermediate indexing local variables 
+            */
             static Results::ExperimentData add_and_loc_acc_prec_in_loop_unrol_inner_loop_mult_loop_8_sep_acc(
                 int cur_exp,
                 int tot_exp,
@@ -876,6 +985,7 @@ namespace SDDMM {
                             Types::expmt_t var_8 = 0;
                             Types::vec_size_t i;
                             for(i=0; i<s; i+=j){
+                                // NEW OPTIMIZATION IS HERE!
                                 Types::vec_size_t i0 = i+0;
                                 Types::vec_size_t i1 = i+1;
                                 Types::vec_size_t i2 = i+2;
