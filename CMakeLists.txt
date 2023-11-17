@@ -64,8 +64,9 @@ add_subdirectory(src/experiments)
 # add_compile_definitions(CSR_COO)
 # add_compile_definitions(CUDA_SAMPLE)
 # add_compile_definitions(SDDMM_BENCHMARK)
+add_compile_definitions(ARRAY_VS_VEC_BENCHMARK)
 # add_compile_definitions(TYPES_BENCHMARK)
-add_compile_definitions(CACHE_BENCHMARK)
+# add_compile_definitions(CACHE_BENCHMARK)
 
 # add_compile_definitions(USE_LOW_PRECISION)
 # add_compile_definitions(UNROLLING_BENCHMARK)
@@ -79,6 +80,7 @@ target_link_libraries(main CudaLib)
 target_link_libraries(main DataStructuresLib)
 target_link_libraries(main AlgoLib)
 target_link_libraries(main ExperimentLib)
+set_property(TARGET main PROPERTY CXX_STANDARD 17)
 
 add_executable(test1 tests/tests.cpp)
 target_link_libraries(test1 OpenMP::OpenMP_CXX)
@@ -87,6 +89,7 @@ target_link_libraries(test1 CUDA::cuda_driver)
 # target_link_libraries(test1 CudaLib)
 target_link_libraries(test1 DataStructuresLib)
 target_link_libraries(test1 AlgoLib)
+set_property(TARGET test1 PROPERTY CXX_STANDARD 17)
 
 # Check
 # https://forums.developer.nvidia.com/t/nvlink-fatal-could-not-open-input-file-when-linking-with-empty-static-library/208517/2
@@ -104,6 +107,7 @@ target_link_libraries(cuda_tiled_sddmm_tests CUDA::cuda_driver)
 target_link_libraries(cuda_tiled_sddmm_tests CudaLib)
 target_link_libraries(cuda_tiled_sddmm_tests DataStructuresLib)
 target_link_libraries(cuda_tiled_sddmm_tests AlgoLib)
+set_property(TARGET cuda_tiled_sddmm_tests PROPERTY CXX_STANDARD 17)
 
 # https://linuxhint.com/install-latest-version-nvidia-cuda-ubuntu-22-04-lts/
 
@@ -116,6 +120,7 @@ target_link_libraries(cuda_example_tests CudaExpCu)
 target_link_libraries(cuda_example_tests CudaExp)
 target_link_libraries(cuda_example_tests DataStructuresLib)
 target_link_libraries(cuda_example_tests AlgoLib)
+set_property(TARGET cuda_example_tests PROPERTY CXX_STANDARD 17)
 
 add_executable(random_tests tests/random_tests.cpp)
 target_link_libraries(random_tests OpenMP::OpenMP_CXX)
@@ -123,3 +128,4 @@ target_link_libraries(random_tests CUDA::cudart)
 target_link_libraries(random_tests CUDA::cuda_driver)
 target_link_libraries(random_tests DataStructuresLib)
 target_link_libraries(random_tests AlgoLib)
+set_property(TARGET random_tests PROPERTY CXX_STANDARD 17)
