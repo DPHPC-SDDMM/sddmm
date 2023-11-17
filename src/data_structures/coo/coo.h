@@ -142,11 +142,11 @@ namespace SDDMM{
                 Types::vec_size_t s = data.size();
                 const Types::expmt_t epsilon = Defines::epsilon;
                 for(Types::vec_size_t i=0; i<s; ++i){
-                    auto a = std::fabs(data.at(i).col - other.data.at(i).col);
+                    auto a = std::fabs(data[i].col - other.data[i].col);
                     if(a > epsilon) return false;
-                    auto b = std::fabs(data.at(i).row - other.data.at(i).row);
+                    auto b = std::fabs(data[i].row - other.data[i].row);
                     if(b  > epsilon) return false;
-                    auto c = std::abs(data.at(i).value - other.data.at(i).value);
+                    auto c = std::abs(data[i].value - other.data[i].value);
                     if(c  > epsilon) return false;
                 }
 
@@ -171,7 +171,7 @@ namespace SDDMM{
                 // Types::vec_size_t o_row = 0;
                 Types::vec_size_t s = data.size();
                 for(Types::vec_size_t t=0; t<s; ++t){
-                    auto temp = data.at(t);
+                    auto temp = data[t];
                     Types::expmt_t new_val = temp.value * other.at(temp.row, temp.col);
                     if(new_val != 0){
                         res.data.push_back({temp.row, temp.col, new_val});
