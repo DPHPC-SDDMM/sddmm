@@ -15,6 +15,11 @@ namespace SDDMM {
     namespace Experiments {
         class CacheExperiments {
             private:
+
+            static std::string num_2_str(Types::vec_size_t r_num, Types::vec_size_t k_num, Types::vec_size_t c_num){
+                return "[" + std::to_string(r_num) + "," + std::to_string(k_num) + "," + std::to_string(c_num) + "]";
+            }
+
             static std::string get_cur(int cur_exp, int tot_exp){
                 return std::string("..(") 
                      + std::to_string(cur_exp) 
@@ -174,17 +179,6 @@ namespace SDDMM {
                 }
                 return sum;
             }
-
-            // template<typename T>
-            // static T mat_mult_vec_1d(std::vector<std::vector<T>> vec_2d, Types::vec_size_t r_num, Types::vec_size_t c_num){
-            //     T sum = static_cast<T>(0);
-            //     for(Types::vec_size_t c=0; c<c_num; ++c){
-            //         for(Types::vec_size_t r=0; r<r_num; ++r){
-            //             sum += vec_2d[r][c];
-            //         }
-            //     }
-            //     return sum;
-            // }
 
             public:
             template<typename T>
@@ -465,6 +459,42 @@ namespace SDDMM {
 
                 return data;
             }
+
+            static Results::ExperimentData tiled_mat_mult(
+                int cur_exp, int tot_exp, 
+                Results::SerialExperimentInfo& info,
+                Types::Matrix& A,
+                Types::Matrix& B, 
+                Types::vec_size_t ts,
+                Types::vec_size_t r_num, Types::vec_size_t k_num, Types::vec_size_t c_num,
+                Types::expmt_t& total
+            ){
+                assert(r_num % ts == 0);
+                assert(k_num % ts == 0);
+                assert(c_num % ts == 0);
+
+                Results::ExperimentData data;
+                data.label = "tiled_mat_mult [" + std::string(typeid(Types::expmt_t).name()) + "] ts[" + std::to_string(ts) + "]," + num_2_str(r_num, k_num, c_num);
+                
+                std::cout << TEXT::Cast::Cyan(get_cur(cur_exp, tot_exp)) << data.label << std::endl;
+                TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+                Types::vec_size_t n_max = info.n_experiment_iterations+1;
+                for(Types::vec_size_t n=0; n<n_max; ++n){
+                    TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
+                    auto start = std::chrono::high_resolution_clock::now();
+                    
+                    total += A.tmult(ts, B)(0,0);
+                    
+                    auto end = std::chrono::high_resolution_clock::now();
+                    if(n > 0){
+                        // discard warmup
+                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    }
+                }
+
+                return data;
+            }
         };
         
         void types_benchmark(Results::CacheExperimentInfo& info){
@@ -511,17 +541,32 @@ namespace SDDMM {
             Results::to_file(info.experiment_name, info.to_string(), info.to_info(), results);
         }
 
-        void cache_benchmark(Results::CacheExperimentInfo& info){
+        void cache_benchmark(Results::SerialExperimentInfo& info){
             // generate data
 
-            // int tot = 1;
-            // std::vector<Results::ExperimentData> results {
-            //     CacheExperiments::sum_array_cols_vec<int>(1, 6, info, 100, 100),
-            //     CacheExperiments::sum_array_cols_vec<int>(2, 6, info, 100, 100)
-            // };
+            Types::Matrix A = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
+            Types::Matrix B = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
 
-            // std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
-            // Results::to_file(info.experiment_name, info.to_string(), info.to_info(), results);
+            std::cout << "Finished matrix generation" << std::endl;
+
+            std::vector<Results::ExperimentData> results;
+            Types::expmt_t* total = new Types::expmt_t[1000];
+            Types::vec_size_t ts = 4;
+            Types::vec_size_t i=1;
+            Types::vec_size_t tot = 0;
+            while(ts <= info.x_num_row){
+                tot++;
+                ts = 2*ts;
+            }
+            ts = 4;
+            while(ts <= info.x_num_row){
+                results.push_back(CacheExperiments::tiled_mat_mult(i, tot, info, A, B, ts, info.x_num_row, info.xy_num_inner, info.y_num_col, total[i-1]));
+                i++;
+                ts = 2*ts;
+            }
+
+            std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
+            Results::to_file(info.experiment_name, info.to_string(), info.to_info(), results);
         }
     }
 }

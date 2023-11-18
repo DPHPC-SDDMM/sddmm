@@ -144,6 +144,41 @@ namespace SDDMM {
                 return newM;
             }
 
+            Types::Matrix tmult(
+                Types::vec_size_t ts, 
+                // Types::Matrix& A, 
+                Types::Matrix& B
+            ){
+                assert(m == B.n);
+                Types::vec_size_t r_num = n;
+                Types::vec_size_t k_num = m;
+                Types::vec_size_t c_num = B.m;
+
+                Types::Matrix res(n,B.m);
+
+                for(Types::vec_size_t i=0; i<c_num; i+=ts){
+                    for(Types::vec_size_t j=0; j<r_num; j+=ts){
+                        for(Types::vec_size_t k=0; k<k_num; k+=ts){
+                            Types::vec_size_t i_p_ts = i+ts;
+                            for(Types::vec_size_t r=i; r<i_p_ts; ++r){
+                                Types::vec_size_t j_p_ts = j+ts;
+                                for(Types::vec_size_t c=j; c<j_p_ts; ++c){
+                                    Types::expmt_t inner_p = 0;
+                                    Types::vec_size_t k_p_ts = k+ts;
+                                    // Types::vec_size_t ind = r*r_num + c;
+                                    for(Types::vec_size_t kk=k; kk<k_p_ts; ++kk){
+                                        inner_p += (*this)(r, kk)*B(kk,c);
+                                        // inner_p += A.data[r*c_num+kk]*B.data[kk*c_num+c];
+                                    }
+                                    res(r, c) += inner_p;
+                                }
+                            }
+                        }
+                    }
+                }
+                return res;
+            }
+
              MatrixFormat format() const {
                 return _format;
             }

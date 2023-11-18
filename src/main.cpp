@@ -87,6 +87,22 @@ int main(int argc, char** argv){
     SDDMM::Experiments::arr_vs_vec_vs_ptr_benchmark(cache_info);
 #endif
 
+#ifdef CACHE_BENCHMARK
+    SDDMM::Results::SerialExperimentInfo info(
+        "Cache experiment [Release]",
+        50,   /*tile_size_row            */
+        30,   /*tile_size_inner          */
+        60,   /*tile_size_col            */
+
+        512,   /*x_num_row                */
+        512,   /*xy_num_inner            */
+        512,   /*y_num_col                */
+
+        50 /*n_experiment_iterations  */
+    );
+    SDDMM::Experiments::cache_benchmark(info);
+#endif
+
 #ifdef UNROLLING_BENCHMARK_2
     // needs even sizes because one of the experiments divides by 2
     SDDMM::Results::SerialExperimentInfo info(

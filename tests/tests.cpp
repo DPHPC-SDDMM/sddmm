@@ -884,6 +884,49 @@ UTEST(Matrix, Generator_to_file){
 //     }
 // }
 
+UTEST(Matrix, Tiled_MM_Mult){
+    {
+        auto matrix1 = SDDMM::Types::Matrix::deterministic_gen(2, 4, {1,2,3,4,5,6,7,8});
+        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen(4, 2, {1,2,3,4,5,6,7,8});
+
+        auto expected = matrix1*matrix2;
+        auto result = matrix1.tmult(2, matrix2);
+
+        ASSERT_TRUE(result.n == matrix1.n && result.m == matrix2.m);
+        ASSERT_TRUE(expected == result);
+    }
+    {
+        auto matrix1 = SDDMM::Types::Matrix::deterministic_gen(1, 1, {2});
+        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen(1, 1, {1});
+
+        auto expected = matrix1*matrix2;
+        auto result = matrix1.tmult(1, matrix2);
+
+        ASSERT_TRUE(result.n == matrix1.n && result.m == matrix2.m);
+        ASSERT_TRUE(expected == result);
+    }
+    {
+        auto matrix1 = SDDMM::Types::Matrix::deterministic_gen(2, 6, {1,2,3,4,5,6,7,8,9,10,11,12});
+        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen(6, 2, {1,2,3,4,5,6,7,8,9,10,11,12});
+
+        auto expected = matrix1*matrix2;
+        auto result = matrix1.tmult(2, matrix2);
+
+        ASSERT_TRUE(result.n == matrix1.n && result.m == matrix2.m);
+        ASSERT_TRUE(expected == result);
+    }
+    {
+        auto matrix1 = SDDMM::Types::Matrix::deterministic_gen(3, 1, {1,2,3});
+        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen(1, 3, {1,2,3});
+
+        auto expected = matrix1*matrix2;
+        auto result = matrix1.tmult(1, matrix2);
+
+        ASSERT_TRUE(result.n == matrix1.n && result.m == matrix2.m);
+        ASSERT_TRUE(expected == result);
+    }
+}
+
 UTEST(Matrix, SDDMM_tiled_op) {
     auto X = SDDMM::Types::Matrix::deterministic_gen(3, 4, {
         1,  2,  3,  4,
