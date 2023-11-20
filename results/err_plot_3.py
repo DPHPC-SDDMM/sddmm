@@ -5,7 +5,7 @@ import numpy as np
 if __name__ == '__main__':
     # https://www.geeksforgeeks.org/adding-value-labels-on-a-matplotlib-bar-chart/
 
-    data_file = 'test_benchmark__[NxK,KxM]Had[NxM]N500_M500_K800_sparsity-0.1_iters-50_cpu-t-24_[Fri Nov 10 15-29-07 2023].txt'
+    data_file = 'parallel_sddmm__[NxK,KxM]Had[NxM]N500_M500_K400_sparsity-0.1_iters-50_cpu-t-24_[Sat Nov 18 19-20-46 2023].txt'
     d = data.Data(data_file)
 
     x = d.data.keys()

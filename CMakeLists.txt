@@ -67,7 +67,7 @@ add_subdirectory(src/experiments)
 # add_compile_definitions(SDDMM_BENCHMARK)
 # add_compile_definitions(ARRAY_VS_VEC_BENCHMARK)
 # add_compile_definitions(TYPES_BENCHMARK)
-add_compile_definitions(CACHE_BENCHMARK)
+# add_compile_definitions(CACHE_BENCHMARK)
 
 # add_compile_definitions(USE_LOW_PRECISION)
 # add_compile_definitions(UNROLLING_BENCHMARK)

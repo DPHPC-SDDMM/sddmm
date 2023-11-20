@@ -43,12 +43,12 @@ int main(int argc, char** argv){
 
 #ifdef SDDMM_BENCHMARK
     SDDMM::Results::ExperimentInfo info(
-        "test_benchmark",
+        "parallel_sddmm",
         500,  /* sparse_num_rows */
         500,  /* sparse_num_cols */
-        800,  /* dense_inner_dim */
+        400,  /* dense_inner_dim */
         0.1f, /* sparsity */
-        100,  /* n_experiments_num */
+        50,  /* n_experiments_num */
         24    /* n_cpu_threads */
     );
     SDDMM::Experiments::benchmark_sddmm(info);

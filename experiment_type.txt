@@ -1,0 +1,9 @@
+
+Experiments
+===========
+1. optimize each algo => get best version
+2. experiments multiple matrix sizes, uniform distribution, all algos compared
+3. experiments same matrix size, vary sparsity, uniform distribution, all algos compared
+4. experiments with sparse matrix data sets, vary sparsity distribution of dense matrices, all algos compared
+   => check if kind of distribution even has an impact on the algo performance
+5. ask TA about large sparse matrices relevant to sddmm

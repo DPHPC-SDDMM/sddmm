@@ -50,47 +50,47 @@ namespace SDDMM {
             }
             // =========================================
 
-            Results::ExperimentData naive_sddmm_csr;
-            naive_sddmm_csr.label = "naive (CSR,CPU)";
-            std::cout << TEXT::Cast::Cyan("..(3/5)..") << "naive_sddmm(CSR) ..." << std::endl;
-            for(auto x=0; x<info.n_experiment_iterations; ++x)
-            {
-                auto result = SDDMM::Algo::naive_sddmm(csr_mat, X, Y, &naive_sddmm_csr);
-                TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
-            }
-            // =========================================
+            // Results::ExperimentData naive_sddmm_csr;
+            // naive_sddmm_csr.label = "naive (CSR,CPU)";
+            // std::cout << TEXT::Cast::Cyan("..(3/5)..") << "naive_sddmm(CSR) ..." << std::endl;
+            // for(auto x=0; x<info.n_experiment_iterations; ++x)
+            // {
+            //     auto result = SDDMM::Algo::naive_sddmm(csr_mat, X, Y, &naive_sddmm_csr);
+            //     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
+            // }
+            // // =========================================
 
-            Results::ExperimentData cuda_sddmm;
-            cuda_sddmm.label = "cuda";
-            std::cout << TEXT::Cast::Cyan("..(4/5)..") << "cuda_tiled_sddmm ..." << std::endl;
-            TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+            // Results::ExperimentData cuda_sddmm;
+            // cuda_sddmm.label = "cuda";
+            // std::cout << TEXT::Cast::Cyan("..(4/5)..") << "cuda_tiled_sddmm ..." << std::endl;
+            // TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
 
-            for(auto x=0; x<info.n_experiment_iterations; ++x)
-            {
-                auto result = SDDMM::Algo::cuda_tiled_sddmm(coo_mat, X, Y, &cuda_sddmm);
-                TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
-            }
-            // =========================================
+            // for(auto x=0; x<info.n_experiment_iterations; ++x)
+            // {
+            //     auto result = SDDMM::Algo::cuda_tiled_sddmm(coo_mat, X, Y, &cuda_sddmm);
+            //     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
+            // }
+            // // =========================================
 
-            Results::ExperimentData tiled_sddmm;
-            tiled_sddmm.label = "tiled (CPU)";
-            std::cout << TEXT::Cast::Cyan("..(5/5)..") << "tiled_sddmm ..." << std::endl;
-            TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+            // Results::ExperimentData tiled_sddmm;
+            // tiled_sddmm.label = "tiled (CPU)";
+            // std::cout << TEXT::Cast::Cyan("..(5/5)..") << "tiled_sddmm ..." << std::endl;
+            // TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
 
-            for(auto x=0; x<info.n_experiment_iterations; ++x)
-            {
-                auto result = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128, &tiled_sddmm);
-                TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
-            }
-            // =========================================
+            // for(auto x=0; x<info.n_experiment_iterations; ++x)
+            // {
+            //     auto result = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128, &tiled_sddmm);
+            //     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
+            // }
+            // // =========================================
 
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
             Results::to_file(info.experiment_name, info.to_string(), info.to_info(), {
                 parallel_sddmm,
-                naive_sddmm_coo,
-                naive_sddmm_csr,
-                cuda_sddmm,
-                tiled_sddmm
+                naive_sddmm_coo
+                // naive_sddmm_csr,
+                // cuda_sddmm,
+                // tiled_sddmm
             });
         }
     };
