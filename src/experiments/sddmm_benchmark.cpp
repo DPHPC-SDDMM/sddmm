@@ -78,6 +78,40 @@ namespace SDDMM {
                 return data;
             }
 
+            static Results::ExperimentData parallel_sddmm_close_to_git(
+                int cur_exp, 
+                int tot_exp, 
+                Results::ExperimentInfo& info,
+                Types::COO& coo_mat, 
+                Types::Matrix& X, 
+                Types::Matrix& Y, 
+                Types::expmt_t& total
+            ){
+                Results::ExperimentData data;
+                data.label = "parallel_sddmm_g [T" + std::to_string(info.n_cpu_threads) + "]";
+                
+                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
+                TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+                omp_set_dynamic(0);
+                omp_set_num_threads(info.n_cpu_threads);
+                Types::vec_size_t n_max = info.n_experiment_iterations+1;
+                for(Types::vec_size_t n=0; n<n_max; ++n){
+                    TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
+                    auto start = std::chrono::high_resolution_clock::now();
+                    
+                    total += SDDMM::Algo::parallel_sddmm_close_to_git(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
+                    
+                    auto end = std::chrono::high_resolution_clock::now();
+                    if(n > 0){
+                        // discard warmup
+                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    }
+                }
+
+                return data;
+            }
+
             static Results::ExperimentData naive_sddmm(
                 int cur_exp, 
                 int tot_exp, 
@@ -252,13 +286,15 @@ namespace SDDMM {
             Types::expmt_t total_2 = 0;
             Types::expmt_t total_3 = 0;
             Types::expmt_t total_4 = 0;
+            Types::expmt_t total_5 = 0;
 
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
             Results::to_file(info.experiment_name, info.to_string(), info.to_info(), {
-                SDDMMBenchmarks::naive_sddmm(1, 3, info, coo_mat, X, Y, total_1),
+                //SDDMMBenchmarks::naive_sddmm(1, 3, info, coo_mat, X, Y, total_1),
                 SDDMMBenchmarks::parallel_sddmm(2, 3, info, coo_mat, X, Y, total_2),
-                SDDMMBenchmarks::cuda_tiled_sddmm(3, 3, info, coo_mat, X, Y, total_3),
-                SDDMMBenchmarks::parallel_sddmm_p(4, 3, info,coo_mat, X, Y, total_4)
+                //SDDMMBenchmarks::cuda_tiled_sddmm(3, 3, info, coo_mat, X, Y, total_3),
+                SDDMMBenchmarks::parallel_sddmm_p(4, 3, info,coo_mat, X, Y, total_4),
+                SDDMMBenchmarks::parallel_sddmm_close_to_git(5, 3, info, coo_mat, X, Y, total_5)
             });
         }
     };

@@ -175,5 +175,61 @@ namespace SDDMM {
 
             return res;
         }
+
+        Types::COO parallel_sddmm_close_to_git(
+            const Types::COO& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
+            Types::vec_size_t num_threads,
+            Results::ExperimentData* measurements = nullptr
+        )
+        {
+            Types::COO res;
+            res.n = A_sparse.n;
+            res.m = A_sparse.m;
+
+            const Types::vec_size_t k = X_dense.m;
+            const Types::vec_size_t nnz = A_sparse.values.size();
+
+            res.rows.resize(nnz); res.cols.resize(nnz);
+            std::copy(A_sparse.rows.begin(), A_sparse.rows.end(), res.rows.begin());
+            std::copy(A_sparse.cols.begin(), A_sparse.cols.end(), res.cols.begin());
+            res.values.resize(nnz); // Very close to to `std::vector<Types::expmt_t> p_ind(nnz);`
+
+            // Place the clock at the same instruction as the provided code.
+            auto start = std::chrono::high_resolution_clock::now();
+
+            #pragma omp parallel for
+            for(Types::vec_size_t i=0; i<nnz; i++){
+
+                Types::vec_size_t row = A_sparse.rows[i];
+                Types::vec_size_t col = A_sparse.cols[i]; 
+                Types::expmt_t val = A_sparse.values[i];
+
+                Types::expmt_t inner_product = 0;
+                
+                for(SDDMM::Types::vec_size_t ind=0; ind < k; ++ind){
+                    inner_product += X_dense.at(row, ind)*Y_dense.at(ind, col);
+                }
+                // Not checking for inner_products with value of zero.
+                // Immediately add them.
+                res.values[i] = val * inner_product;
+            } // omp parallel for FINISH
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
+
+            // Shrink the size of the data structures in case zero-valued inner products appeared,
+            // thus requiring less than initial space predicted (i.e. memory amount equal to the input sparse matrix ).
+            res.values.shrink_to_fit();
+            res.rows.shrink_to_fit();
+            res.cols.shrink_to_fit();
+
+            return res;
+        }
     }
 }
