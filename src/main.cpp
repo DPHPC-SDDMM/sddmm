@@ -10,6 +10,8 @@
  * All algos as cpp files
 */
 
+#include "algos/sm-l2-sddmm/sm-l2-sddmm.cpp"
+
 /**
  * This is the algo that will run
 */
@@ -32,6 +34,11 @@ int main(int argc, char** argv){
 #ifdef CUDA_SAMPLE
     std::cout << SDDMM::Defines::get_title_str("CUDA_SAMPLE") << std::endl;
     SDDMM::Algo::SampleCudaAlgo();
+#endif
+
+#ifdef SM_L2
+    std::cout << SDDMM::Defines::get_title_str("SM_L2_SDDMM") << std::endl;
+    SDDMM::Algo::SML2SDDMM::run();
 #endif
 
 #ifdef SDDMM_BENCHMARK
