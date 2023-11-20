@@ -42,14 +42,17 @@ int main(int argc, char** argv){
 #endif
 
 #ifdef SDDMM_BENCHMARK
+    // std::cout << sizeof(SDDMM::Types::COO::triplet) << std::endl;
+    // std::cout << sizeof(SDDMM::Types::expmt_t) << std::endl;
+    // std::cout << sizeof(SDDMM::Types::vec_size_t) << std::endl;
     SDDMM::Results::ExperimentInfo info(
         "parallel_sddmm",
         500,  /* sparse_num_rows */
         500,  /* sparse_num_cols */
         400,  /* dense_inner_dim */
         0.1f, /* sparsity */
-        50,  /* n_experiments_num */
-        24    /* n_cpu_threads */
+        25,  /* n_experiments_num */
+        8    /* n_cpu_threads */
     );
     SDDMM::Experiments::benchmark_sddmm(info);
 #endif

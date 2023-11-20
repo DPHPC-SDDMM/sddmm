@@ -30,10 +30,39 @@ namespace SDDMM {
             std::cout << TEXT::Cast::Cyan("..(1/5)..") << "parallel_sddmm ..." << std::endl;
             TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
 
+            omp_set_dynamic(0);
             for(auto x=0; x<info.n_experiment_iterations; ++x)
             {
                 omp_set_num_threads(info.n_cpu_threads);
                 auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, info.n_cpu_threads, &parallel_sddmm);
+                TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
+            }
+            // =========================================
+
+            Results::ExperimentData parallel_sddmm2;
+            parallel_sddmm2.label = "parallel 2 (CPU)";
+            std::cout << TEXT::Cast::Cyan("..(1/5)..") << "parallel_2_sddmm ..." << std::endl;
+            TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+            omp_set_dynamic(0);
+            for(auto x=0; x<info.n_experiment_iterations; ++x)
+            {
+                omp_set_num_threads(1);
+                auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, 1, &parallel_sddmm2);
+                TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
+            }
+            // =========================================
+
+            Results::ExperimentData parallel_sddmm_3;
+            parallel_sddmm_3.label = "parallel crap (CPU)";
+            std::cout << TEXT::Cast::Cyan("..(1/5)..") << "parallel_sddmm_3 ..." << std::endl;
+            TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+            omp_set_dynamic(0);
+            for(auto x=0; x<info.n_experiment_iterations; ++x)
+            {
+                omp_set_num_threads(info.n_cpu_threads);
+                auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, info.n_cpu_threads, &parallel_sddmm_3);
                 TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
             }
             // =========================================
@@ -87,6 +116,8 @@ namespace SDDMM {
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
             Results::to_file(info.experiment_name, info.to_string(), info.to_info(), {
                 parallel_sddmm,
+                parallel_sddmm2,
+                parallel_sddmm_3,
                 naive_sddmm_coo
                 // naive_sddmm_csr,
                 // cuda_sddmm,
