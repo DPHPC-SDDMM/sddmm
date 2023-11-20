@@ -9,7 +9,7 @@
 
 namespace SDDMM {
     namespace Algo {
-        void parallel_sddmm_blub(
+        Types::expmt_t parallel_sddmm_blub(
             const Types::COO& A_sparse, 
             const Types::Matrix& X_dense, 
             const Types::Matrix& Y_dense, 
@@ -20,7 +20,7 @@ namespace SDDMM {
             Types::vec_size_t nnz = A_sparse.values.size();
             std::vector<Types::expmt_t> p_ind(nnz);
 
-            double start_time = omp_get_wtime();
+            auto start = std::chrono::high_resolution_clock::now();
             // omp_set_num_threads(28);
             #pragma omp parallel for //reduction(+:tot)
             for (int ind = 0; ind < nnz; ind++){
@@ -33,10 +33,12 @@ namespace SDDMM {
                 // cout << "ind " << row<<" "<<col << ":: "  <<" "<< p_ind[ind] << " = " << sm <<" * "<< val_ind[ind]<< endl;  
                 // }                
             }
-            double CPU_time = omp_get_wtime() - start_time;
+            auto end = std::chrono::high_resolution_clock::now();
 
-            auto duration = CPU_time - start_time;
-            measurements->durations.push_back((int)(duration*1000000));
+            Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+            measurements->durations.push_back(duration);
+
+            return 1.0;
         }
 
         /**
@@ -154,6 +156,7 @@ namespace SDDMM {
                         res.cols.push_back(block_cols[tn]);
                     }
                 }
+
             }
 
             auto end = std::chrono::high_resolution_clock::now();

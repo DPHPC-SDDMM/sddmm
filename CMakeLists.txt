@@ -50,7 +50,7 @@ find_package(CUDAToolkit REQUIRED)
 set(RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 set(LIBRARY_OUTPUT_PATH  "${CMAKE_BINARY_DIR}")
 
-include_directories("/usr/local/cuda/include")
+include_directories("/usr/local/cuda/include" "/usr/include")
 
 add_subdirectory(src/algos)
 add_subdirectory(src/data_structures)

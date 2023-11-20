@@ -200,6 +200,14 @@ namespace SDDMM {
                 }
                 std::cout << END << std::endl;
             }
+
+            static std::string get_cur(int cur_exp, int tot_exp){
+                return std::string("..(") 
+                     + std::to_string(cur_exp) 
+                     + std::string("/") 
+                     + std::to_string(tot_exp) 
+                     + std::string(")..");
+            }
         };
     }
 }

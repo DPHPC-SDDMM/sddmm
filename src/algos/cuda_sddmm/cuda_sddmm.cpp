@@ -51,15 +51,17 @@ namespace SDDMM {
             Types::expmt_t* X_dense_d;
             Types::expmt_t* Y_dense_d;
             cudaMalloc(reinterpret_cast<void**>(&A_sparse_values_d), sparse_len_values_d);
+            cudaMalloc(reinterpret_cast<void**>(&A_sparse_rows_d), sparse_len_rows_d);
+            cudaMalloc(reinterpret_cast<void**>(&A_sparse_cols_d), sparse_len_cols_d);
             cudaMalloc(reinterpret_cast<void**>(&X_dense_d), x_dense_len_values_d);
             cudaMalloc(reinterpret_cast<void**>(&Y_dense_d), y_dense_len_values_d);
 
-            cudaMemcpy(A_sparse_values_d, A_sparse.values.data(), sparse_len_values_d, cudaMemcpyHostToDevice);
-            cudaMemcpy(A_sparse_rows_d, A_sparse.cols.data(), sparse_len_rows_d, cudaMemcpyHostToDevice);
-            cudaMemcpy(A_sparse_cols_d, A_sparse.rows.data(), sparse_len_cols_d, cudaMemcpyHostToDevice);
+            auto err1 = cudaMemcpy(A_sparse_values_d, A_sparse.values.data(), sparse_len_values_d, cudaMemcpyHostToDevice);
+            auto err2 = cudaMemcpy(A_sparse_rows_d, A_sparse.rows.data(), sparse_len_rows_d, cudaMemcpyHostToDevice);
+            auto err3 = cudaMemcpy(A_sparse_cols_d, A_sparse.cols.data(), sparse_len_cols_d, cudaMemcpyHostToDevice);
 
-            cudaMemcpy(X_dense_d, X_dense.data.data(), x_dense_len_values_d, cudaMemcpyHostToDevice);
-            cudaMemcpy(Y_dense_d, Y_dense.data.data(), y_dense_len_values_d, cudaMemcpyHostToDevice);
+            auto err4 = cudaMemcpy(X_dense_d, X_dense.data.data(), x_dense_len_values_d, cudaMemcpyHostToDevice);
+            auto err5 = cudaMemcpy(Y_dense_d, Y_dense.data.data(), y_dense_len_values_d, cudaMemcpyHostToDevice);
 
             CudaTiledSDDMM(
                 A_sparse_values_d, 
@@ -78,9 +80,9 @@ namespace SDDMM {
             Types::expmt_t* out_values = new Types::expmt_t[sparse_len];
             Types::vec_size_t* out_rows = new Types::vec_size_t[sparse_len];
             Types::vec_size_t* out_cols = new Types::vec_size_t[sparse_len];
-            cudaMemcpy(out_values, out_values_d, sparse_len_values_d, cudaMemcpyDeviceToHost);
-            cudaMemcpy(out_rows, out_row_d, sparse_len_rows_d, cudaMemcpyDeviceToHost);
-            cudaMemcpy(out_cols, out_col_d, sparse_len_cols_d, cudaMemcpyDeviceToHost);
+            auto err6 = cudaMemcpy(out_values, out_values_d, sparse_len_values_d, cudaMemcpyDeviceToHost);
+            auto err7 = cudaMemcpy(out_rows, out_row_d, sparse_len_rows_d, cudaMemcpyDeviceToHost);
+            auto err8 = cudaMemcpy(out_cols, out_col_d, sparse_len_cols_d, cudaMemcpyDeviceToHost);
 
             cudaFree(A_sparse_values_d);
             cudaFree(A_sparse_rows_d);

@@ -46,13 +46,13 @@ int main(int argc, char** argv){
     // std::cout << sizeof(SDDMM::Types::expmt_t) << std::endl;
     // std::cout << sizeof(SDDMM::Types::vec_size_t) << std::endl;
     SDDMM::Results::ExperimentInfo info(
-        "parallel_sddmm",
+        "parallel_sddmm [Release]",
         500,  /* sparse_num_rows */
         500,  /* sparse_num_cols */
         400,  /* dense_inner_dim */
         0.1f, /* sparsity */
         25,  /* n_experiments_num */
-        8    /* n_cpu_threads */
+        13    /* n_cpu_threads */
     );
     SDDMM::Experiments::benchmark_sddmm(info);
 #endif

@@ -6,7 +6,7 @@ __global__ void k_sddmm(
     SDDMM::Types::vec_size_t* A_sparse_cols_d,
     SDDMM::Types::expmt_t* X_dense_d,
     SDDMM::Types::expmt_t* Y_dense_d,
-    SDDMM::Types::vec_size_t sparse_len,
+    // !!!! SDDMM::Types::vec_size_t sparse_len,
     SDDMM::Types::vec_size_t X_m, 
     SDDMM::Types::vec_size_t Y_m,
     SDDMM::Types::expmt_t* out_values_d,
@@ -59,16 +59,17 @@ void CudaTiledSDDMM(
             std::ceil(
                 static_cast<double>(sparse_len) / static_cast<double>(SDDMM::Defines::warp_size)
             ));
-    // k_sddmm<<<block_num, SDDMM::Defines::warp_size>>>(
-    //     A_sparse_values_d,
-    //     A_sparse_rows_d,
-    //     A_sparse_cols_d,
-    //     X_dense_d, 
-    //     Y_dense_d, 
-    //     X_m, 
-    //     Y_m, 
-    //     out_values_d,
-    //     out_row_d,
-    //     out_col_d
-    // );
+
+    k_sddmm<<<block_num, SDDMM::Defines::warp_size>>>(
+        A_sparse_values_d,
+        A_sparse_rows_d,
+        A_sparse_cols_d,
+        X_dense_d, 
+        Y_dense_d, 
+        X_m, 
+        Y_m, 
+        out_values_d,
+        out_row_d,
+        out_col_d
+    );
 }
