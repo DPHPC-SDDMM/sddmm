@@ -1,10 +1,10 @@
 #include <iostream>
+#include <fstream>
 #include "experiments/sddmm_benchmark.cpp"
 #include "experiments/unrolling_benchmark.cpp"
 #include "experiments/cache_benchmark.cpp"
 #include "experiments/unrolling_benchmark_2.cpp"
 
-// #include <chrono>
 
 /**
  * All algos as cpp files
@@ -122,6 +122,13 @@ int main(int argc, char** argv){
         100 /*n_experiment_iterations  */
     );
     SDDMM::Experiments::unrolling_benchmark_2(info);
+#endif
+
+#ifdef MATRIX_MARKET_FILE_READ
+
+    SDDMM::Types::COO sparse_matrix = SDDMM::Types::COO::read_matrix_market_file("../Tina_AskCal.mtx");
+    std::cout << sparse_matrix << std::endl;
+
 #endif
 
     return 0;
