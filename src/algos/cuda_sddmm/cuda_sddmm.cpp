@@ -27,50 +27,82 @@ namespace SDDMM {
             Types::vec_size_t inner_dense_dimension = X_dense.m;
 
             // get sparse data length and produce one in bytes
-            Types::vec_size_t sparse_len = A_sparse.data.size();
-            Types::vec_size_t sparse_len_d = sizeof(Types::COO::triplet) * sparse_len;
-            Types::vec_size_t x_dense_len = X_dense.data.size();
-            Types::vec_size_t x_dense_len_d = sizeof(Types::expmt_t) * x_dense_len;
-            Types::vec_size_t y_dense_len = Y_dense.data.size();
-            Types::vec_size_t y_dense_len_d = sizeof(Types::expmt_t) * y_dense_len;
+            Types::vec_size_t sparse_len = A_sparse.values.size();
+            Types::vec_size_t sparse_len_values_d = sizeof(Types::expmt_t) * sparse_len;
+            Types::vec_size_t sparse_len_rows_d = sizeof(Types::vec_size_t) * sparse_len;
+            Types::vec_size_t sparse_len_cols_d = sizeof(Types::vec_size_t) * sparse_len;
 
-            Types::COO::triplet* out_d;
-            cudaMalloc(reinterpret_cast<void**>(&out_d), sparse_len_d);
+            Types::vec_size_t x_dense_len_values = X_dense.data.size();
+            Types::vec_size_t x_dense_len_values_d = sizeof(Types::expmt_t) * x_dense_len_values;
+            Types::vec_size_t y_dense_len_values = Y_dense.data.size();
+            Types::vec_size_t y_dense_len_values_d = sizeof(Types::expmt_t) * y_dense_len_values;
 
-            Types::COO::triplet* A_sparse_d;
+            Types::vec_size_t* out_col_d;
+            cudaMalloc(reinterpret_cast<void**>(&out_col_d), sparse_len_cols_d);
+            Types::vec_size_t* out_row_d;
+            cudaMalloc(reinterpret_cast<void**>(&out_row_d), sparse_len_rows_d);
+            Types::expmt_t* out_values_d;
+            cudaMalloc(reinterpret_cast<void**>(&out_values_d), sparse_len_values_d);
+
+            Types::expmt_t* A_sparse_values_d;
+            Types::vec_size_t* A_sparse_rows_d;
+            Types::vec_size_t* A_sparse_cols_d;
+
             Types::expmt_t* X_dense_d;
             Types::expmt_t* Y_dense_d;
-            cudaMalloc(reinterpret_cast<void**>(&A_sparse_d), sparse_len_d);
-            cudaMalloc(reinterpret_cast<void**>(&X_dense_d), x_dense_len_d);
-            cudaMalloc(reinterpret_cast<void**>(&Y_dense_d), y_dense_len_d);
+            cudaMalloc(reinterpret_cast<void**>(&A_sparse_values_d), sparse_len_values_d);
+            cudaMalloc(reinterpret_cast<void**>(&X_dense_d), x_dense_len_values_d);
+            cudaMalloc(reinterpret_cast<void**>(&Y_dense_d), y_dense_len_values_d);
 
-            cudaMemcpy(A_sparse_d, A_sparse.data.data(), sparse_len_d, cudaMemcpyHostToDevice);
-            cudaMemcpy(X_dense_d, X_dense.data.data(), x_dense_len_d, cudaMemcpyHostToDevice);
-            cudaMemcpy(Y_dense_d, Y_dense.data.data(), y_dense_len_d, cudaMemcpyHostToDevice);
+            cudaMemcpy(A_sparse_values_d, A_sparse.values.data(), sparse_len_values_d, cudaMemcpyHostToDevice);
+            cudaMemcpy(A_sparse_rows_d, A_sparse.cols.data(), sparse_len_rows_d, cudaMemcpyHostToDevice);
+            cudaMemcpy(A_sparse_cols_d, A_sparse.rows.data(), sparse_len_cols_d, cudaMemcpyHostToDevice);
+
+            cudaMemcpy(X_dense_d, X_dense.data.data(), x_dense_len_values_d, cudaMemcpyHostToDevice);
+            cudaMemcpy(Y_dense_d, Y_dense.data.data(), y_dense_len_values_d, cudaMemcpyHostToDevice);
 
             CudaTiledSDDMM(
-                A_sparse_d, X_dense_d, Y_dense_d, sparse_len,
-                X_dense.m, Y_dense.m, out_d
+                A_sparse_values_d, 
+                A_sparse_rows_d, 
+                A_sparse_cols_d, 
+                X_dense_d, 
+                Y_dense_d, 
+                sparse_len,
+                X_dense.m, 
+                Y_dense.m, 
+                out_values_d, 
+                out_row_d, 
+                out_col_d
             );
 
-            Types::COO::triplet* out = new Types::COO::triplet[sparse_len];
-            cudaMemcpy(out, out_d, sparse_len_d, cudaMemcpyDeviceToHost);
+            Types::expmt_t* out_values = new Types::expmt_t[sparse_len];
+            Types::vec_size_t* out_rows = new Types::vec_size_t[sparse_len];
+            Types::vec_size_t* out_cols = new Types::vec_size_t[sparse_len];
+            cudaMemcpy(out_values, out_values_d, sparse_len_values_d, cudaMemcpyDeviceToHost);
+            cudaMemcpy(out_rows, out_row_d, sparse_len_rows_d, cudaMemcpyDeviceToHost);
+            cudaMemcpy(out_cols, out_col_d, sparse_len_cols_d, cudaMemcpyDeviceToHost);
 
-            cudaFree(A_sparse_d);
+            cudaFree(A_sparse_values_d);
+            cudaFree(A_sparse_rows_d);
+            cudaFree(A_sparse_cols_d);
             cudaFree(X_dense_d);
             cudaFree(Y_dense_d);
-            cudaFree(out_d);
+            cudaFree(out_values_d);
+            cudaFree(out_row_d);
+            cudaFree(out_col_d);
 
             Types::COO out_sparse;
             out_sparse.n = A_sparse.n;
             out_sparse.m = A_sparse.m;
-            out_sparse.data.reserve(A_sparse.data.size()); // pre-emptively allocate the required memory
+            out_sparse.values.reserve(A_sparse.values.size()); // pre-emptively allocate the required memory
 
-            auto s = A_sparse.data.size();
+            auto s = A_sparse.values.size();
             for(Types::vec_size_t i=0; i<s; ++i){
-                auto v = out[i];
-                if(v.value != 0) {
-                    out_sparse.data.push_back(v);
+                auto v = out_values[i];
+                if(v != 0) {
+                    out_sparse.values.push_back(v);
+                    out_sparse.rows.push_back(out_rows[i]);
+                    out_sparse.cols.push_back(out_cols[i]);
                 }
             }
 
@@ -81,8 +113,9 @@ namespace SDDMM {
                 measurements->durations.push_back(duration);
             }
 
-            out_sparse.data.shrink_to_fit(); // SDDMM may have less entries than A_sparse, due to zero inner products forming.
-
+            out_sparse.values.shrink_to_fit(); // SDDMM may have less entries than A_sparse, due to zero inner products forming.
+            out_sparse.rows.shrink_to_fit();
+            out_sparse.cols.shrink_to_fit();
 
             return out_sparse;
         }

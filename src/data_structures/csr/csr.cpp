@@ -22,7 +22,9 @@ namespace SDDMM {
         [[nodiscard]] COO CSR::to_coo() const {
             COO mat;
 
-            mat.data.reserve(values.size());
+            mat.values.reserve(values.size());
+            mat.rows.reserve(values.size());
+            mat.cols.reserve(values.size());
             mat.n = n;
             mat.m = m;
 
@@ -35,7 +37,9 @@ namespace SDDMM {
                 for (Types::vec_size_t j = start_idx; j < end_idx; j++) {
                     Types::vec_size_t col = col_idx[j];
                     SDDMM::Types::expmt_t value = values[j];
-                    mat.data.emplace_back(COO::triplet {row, col, value});
+                    mat.values.emplace_back(value);
+                    mat.rows.emplace_back(row);
+                    mat.cols.emplace_back(col);
                 }
             }
 

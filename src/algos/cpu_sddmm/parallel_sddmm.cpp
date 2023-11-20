@@ -16,16 +16,8 @@ namespace SDDMM {
             Types::vec_size_t num_threads,
             Results::ExperimentData* measurements = nullptr
         ){
-            std::vector<Types::expmt_t> row_ind;
-            std::vector<Types::expmt_t> col_ind;
-            std::vector<Types::expmt_t> val_ind;
-            for(auto& trip : A_sparse.data){
-                row_ind.push_back(trip.row);
-                col_ind.push_back(trip.col);
-                val_ind.push_back(trip.value);
-            }
             Types::vec_size_t k = X_dense.m;
-            Types::vec_size_t nnz = A_sparse.data.size();
+            Types::vec_size_t nnz = A_sparse.values.size();
             std::vector<Types::expmt_t> p_ind(nnz);
 
             double start_time = omp_get_wtime();
@@ -33,11 +25,11 @@ namespace SDDMM {
             #pragma omp parallel for //reduction(+:tot)
             for (int ind = 0; ind < nnz; ind++){
                 float sm =0 ;
-                int row = row_ind[ind];
-                int col = col_ind[ind]; 
+                int row = A_sparse.rows[ind];
+                int col = A_sparse.cols[ind]; 
                 for (int t = 0; t < k; ++t)
                     sm += X_dense.data[row * k + t] * Y_dense.data[col * k + t];
-                p_ind[ind] = sm * val_ind[ind];
+                p_ind[ind] = sm * A_sparse.values[ind];
                 // cout << "ind " << row<<" "<<col << ":: "  <<" "<< p_ind[ind] << " = " << sm <<" * "<< val_ind[ind]<< endl;  
                 // }                
             }
@@ -82,21 +74,24 @@ namespace SDDMM {
             assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m>0 && "All involved matrices must be non-empty!");
             assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Matrix dimensions must match!");
 
-            // auto start = std::chrono::high_resolution_clock::now();
-            auto start = omp_get_wtime();
+            auto start = std::chrono::high_resolution_clock::now();
+            // auto start = omp_get_wtime();
 
             Types::COO res;
             res.n = A_sparse.n;
             res.m = A_sparse.m;
 
-            auto s = A_sparse.data.size();
+            Types::vec_size_t s = A_sparse.values.size();
             for(Types::vec_size_t i=0; i<s; i+=num_threads){
                 // auto m = std::min(s - i, num_threads); // This line is commented out to resemble the *constant* number of threads when calling CUDA.
 
                 // Subset of COO entries.
                 // The term "block" was chosen to be reminiscent of a CUDA blocks, i.e. a set of CUDA threads.
-                std::vector<Types::COO::triplet> block(num_threads, {0,0,0});
-                // std::stringstream ss[2];
+                // std::vector<Types::COO::triplet> block(num_threads, {0,0,0});
+                std::vector<Types::expmt_t> block_values(num_threads, 0);
+                std::vector<Types::vec_size_t> block_rows(num_threads, 0);
+                std::vector<Types::vec_size_t> block_cols(num_threads, 0);
+                // // std::stringstream ss[2];
 
                 // add about 750ns overhead
                 const Types::vec_size_t m = X_dense.m;
@@ -114,13 +109,16 @@ namespace SDDMM {
                         - dense matrix multiplication --inner products-- XY and
                         - a sparse matrix A.
                         */
-                        Types::COO::triplet p = A_sparse.data.at(idx);
+                        Types::vec_size_t row = A_sparse.rows[idx];
+                        Types::vec_size_t col = A_sparse.cols[idx]; 
+                        Types::expmt_t val = A_sparse.values[idx];
+
                         // ss[tn] << "[" << i << " " << tn << " " << p.row << " " << idx << "]\n";
                         Types::expmt_t inner_product = 0;
                         
                         // the ind index has to be tiled later
                         for(SDDMM::Types::vec_size_t ind=0; ind < m; ++ind){
-                            inner_product += X_dense.at(p.row, ind); //*Y_dense.at(ind, p.col);
+                            inner_product += X_dense.at(row, ind)*Y_dense.at(ind, col);
                         }
                         /*
                         Here we have the entire inner prouct inside `inner_product`.
@@ -142,31 +140,35 @@ namespace SDDMM {
                         STEP 4) GOTO STEP 1 by freezing a new part of the same row.
                                 The new part should not have any overlaps with any previous iteration(s).
                         */
-                        // block[tn] = {p.row, p.col, p.value * inner_product};
+                        block_values[tn] = val * inner_product;
+                        block_rows[tn] = row;
+                        block_cols[tn] = col;
                     }
-                    // block[tn] = {1,2,3};
                 }
 
                 // about 100ns overhead per insertion
-                // for(const Types::COO::triplet& elem : block){
-                //     if(elem.value != 0){ // Comply with the definition of a COO matrix (i.e. hold only non-zero values).
-                //         res.data.push_back(elem);
-                //     }
-                // }
+                for(int tn = 0; tn<num_threads; ++tn){
+                    if(block_values[tn] != 0){ // Comply with the definition of a COO matrix (i.e. hold only non-zero values).
+                        res.values.push_back(block_values[tn]);
+                        res.rows.push_back(block_rows[tn]);
+                        res.cols.push_back(block_cols[tn]);
+                    }
+                }
             }
 
-            // auto end = std::chrono::high_resolution_clock::now();
-            auto end = omp_get_wtime();
+            auto end = std::chrono::high_resolution_clock::now();
+            // auto end = omp_get_wtime();
 
             if(measurements != nullptr){
-                // Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
-                auto duration = end - start;
-                measurements->durations.push_back((int)(duration*1000000));
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
             }
 
             // Shrink the size of the data structures in case zero-valued inner products appeared,
             // thus requiring less than initial space predicted (i.e. memory amount equal to the input sparse matrix ).
-            res.data.shrink_to_fit();
+            res.values.shrink_to_fit();
+            res.rows.shrink_to_fit();
+            res.cols.shrink_to_fit();
 
             return res;
         }

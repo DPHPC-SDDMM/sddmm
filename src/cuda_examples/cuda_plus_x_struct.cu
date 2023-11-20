@@ -1,6 +1,11 @@
 #include "cuda_plus_x_struct.cuh"
 
-__global__ void k_cuda(SDDMM::Types::COO::triplet *in, SDDMM::Types::COO::triplet *out, SDDMM::Types::vec_size_t len, SDDMM::Types::expmt_t x) {
+__global__ void k_cuda(
+    SDDMM::CUDA_EXAMPLES::triplet *in, 
+    SDDMM::CUDA_EXAMPLES::triplet *out, 
+    SDDMM::Types::vec_size_t len, 
+    SDDMM::Types::expmt_t x
+) {
     SDDMM::Types::vec_size_t index = static_cast<SDDMM::Types::vec_size_t>(threadIdx.x);
     SDDMM::Types::vec_size_t stride = static_cast<SDDMM::Types::vec_size_t>(blockDim.x);
 
@@ -11,7 +16,12 @@ __global__ void k_cuda(SDDMM::Types::COO::triplet *in, SDDMM::Types::COO::triple
     }
 }
 
-void run_k_struct(SDDMM::Types::COO::triplet *in, SDDMM::Types::COO::triplet *out, SDDMM::Types::vec_size_t len, SDDMM::Types::expmt_t x) {
+void run_k_struct(
+    SDDMM::CUDA_EXAMPLES::triplet *in,
+    SDDMM::CUDA_EXAMPLES::triplet *out, 
+    SDDMM::Types::vec_size_t len, 
+    SDDMM::Types::expmt_t x
+) {
     // M thread blocks with T threads each
     // <<<M, T>>>
     int thread_num = 256;

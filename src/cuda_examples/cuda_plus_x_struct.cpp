@@ -12,24 +12,24 @@
 
 namespace SDDMM {
     namespace CUDA_EXAMPLES {
-        std::vector<SDDMM::Types::COO::triplet> CuPlusXStruct(std::vector<SDDMM::Types::COO::triplet>& in, SDDMM::Types::expmt_t x){
+        std::vector<triplet> CuPlusXStruct(std::vector<triplet>& in, SDDMM::Types::expmt_t x){
 
             // define type pointers: initialize with 'nullptr' => good practice because
             // it causes a nullptr exception rather than random behaviour if something accesses them
             // before intended
-            SDDMM::Types::COO::triplet* in_d = nullptr;
+            triplet* in_d = nullptr;
             SDDMM::Types::vec_size_t len = in.size();
             // all memcpy operations use bytes as unit => make SURE to use the correct type
             // for these calculations. If the sizes are incorrect it will likely randomly cause
             // cryptic 'memory freed twice or not at all or just half-ass' errors at some point
-            SDDMM::Types::vec_size_t len_d = sizeof(SDDMM::Types::COO::triplet) * len;
+            SDDMM::Types::vec_size_t len_d = sizeof(triplet) * len;
 
             // allocate and copy input
             cudaMalloc(reinterpret_cast<void**>(&in_d), len_d);
             cudaMemcpy(in_d, in.data(), len_d, cudaMemcpyHostToDevice);
 
             // allocate space for the output
-            SDDMM::Types::COO::triplet* out_d = nullptr;
+            triplet* out_d = nullptr;
             cudaMalloc(reinterpret_cast<void**>(&out_d), len_d);
 
             // run the cuda kernel
@@ -38,7 +38,7 @@ namespace SDDMM {
             run_k_struct(in_d, out_d, len, x);
 
             // declare output type
-            std::vector<SDDMM::Types::COO::triplet> out;
+            std::vector<triplet> out;
             // resize (!!!) data part of the output type to fit
             out.resize(in.size());
             // memcpy the result into the data space of the output type

@@ -49,7 +49,10 @@ namespace SDDMM {
 
                     // push a triplet
                     if (value != 0.0) {
-                        mat.data.push_back({i, j, value});
+                        // mat.init_data.push_back({i, j, value});
+                        mat.rows.push_back(i);
+                        mat.cols.push_back(j);
+                        mat.values.push_back(value);
                     }
                 }
             }

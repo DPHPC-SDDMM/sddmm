@@ -152,20 +152,25 @@ namespace SDDMM {
             res.n = A_sparse.n;
             res.m = A_sparse.m;
 
-            auto s = A_sparse.data.size();
+            auto s = A_sparse.values.size();
             for(Types::vec_size_t i=0; i<s; i++){
                 // auto m = std::min(s - i, num_threads); // This line is commented out to resemble the *constant* number of threads when calling CUDA.
 
-                Types::COO::triplet p = A_sparse.data.at(i);
+                // Types::COO::triplet p = A_sparse.data.at(i);
                 Types::expmt_t inner_product = 0;
                 
+                auto row = A_sparse.rows[i];
+                auto col = A_sparse.cols[i];
+                auto val = A_sparse.values[i];
                 // the ind index has to be tiled later
                 for(SDDMM::Types::vec_size_t ind=0; ind < X_dense.m; ++ind){
-                    inner_product += X_dense.at(p.row, ind)*Y_dense.at(ind, p.col);
+                    inner_product += X_dense.at(row, ind)*Y_dense.at(ind, col);
                 }
 
                 if(inner_product != 0){ // Comply with the definition of a COO matrix (i.e. hold only non-zero values).
-                    res.data.push_back({p.row, p.col, p.value * inner_product});
+                    res.values.push_back(val * inner_product);
+                    res.cols.push_back(col);
+                    res.rows.push_back(row);
                 }
             }
 
@@ -178,7 +183,9 @@ namespace SDDMM {
 
             // Shrink the size of the data structures in case zero-valued inner products appeared,
             // thus requiring less than initial space predicted (i.e. memory amount equal to the input sparse matrix ).
-            res.data.shrink_to_fit();
+            res.values.shrink_to_fit();
+            res.cols.shrink_to_fit();
+            res.rows.shrink_to_fit();
 
             return res;
         }
