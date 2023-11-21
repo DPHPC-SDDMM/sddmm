@@ -1,8 +1,9 @@
 #include <iostream>
-#include "experiments/sddmm_benchmark.cpp"
+#include "experiments/sddmm_benchmark_prototype.cpp"
 #include "experiments/unrolling_benchmark.cpp"
 #include "experiments/cache_benchmark.cpp"
 #include "experiments/unrolling_benchmark_2.cpp"
+#include "experiments/benchmark_sddmm_parallel_cpu.cpp"
 
 // #include <chrono>
 
@@ -54,7 +55,20 @@ int main(int argc, char** argv){
         300,  /* n_experiments_num */
         13    /* n_cpu_threads */
     );
-    SDDMM::Experiments::benchmark_sddmm(info);
+    SDDMM::Experiments::benchmark_sddmm_prototype(info);
+#endif
+
+#ifdef SDDMM_CPU_PARALLEL_BENCHMARK
+    SDDMM::Results::ExperimentInfo info(
+        "parallel_cpu_sddmm [Release]",
+        500,  /* sparse_num_rows */
+        500,  /* sparse_num_cols */
+        400,  /* dense_inner_dim */
+        0.1f, /* sparsity */
+        300,  /* n_experiments_num */
+        13    /* n_cpu_threads */
+    );
+    SDDMM::Experiments::benchmark_parallel_cpu_sddmm(info);
 #endif
 
 #ifdef UNROLLING_BENCHMARK
