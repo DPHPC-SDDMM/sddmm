@@ -9,6 +9,7 @@
 #include "../src/algos/cpu_sddmm/naive_sddmm.cpp"
 #include "../src/algos/cpu_sddmm/tiled_sddmm.cpp"
 #include "../src/algos/cpu_sddmm/parallel_sddmm.cpp"
+#include "../src/algos/cpu_sddmm/parallel_cpu_sddmm.cpp"
 
 UTEST_MAIN();
 
@@ -683,8 +684,12 @@ UTEST(Matrix, SDDMM_parallel) {
         for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
-            auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result == exp_result);
+            auto result1 = SDDMM::Algo::parallel_sddmm_cuda_simulation(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result1 == exp_result);
+            auto result2 = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result2 == exp_result);
+            auto result3 = SDDMM::Algo::parallel_sddmm_slow(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result3 == exp_result);
         }
     }
     {
@@ -735,8 +740,12 @@ UTEST(Matrix, SDDMM_parallel) {
         for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
-            auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result == exp_result);
+            auto result1 = SDDMM::Algo::parallel_sddmm_cuda_simulation(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result1 == exp_result);
+            auto result2 = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result2 == exp_result);
+            auto result3 = SDDMM::Algo::parallel_sddmm_slow(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result3 == exp_result);
         }
     }
     {
@@ -768,25 +777,13 @@ UTEST(Matrix, SDDMM_parallel) {
         for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
-            auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result == exp_result);
+            auto result1 = SDDMM::Algo::parallel_sddmm_cuda_simulation(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result1 == exp_result);
+            auto result2 = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result2 == exp_result);
+            auto result3 = SDDMM::Algo::parallel_sddmm_slow(coo_mat, X, Y, num_threads);
+            ASSERT_TRUE(result3 == exp_result);
         }
-    }
-    {
-        // std::cout << "Generate matrix" << std::endl;
-        // auto X = SDDMM::Types::Matrix::generate(5000, 8000);
-        // auto Y = SDDMM::Types::Matrix::generate(8000, 5000);
-        // auto mat = SDDMM::Types::Matrix::generate(5000, 500, 0.1);
-
-        // std::cout << "Matrix to coo" << std::endl;
-        // auto coo_mat = mat.to_coo();
-        // std::cout << "Reference hadamard" << std::endl;
-        // auto exp_result = coo_mat.hadamard(X*Y);
-
-        // std::cout << "Go with the interesting stuff" << std::endl;
-        // omp_set_num_threads(32);
-        // auto result = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, 32);
-        // ASSERT_TRUE(result == exp_result);
     }
 }
 
