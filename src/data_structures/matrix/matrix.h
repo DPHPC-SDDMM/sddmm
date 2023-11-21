@@ -47,13 +47,13 @@ namespace SDDMM {
             Matrix(Types::vec_size_t n, Types::vec_size_t m) : data(n * m, 0.0), n(n), m(m) {}
 
             // modifiable access mat(i,j), so cannot be used in const matrices
-            SDDMM::Types::expmt_t &operator()(const Types::vec_size_t& i, const Types::vec_size_t& j) {
+            inline SDDMM::Types::expmt_t &operator()(const Types::vec_size_t& i, const Types::vec_size_t& j) {
                 if(_format == MatrixFormat::RowMajor)
                     return data[i * m + j];
                 return data[j*n + i];
             }
 
-            SDDMM::Types::expmt_t at(const Types::vec_size_t i, const Types::vec_size_t j) const {
+            inline SDDMM::Types::expmt_t at(const Types::vec_size_t i, const Types::vec_size_t j) const {
                 if(_format == MatrixFormat::RowMajor)
                     return data[i * m + j];
                 return data[j*n + i];

@@ -51,7 +51,7 @@ int main(int argc, char** argv){
         500,  /* sparse_num_cols */
         400,  /* dense_inner_dim */
         0.1f, /* sparsity */
-        25,  /* n_experiments_num */
+        300,  /* n_experiments_num */
         13    /* n_cpu_threads */
     );
     SDDMM::Experiments::benchmark_sddmm(info);

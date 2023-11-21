@@ -43,3 +43,19 @@ class Data:
 
     def is_float(self, num_str):
         return num_str.replace('.',"").isnumeric()
+    
+    @staticmethod
+    def break_lines(string, line_length):
+        parts = string.split(' ')
+        res = ""
+        last = 0
+        lines = 1
+        for p in parts:
+            if len(res) + len(p) - last > line_length:
+                res+='\n'
+                last = len(res)-lines
+                lines += 1
+            elif len(res)>0:
+                res+=' '
+            res+=p
+        return res

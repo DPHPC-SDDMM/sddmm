@@ -231,5 +231,420 @@ namespace SDDMM {
 
             return res;
         }
+
+        /*
+        Include copying input data into new arrays and ignore values that become zero
+        */
+        Types::COO parallel_sddmm_causal_search_1(
+            const Types::COO& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
+            Types::vec_size_t num_threads,
+            Results::ExperimentData* measurements = nullptr
+        )
+        {
+            Types::COO res;
+            res.n = A_sparse.n;
+            res.m = A_sparse.m;
+
+            const Types::vec_size_t k = X_dense.m;
+            const Types::vec_size_t nnz = A_sparse.values.size();
+
+            // Place the clock at the same instruction as the provided code.
+            auto start = std::chrono::high_resolution_clock::now();
+
+            res.rows.resize(nnz); res.cols.resize(nnz);
+            std::copy(A_sparse.rows.begin(), A_sparse.rows.end(), res.rows.begin());
+            std::copy(A_sparse.cols.begin(), A_sparse.cols.end(), res.cols.begin());
+            res.values.resize(nnz); // Very close to to `std::vector<Types::expmt_t> p_ind(nnz);`
+
+            #pragma omp parallel for
+            for(Types::vec_size_t i=0; i<nnz; i++){
+
+                Types::vec_size_t row = A_sparse.rows[i];
+                Types::vec_size_t col = A_sparse.cols[i]; 
+                Types::expmt_t val = A_sparse.values[i];
+
+                Types::expmt_t inner_product = 0;
+                
+                for(SDDMM::Types::vec_size_t ind=0; ind < k; ++ind){
+                    inner_product += X_dense.at(row, ind)*Y_dense.at(ind, col);
+                }
+                // Not checking for inner_products with value of zero.
+                // Immediately add them.
+                // // res.values[i] = val * inner_product;
+                res.values[i] = val*inner_product;
+            } // omp parallel for FINISH
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
+
+            // Shrink the size of the data structures in case zero-valued inner products appeared,
+            // thus requiring less than initial space predicted (i.e. memory amount equal to the input sparse matrix ).
+            res.values.shrink_to_fit();
+            res.rows.shrink_to_fit();
+            res.cols.shrink_to_fit();
+
+            return res;
+        }
+
+        /*
+        Don't copy input values into output and at the end filter the resulting values that aren't zero
+        */
+        Types::COO parallel_sddmm_causal_search_2(
+            const Types::COO& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
+            Types::vec_size_t num_threads,
+            Results::ExperimentData* measurements = nullptr
+        )
+        {
+            Types::COO res;
+            res.n = A_sparse.n;
+            res.m = A_sparse.m;
+
+            const Types::vec_size_t k = X_dense.m;
+            const Types::vec_size_t nnz = A_sparse.values.size();
+
+            // intermediate values array
+            std::vector<Types::expmt_t> vals(A_sparse.values.size(), 0.0); 
+
+            // Place the clock at the same instruction as the provided code.
+            auto start = std::chrono::high_resolution_clock::now();
+
+            #pragma omp parallel for
+            for(Types::vec_size_t i=0; i<nnz; i++){
+
+                Types::vec_size_t row = A_sparse.rows[i];
+                Types::vec_size_t col = A_sparse.cols[i]; 
+                Types::expmt_t val = A_sparse.values[i];
+
+                Types::expmt_t inner_product = 0;
+                
+                for(SDDMM::Types::vec_size_t ind=0; ind < k; ++ind){
+                    inner_product += X_dense.at(row, ind)*Y_dense.at(ind, col);
+                }
+                // Not checking for inner_products with value of zero.
+                // Immediately add them.
+                vals[i] = val*inner_product;
+            } // omp parallel for FINISH
+
+            // filter zero values
+            auto s = vals.size();
+            for(int i=0; i<s; ++i){
+                if(vals[i] != 0){
+                    res.values.push_back(vals[i]);
+                    res.cols.push_back(A_sparse.cols[i]);
+                    res.rows.push_back(A_sparse.rows[i]);
+                }
+            }
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
+
+            // Shrink the size of the data structures in case zero-valued inner products appeared,
+            // thus requiring less than initial space predicted (i.e. memory amount equal to the input sparse matrix ).
+            res.values.shrink_to_fit();
+            res.rows.shrink_to_fit();
+            res.cols.shrink_to_fit();
+
+            return res;
+        }
+
+        /*
+        Copy input values, don't respect values that may become zero, use external for loop and jump
+        num_threads and use omp parallel instead of omp parallel for
+        */
+        Types::COO parallel_sddmm_causal_search_3(
+            const Types::COO& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
+            Types::vec_size_t num_threads,
+            Results::ExperimentData* measurements = nullptr
+        )
+        {
+            Types::COO res;
+            res.n = A_sparse.n;
+            res.m = A_sparse.m;
+
+            const Types::vec_size_t k = X_dense.m;
+            const Types::vec_size_t nnz = A_sparse.values.size(); 
+
+            // Place the clock at the same instruction as the provided code.
+            auto start = std::chrono::high_resolution_clock::now();
+
+            res.rows.resize(nnz); res.cols.resize(nnz);
+            std::copy(A_sparse.rows.begin(), A_sparse.rows.end(), res.rows.begin());
+            std::copy(A_sparse.cols.begin(), A_sparse.cols.end(), res.cols.begin());
+            res.values.resize(nnz); 
+
+            for(Types::vec_size_t i=0; i<nnz; i+=num_threads){
+                #pragma omp parallel
+                {
+                    auto tn = omp_get_thread_num();
+                    auto idx = i+tn;
+                    if(idx < nnz) {
+                        Types::vec_size_t row = A_sparse.rows[idx];
+                        Types::vec_size_t col = A_sparse.cols[idx]; 
+                        Types::expmt_t val = A_sparse.values[idx];
+
+                        Types::expmt_t inner_product = 0;
+                        
+                        for(SDDMM::Types::vec_size_t ind=0; ind < k; ++ind){
+                            inner_product += X_dense.at(row, ind)*Y_dense.at(ind, col);
+                        }
+                        // Not checking for inner_products with value of zero.
+                        // Immediately add them.
+                        res.values[idx] = val*inner_product;
+                    }
+                }
+            }
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
+
+            // Shrink the size of the data structures in case zero-valued inner products appeared,
+            // thus requiring less than initial space predicted (i.e. memory amount equal to the input sparse matrix ).
+            res.values.shrink_to_fit();
+            res.rows.shrink_to_fit();
+            res.cols.shrink_to_fit();
+
+            return res;
+        }
+
+        /*
+        Same as git but actually create a new matrix with the result, exclude result matrix creation from time
+        */
+        Types::COO parallel_sddmm_causal_search_4(
+            const Types::COO& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
+            Types::vec_size_t num_threads,
+            Results::ExperimentData* measurements = nullptr
+        ){
+            Types::vec_size_t k = X_dense.m;
+            Types::vec_size_t nnz = A_sparse.values.size();
+            std::vector<Types::expmt_t> p_ind(nnz);
+
+            Types::COO res;
+            res.n = A_sparse.n;
+            res.m = A_sparse.m;
+            // res.rows.resize(nnz); res.cols.resize(nnz);
+            // std::copy(A_sparse.rows.begin(), A_sparse.rows.end(), res.rows.begin());
+            // std::copy(A_sparse.cols.begin(), A_sparse.cols.end(), res.cols.begin());
+            // res.values.(nnz); 
+            // std::copy(p_ind.begin(), p_ind.end(), res.values.begin());
+
+            auto start = std::chrono::high_resolution_clock::now();
+            // omp_set_num_threads(28);
+            #pragma omp parallel for //reduction(+:tot)
+            for (int ind = 0; ind < nnz; ind++){
+                float sm =0 ;
+                int row = A_sparse.rows[ind];
+                int col = A_sparse.cols[ind]; 
+                for (int t = 0; t < k; ++t)
+                    sm += X_dense.data[row * k + t] * Y_dense.data[col * k + t];
+                p_ind[ind] = sm * A_sparse.values[ind];            
+            }
+            auto end = std::chrono::high_resolution_clock::now();
+
+            auto s = p_ind.size();
+            for(int i=0; i<s; ++i){
+                if(i != 0){
+                    res.values.push_back(p_ind[i]);
+                    res.cols.push_back(A_sparse.cols[i]);
+                    res.rows.push_back(A_sparse.rows[i]);
+                }
+            }
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
+
+            return res;
+        }
+
+        /*
+        Same as git but include everything in time measurement (include res structure creation and zero value filtering)
+        */
+        Types::COO parallel_sddmm_causal_search_5(
+            const Types::COO& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
+            Types::vec_size_t num_threads,
+            Results::ExperimentData* measurements = nullptr
+        ){
+            auto start = std::chrono::high_resolution_clock::now();
+
+            Types::vec_size_t k = X_dense.m;
+            Types::vec_size_t nnz = A_sparse.values.size();
+            std::vector<Types::expmt_t> p_ind(nnz);
+
+            // omp_set_num_threads(28);
+            #pragma omp parallel for //reduction(+:tot)
+            for (int ind = 0; ind < nnz; ind++){
+                float sm =0 ;
+                int row = A_sparse.rows[ind];
+                int col = A_sparse.cols[ind]; 
+                for (int t = 0; t < k; ++t)
+                    sm += X_dense.data[row * k + t] * Y_dense.data[col * k + t];
+                p_ind[ind] = sm * A_sparse.values[ind];
+                // cout << "ind " << row<<" "<<col << ":: "  <<" "<< p_ind[ind] << " = " << sm <<" * "<< val_ind[ind]<< endl;  
+                // }                
+            }
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            Types::COO res;
+            res.n = A_sparse.n;
+            res.m = A_sparse.m;
+            res.values.reserve(p_ind.size());
+            res.cols.reserve(p_ind.size());
+            res.rows.reserve(p_ind.size());
+            // filter zero values
+            auto s = p_ind.size();
+            for(int i=0; i<s; ++i){
+                if(i != 0){
+                    res.values.push_back(p_ind[i]);
+                    res.cols.push_back(A_sparse.cols[i]);
+                    res.rows.push_back(A_sparse.rows[i]);
+                }
+            }
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
+
+            return res;
+        }
+
+        /*
+        Same as git but include everything in time measurement 
+        (include res structure creation and zero value filtering, 
+        but create return val at the begining)
+        */
+        Types::COO parallel_sddmm_causal_search_6(
+            const Types::COO& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
+            Types::vec_size_t num_threads,
+            Results::ExperimentData* measurements = nullptr
+        ){  
+            auto start = std::chrono::high_resolution_clock::now();
+
+            Types::vec_size_t k = X_dense.m;
+            Types::vec_size_t nnz = A_sparse.values.size();
+            std::vector<Types::expmt_t> p_ind(nnz);
+
+            Types::COO res;
+            res.n = A_sparse.n;
+            res.m = A_sparse.m;
+            res.values.reserve(p_ind.size());
+            res.cols.reserve(p_ind.size());
+            res.rows.reserve(p_ind.size());
+
+            // omp_set_num_threads(28);
+            #pragma omp parallel for //reduction(+:tot)
+            for (int ind = 0; ind < nnz; ind++){
+                float sm =0 ;
+                int row = A_sparse.rows[ind];
+                int col = A_sparse.cols[ind]; 
+                for (int t = 0; t < k; ++t)
+                    sm += X_dense.data[row * k + t] * Y_dense.data[col * k + t];
+                p_ind[ind] = sm * A_sparse.values[ind];               
+            }
+
+            // filter zero values
+            auto s = p_ind.size();
+            for(int i=0; i<s; ++i){
+                if(p_ind[i] != 0){
+                    res.values.push_back(p_ind[i]);
+                    res.cols.push_back(A_sparse.cols[i]);
+                    res.rows.push_back(A_sparse.rows[i]);
+                }
+            }
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
+
+            return res;
+        }
+
+        /*
+        Same as git but include everything in time measurement 
+        (include res structure creation and zero value filtering, 
+        but create return val at the begining)
+        */
+        Types::COO parallel_sddmm_causal_search_7(
+            const Types::COO& A_sparse, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
+            Types::vec_size_t num_threads,
+            Results::ExperimentData* measurements = nullptr
+        ){  
+            auto start = std::chrono::high_resolution_clock::now();
+
+            Types::vec_size_t k = X_dense.m;
+            Types::vec_size_t nnz = A_sparse.values.size();
+            std::vector<Types::expmt_t> p_ind(nnz);
+
+            Types::COO res;
+            res.n = A_sparse.n;
+            res.m = A_sparse.m;
+            // res.values.reserve(p_ind.size());
+            // res.cols.reserve(p_ind.size());
+            // res.rows.reserve(p_ind.size());
+
+            // omp_set_num_threads(28);
+            #pragma omp parallel for //reduction(+:tot)
+            for (Types::vec_size_t ind = 0; ind < nnz; ind++){
+                Types::expmt_t sm = 0;
+                Types::vec_size_t row = A_sparse.rows[ind];
+                Types::vec_size_t col = A_sparse.cols[ind]; 
+                Types::expmt_t val = A_sparse.values[ind];
+                for (Types::vec_size_t t = 0; t < k; ++t){
+                    // sm += X_dense.data[row * k + t] * Y_dense.data[col * k + t];
+                    sm += X_dense.at(row,t) * Y_dense.at(col, t);
+                }
+                p_ind[ind] = sm * val;               
+            }
+
+            // filter zero values
+            auto s = p_ind.size();
+            for(Types::vec_size_t i=0; i<s; ++i){
+                if(p_ind[i] != 0){
+                    res.values.push_back(p_ind[i]);
+                    res.cols.push_back(A_sparse.cols[i]);
+                    res.rows.push_back(A_sparse.rows[i]);
+                }
+            }
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            if(measurements != nullptr){
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
+
+            return res;
+        }
     }
 }

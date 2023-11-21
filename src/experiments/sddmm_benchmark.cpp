@@ -30,21 +30,14 @@ namespace SDDMM {
                 Types::vec_size_t n_max = info.n_experiment_iterations+1;
                 for(Types::vec_size_t n=0; n<n_max; ++n){
                     TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
-                    auto start = std::chrono::high_resolution_clock::now();
                     
                     total += SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
-                    
-                    auto end = std::chrono::high_resolution_clock::now();
-                    if(n > 0){
-                        // discard warmup
-                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
-                    }
                 }
 
                 return data;
             }
 
-            static Results::ExperimentData parallel_sddmm_p(
+            static Results::ExperimentData parallel_sddmm_git(
                 int cur_exp, 
                 int tot_exp, 
                 Results::ExperimentInfo& info,
@@ -54,7 +47,7 @@ namespace SDDMM {
                 Types::expmt_t& total
             ){
                 Results::ExperimentData data;
-                data.label = "parallel_sddmm_p [T" + std::to_string(info.n_cpu_threads) + "]";
+                data.label = "parallel_sddmm_p [T" + std::to_string(info.n_cpu_threads) + "] git version";
                 
                 std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
                 TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
@@ -64,15 +57,8 @@ namespace SDDMM {
                 Types::vec_size_t n_max = info.n_experiment_iterations+1;
                 for(Types::vec_size_t n=0; n<n_max; ++n){
                     TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
-                    auto start = std::chrono::high_resolution_clock::now();
                     
                     total += SDDMM::Algo::parallel_sddmm_blub(coo_mat, X, Y, info.n_cpu_threads, &data);
-                    
-                    auto end = std::chrono::high_resolution_clock::now();
-                    if(n > 0){
-                        // discard warmup
-                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
-                    }
                 }
 
                 return data;
@@ -88,7 +74,7 @@ namespace SDDMM {
                 Types::expmt_t& total
             ){
                 Results::ExperimentData data;
-                data.label = "parallel_sddmm_g [T" + std::to_string(info.n_cpu_threads) + "]";
+                data.label = "parallel_sddmm_g [T" + std::to_string(info.n_cpu_threads) + "] close to git, only algo";
                 
                 std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
                 TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
@@ -98,15 +84,197 @@ namespace SDDMM {
                 Types::vec_size_t n_max = info.n_experiment_iterations+1;
                 for(Types::vec_size_t n=0; n<n_max; ++n){
                     TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
-                    auto start = std::chrono::high_resolution_clock::now();
                     
                     total += SDDMM::Algo::parallel_sddmm_close_to_git(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
+                }
+
+                return data;
+            }
+
+            static Results::ExperimentData parallel_sddmm_causal_search_1(
+                int cur_exp, 
+                int tot_exp, 
+                Results::ExperimentInfo& info,
+                Types::COO& coo_mat, 
+                Types::Matrix& X, 
+                Types::Matrix& Y, 
+                Types::expmt_t& total
+            ){
+                Results::ExperimentData data;
+                data.label = "parallel_sddmm_cs1 [T" + std::to_string(info.n_cpu_threads) + "] include copy in time";
+                
+                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
+                TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+                omp_set_dynamic(0);
+                omp_set_num_threads(info.n_cpu_threads);
+                Types::vec_size_t n_max = info.n_experiment_iterations+1;
+                for(Types::vec_size_t n=0; n<n_max; ++n){
+                    TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
                     
-                    auto end = std::chrono::high_resolution_clock::now();
-                    if(n > 0){
-                        // discard warmup
-                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
-                    }
+                    total += SDDMM::Algo::parallel_sddmm_causal_search_1(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
+                }
+
+                return data;
+            }
+
+            static Results::ExperimentData parallel_sddmm_causal_search_2(
+                int cur_exp, 
+                int tot_exp, 
+                Results::ExperimentInfo& info,
+                Types::COO& coo_mat, 
+                Types::Matrix& X, 
+                Types::Matrix& Y, 
+                Types::expmt_t& total
+            ){
+                Results::ExperimentData data;
+                data.label = "parallel_sddmm_cs2 [T" + std::to_string(info.n_cpu_threads) + "] filter zero values";
+                
+                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
+                TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+                omp_set_dynamic(0);
+                omp_set_num_threads(info.n_cpu_threads);
+                Types::vec_size_t n_max = info.n_experiment_iterations+1;
+                for(Types::vec_size_t n=0; n<n_max; ++n){
+                    TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
+                    
+                    total += SDDMM::Algo::parallel_sddmm_causal_search_2(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
+                }
+
+                return data;
+            }
+
+            static Results::ExperimentData parallel_sddmm_causal_search_3(
+                int cur_exp, 
+                int tot_exp, 
+                Results::ExperimentInfo& info,
+                Types::COO& coo_mat, 
+                Types::Matrix& X, 
+                Types::Matrix& Y, 
+                Types::expmt_t& total
+            ){
+                Results::ExperimentData data;
+                data.label = "parallel_sddmm_cs3 [T" + std::to_string(info.n_cpu_threads) + "] no parallel for";
+                
+                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
+                TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+                omp_set_dynamic(0);
+                omp_set_num_threads(info.n_cpu_threads);
+                Types::vec_size_t n_max = info.n_experiment_iterations+1;
+                for(Types::vec_size_t n=0; n<n_max; ++n){
+                    TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
+                    
+                    total += SDDMM::Algo::parallel_sddmm_causal_search_3(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
+                }
+
+                return data;
+            }
+
+            static Results::ExperimentData parallel_sddmm_causal_search_4(
+                int cur_exp, 
+                int tot_exp, 
+                Results::ExperimentInfo& info,
+                Types::COO& coo_mat, 
+                Types::Matrix& X, 
+                Types::Matrix& Y, 
+                Types::expmt_t& total
+            ){
+                Results::ExperimentData data;
+                data.label = "parallel_sddmm_cs4 [T" + std::to_string(info.n_cpu_threads) + "] git with res mat creation";
+                
+                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
+                TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+                omp_set_dynamic(0);
+                omp_set_num_threads(info.n_cpu_threads);
+                Types::vec_size_t n_max = info.n_experiment_iterations+1;
+                for(Types::vec_size_t n=0; n<n_max; ++n){
+                    TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
+                    
+                    total += SDDMM::Algo::parallel_sddmm_causal_search_4(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
+                }
+
+                return data;
+            }
+
+            static Results::ExperimentData parallel_sddmm_causal_search_5(
+                int cur_exp, 
+                int tot_exp, 
+                Results::ExperimentInfo& info,
+                Types::COO& coo_mat, 
+                Types::Matrix& X, 
+                Types::Matrix& Y, 
+                Types::expmt_t& total
+            ){
+                Results::ExperimentData data;
+                data.label = "parallel_sddmm_cs5 [T" + std::to_string(info.n_cpu_threads) + "] include everything, create res last";
+                
+                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
+                TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+                omp_set_dynamic(0);
+                omp_set_num_threads(info.n_cpu_threads);
+                Types::vec_size_t n_max = info.n_experiment_iterations+1;
+                for(Types::vec_size_t n=0; n<n_max; ++n){
+                    TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
+                    
+                    total += SDDMM::Algo::parallel_sddmm_causal_search_5(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
+                }
+
+                return data;
+            }
+
+            static Results::ExperimentData parallel_sddmm_causal_search_6(
+                int cur_exp, 
+                int tot_exp, 
+                Results::ExperimentInfo& info,
+                Types::COO& coo_mat, 
+                Types::Matrix& X, 
+                Types::Matrix& Y, 
+                Types::expmt_t& total
+            ){
+                Results::ExperimentData data;
+                data.label = "parallel_sddmm_cs6 [T" + std::to_string(info.n_cpu_threads) + "] include everything, 4 byte vals";
+                
+                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
+                TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+                omp_set_dynamic(0);
+                omp_set_num_threads(info.n_cpu_threads);
+                Types::vec_size_t n_max = info.n_experiment_iterations+1;
+                for(Types::vec_size_t n=0; n<n_max; ++n){
+                    TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
+                    
+                    total += SDDMM::Algo::parallel_sddmm_causal_search_5(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
+                }
+
+                return data;
+            }
+
+            static Results::ExperimentData parallel_sddmm_causal_search_7(
+                int cur_exp, 
+                int tot_exp, 
+                Results::ExperimentInfo& info,
+                Types::COO& coo_mat, 
+                Types::Matrix& X, 
+                Types::Matrix& Y, 
+                Types::expmt_t& total
+            ){
+                Results::ExperimentData data;
+                data.label = "parallel_sddmm_cs7 [T" + std::to_string(info.n_cpu_threads) + "] include everything, 8 byte vals";
+                
+                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
+                TEXT::Gadgets::print_progress(0, info.n_experiment_iterations);
+
+                omp_set_dynamic(0);
+                omp_set_num_threads(info.n_cpu_threads);
+                Types::vec_size_t n_max = info.n_experiment_iterations+1;
+                for(Types::vec_size_t n=0; n<n_max; ++n){
+                    TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
+                    
+                    total += SDDMM::Algo::parallel_sddmm_causal_search_7(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
                 }
 
                 return data;
@@ -130,15 +298,15 @@ namespace SDDMM {
                 Types::vec_size_t n_max = info.n_experiment_iterations+1;
                 for(Types::vec_size_t n=0; n<n_max; ++n){
                     TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
-                    auto start = std::chrono::high_resolution_clock::now();
+                    // auto start = std::chrono::high_resolution_clock::now();
                     
                     total += SDDMM::Algo::naive_sddmm(coo_mat, X, Y, &data).values[0];
                     
-                    auto end = std::chrono::high_resolution_clock::now();
-                    if(n > 0){
-                        // discard warmup
-                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
-                    }
+                    // auto end = std::chrono::high_resolution_clock::now();
+                    // if(n > 0){
+                    //     // discard warmup
+                    //     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    // }
                 }
 
                 return data;
@@ -162,15 +330,15 @@ namespace SDDMM {
                 Types::vec_size_t n_max = info.n_experiment_iterations+1;
                 for(Types::vec_size_t n=0; n<n_max; ++n){
                     TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
-                    auto start = std::chrono::high_resolution_clock::now();
+                    // auto start = std::chrono::high_resolution_clock::now();
                     
                     total += SDDMM::Algo::cuda_tiled_sddmm(coo_mat, X, Y, &data).values[0];
                     
-                    auto end = std::chrono::high_resolution_clock::now();
-                    if(n > 0){
-                        // discard warmup
-                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
-                    }
+                    // auto end = std::chrono::high_resolution_clock::now();
+                    // if(n > 0){
+                    //     // discard warmup
+                    //     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    // }
                 }
 
                 return data;
@@ -282,19 +450,18 @@ namespace SDDMM {
             // }
             // // =========================================
 
-            Types::expmt_t total_1 = 0;
-            Types::expmt_t total_2 = 0;
-            Types::expmt_t total_3 = 0;
-            Types::expmt_t total_4 = 0;
-            Types::expmt_t total_5 = 0;
-
+            std::vector<Types::expmt_t> total = {0,0,0,0,0,0,0};
+            int i=1;
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
             Results::to_file(info.experiment_name, info.to_string(), info.to_info(), {
-                //SDDMMBenchmarks::naive_sddmm(1, 3, info, coo_mat, X, Y, total_1),
-                SDDMMBenchmarks::parallel_sddmm(2, 3, info, coo_mat, X, Y, total_2),
-                //SDDMMBenchmarks::cuda_tiled_sddmm(3, 3, info, coo_mat, X, Y, total_3),
-                SDDMMBenchmarks::parallel_sddmm_p(4, 3, info,coo_mat, X, Y, total_4),
-                SDDMMBenchmarks::parallel_sddmm_close_to_git(5, 3, info, coo_mat, X, Y, total_5)
+                // SDDMMBenchmarks::parallel_sddmm_git(i++, total.size(), info,coo_mat, X, Y, total[i]),
+                // SDDMMBenchmarks::parallel_sddmm_causal_search_4(i++, total.size(), info, coo_mat, X, Y, total[i]),
+                // SDDMMBenchmarks::parallel_sddmm_close_to_git(i++, total.size(), info, coo_mat, X, Y, total[i]),
+                // SDDMMBenchmarks::parallel_sddmm_causal_search_1(i++, total.size(), info, coo_mat, X, Y, total[i]),
+                SDDMMBenchmarks::parallel_sddmm_causal_search_2(i++, total.size(), info, coo_mat, X, Y, total[i]),
+                // SDDMMBenchmarks::parallel_sddmm_causal_search_5(i++, total.size(), info, coo_mat, X, Y, total[i]),
+                SDDMMBenchmarks::parallel_sddmm_causal_search_6(i++, total.size(), info, coo_mat, X, Y, total[i]),
+                SDDMMBenchmarks::parallel_sddmm_causal_search_7(i++, total.size(), info, coo_mat, X, Y, total[i]),
             });
         }
     };
