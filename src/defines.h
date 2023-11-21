@@ -28,7 +28,9 @@ namespace SDDMM {
         /**
          * These are all other data types that like to have aggregated names
         */
-        typedef std::vector<expmt_t>::size_type vec_size_t;
+        // cost for using 8 bytes vec_size_t: about +20%
+        // typedef std::vector<expmt_t>::size_type vec_size_t;
+        typedef uint32_t vec_size_t;
 
         typedef std::chrono::microseconds time_measure_unit;
         typedef int64_t time_duration_unit;
