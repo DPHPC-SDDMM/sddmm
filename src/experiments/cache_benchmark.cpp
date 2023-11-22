@@ -15,7 +15,6 @@ namespace SDDMM {
     namespace Experiments {
         class CacheExperiments {
             private:
-
             static std::string num_2_str(Types::vec_size_t r_num, Types::vec_size_t k_num, Types::vec_size_t c_num){
                 return "[" + std::to_string(r_num) + "," + std::to_string(k_num) + "," + std::to_string(c_num) + "]";
             }

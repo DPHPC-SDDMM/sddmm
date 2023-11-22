@@ -105,7 +105,7 @@ namespace SDDMM {
                         Types::expmt_t a = this->at(i,j);
                         Types::expmt_t b = other.at(i,j);
                         if (std::abs(a - b) > Defines::epsilon) {
-                            // std::cout << i << " " << j << " " << std::setprecision(16) << a << " " << std::setprecision(16) << b << std::endl;
+                            std::cout << i << " " << j << " " << std::setprecision(16) << a << " " << std::setprecision(16) << b << std::endl;
                             return false;
                         }
                     }
@@ -156,8 +156,8 @@ namespace SDDMM {
 
                 Types::Matrix res(n,B.m);
 
-                for(Types::vec_size_t i=0; i<c_num; i+=ts){
-                    for(Types::vec_size_t j=0; j<r_num; j+=ts){
+                for(Types::vec_size_t i=0; i<r_num; i+=ts){
+                    for(Types::vec_size_t j=0; j<c_num; j+=ts){
                         for(Types::vec_size_t k=0; k<k_num; k+=ts){
                             Types::vec_size_t i_p_ts = i+ts;
                             for(Types::vec_size_t r=i; r<i_p_ts; ++r){
@@ -167,10 +167,11 @@ namespace SDDMM {
                                     Types::vec_size_t k_p_ts = k+ts;
                                     // Types::vec_size_t ind = r*r_num + c;
                                     for(Types::vec_size_t kk=k; kk<k_p_ts; ++kk){
-                                        inner_p += (*this)(r, kk)*B(kk,c);
-                                        // inner_p += A.data[r*c_num+kk]*B.data[kk*c_num+c];
+                                        // inner_p += (*this)(r, kk)*B(kk,c);
+                                        inner_p += data[r*k_num + kk]*B.data[kk*c_num + c];
                                     }
-                                    res(r, c) += inner_p;
+                                    // res(r, c) += inner_p;
+                                    res.data[r*c_num + c] += inner_p;
                                 }
                             }
                         }

@@ -4,6 +4,7 @@
 #include "experiments/cache_benchmark.cpp"
 #include "experiments/unrolling_benchmark_2.cpp"
 #include "experiments/benchmark_sddmm_parallel_cpu.cpp"
+#include "experiments/benchmark_gpu_cache.cpp"
 
 // #include <chrono>
 
@@ -146,6 +147,13 @@ int main(int argc, char** argv){
         100 /*n_experiment_iterations  */
     );
     SDDMM::Experiments::unrolling_benchmark_2(info);
+#endif
+
+#ifdef GPU_CACHE_BENCHMARK
+    SDDMM::Experiments::benchmark_gpu_cache(
+        "GPU cache",
+        10
+    );
 #endif
 
     return 0;

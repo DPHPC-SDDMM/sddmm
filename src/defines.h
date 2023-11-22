@@ -43,6 +43,8 @@ namespace SDDMM {
     public:
     #ifdef USE_LOW_PRECISION
         static constexpr SDDMM::Types::expmt_t epsilon = 1e-3;
+    #elif USE_GPU_PRECISION
+        static constexpr SDDMM::Types::expmt_t epsilon = 1e-5;
     #else
         static constexpr SDDMM::Types::expmt_t epsilon = 1e-6;
     #endif
@@ -209,6 +211,14 @@ namespace SDDMM {
                      + std::string("/") 
                      + std::to_string(tot_exp) 
                      + std::string(")..");
+            }
+
+            static std::string num_2_str(
+                Types::vec_size_t r_num, 
+                Types::vec_size_t k_num, 
+                Types::vec_size_t c_num
+            ){
+                return "[" + std::to_string(r_num) + "," + std::to_string(k_num) + "," + std::to_string(c_num) + "]";
             }
         };
     }
