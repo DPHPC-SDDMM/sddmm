@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "experiments/sddmm_benchmark_prototype.cpp"
 #include "experiments/unrolling_benchmark.cpp"
 #include "experiments/cache_benchmark.cpp"
@@ -7,7 +8,6 @@
 #include "experiments/benchmark_gpu_cache.cpp"
 #include "experiments/comparison_benchmarks.cpp"
 
-// #include <chrono>
 
 /**
  * All algos as cpp files
@@ -185,6 +185,13 @@ int main(int argc, char** argv){
         13 // n_cpu_threads
     );
     SDDMM::Experiments::size_benchmark(info_size);
+#endif
+
+#ifdef MATRIX_MARKET_FILE_READ
+
+    SDDMM::Types::COO sparse_matrix = SDDMM::Types::COO::read_matrix_market_file("../Tina_AskCal.mtx");
+    std::cout << sparse_matrix << std::endl;
+
 #endif
 
     return 0;

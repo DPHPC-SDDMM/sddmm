@@ -15,6 +15,7 @@
 
 #include "../../defines.h"
 #include "../matrix/matrix.h"
+#include "../../matrix_file_reading/mmio.h"
 
 namespace SDDMM{
     namespace Types{
@@ -363,6 +364,75 @@ namespace SDDMM{
                     values.push_back(static_cast<SDDMM::Types::expmt_t>(val));
                 }
                 return values;
+            }
+
+            static COO read_matrix_market_file(const char* filepath)
+            {
+                // Output variable
+                Types::COO output;;
+
+                Types::vec_size_t nr_nonzeroes;
+
+                Types::vec_size_t r_in, c_in; // Dummy variables for loading file content.
+                Types::expmt_t v; // Dummy variable for loading file content.
+                char test_string[MM_MAX_LINE_LENGTH]; // Dummy variable for skipping file content.
+
+
+                /*
+                C part of the code START
+                This part is to extract the `matcode`.
+                */
+                MM_typecode matcode;
+                FILE *f;
+
+                // Make sure that the correct file is read.
+                if ((f = fopen(filepath, "r")) == NULL) 
+                    exit(1);
+
+                if (mm_read_banner(f, &matcode) != 0)
+                {
+                    std::cout << "Could not process Matrix Market banner" << std::endl;
+                    exit(1);
+                }
+                /*
+                C part of the code FINISH
+                This part is to extract the `matcode`.
+                */
+                
+
+                std::ifstream in;
+                in.open(filepath);
+                if (!in.is_open()){
+                    std::cout << "File was not opened correctly" << std::endl;
+                    exit(1);
+                }
+
+                // Skip unneeded parts of the file (file acknowledgements).
+                while(in.peek() == '%'){ in.getline(test_string, MM_MAX_LINE_LENGTH); }
+
+                // Read number of rows, columns and number of non-zero elements of the sparse matrix.
+                in >> output.n >> output.m >> nr_nonzeroes;
+
+                // Allocate memory for data.
+                output.data.resize(nr_nonzeroes);
+
+                Types::vec_size_t index = 0;
+                // The second check is made in case
+                // an additional final line is added in the matrix file.
+                while(!in.eof() && index < nr_nonzeroes){ 
+                    if (mm_is_pattern(matcode)){
+                        in >> r_in >> c_in;
+                        v = 1;
+                    }
+                    else { in >> r_in >> c_in >> v; }
+
+                    // adjust from 1-based to 0-based
+                    output.data[index++] = {r_in-1, c_in-1, v};
+                }
+
+                in.close(); // Don't forget to close the file!
+
+                return output;
             }
 
             [[nodiscard]] CSR to_csr() const;

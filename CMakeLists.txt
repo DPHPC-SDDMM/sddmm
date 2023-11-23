@@ -57,6 +57,7 @@ add_subdirectory(src/data_structures)
 add_subdirectory(src/cuda_examples)
 add_subdirectory(tests)
 add_subdirectory(src/experiments)
+add_subdirectory(src/matrix_file_reading)
 
 # Mark only one
 # add_compile_definitions(NONE)
@@ -76,6 +77,7 @@ add_compile_definitions(GPU_CACHE_BENCHMARK)
 # add_compile_definitions(USE_LOW_PRECISION)
 # add_compile_definitions(UNROLLING_BENCHMARK)
 # add_compile_definitions(UNROLLING_BENCHMARK_2)
+add_compile_definitions(MATRIX_MARKET_FILE_READ)
 
 # add_compile_definitions(COMPARISON_BENCHMARK)
 # add_compile_definitions(COMPARISON_BENCHMARK_SPARSITY)
@@ -89,6 +91,7 @@ target_link_libraries(main CudaLib)
 target_link_libraries(main DataStructuresLib)
 target_link_libraries(main AlgoLib)
 target_link_libraries(main ExperimentLib)
+target_link_libraries(main MatrixFileReadingLib)
 set_property(TARGET main PROPERTY CXX_STANDARD 17)
 
 add_executable(test1 tests/tests.cpp)
