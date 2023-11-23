@@ -5,6 +5,7 @@
 #include "experiments/unrolling_benchmark_2.cpp"
 #include "experiments/benchmark_sddmm_parallel_cpu.cpp"
 #include "experiments/benchmark_gpu_cache.cpp"
+#include "experiments/comparison_benchmarks.cpp"
 
 // #include <chrono>
 
@@ -154,6 +155,36 @@ int main(int argc, char** argv){
         "GPU cache",
         10
     );
+#endif
+
+#if defined(COMPARISON_BENCHMARK) || defined(COMPARISON_BENCHMARK_SPARSITY)
+    SDDMM::Results::ExperimentInfo info_sparsity(
+        "Comparison Benchmark of Algorithms based on Sparsity",
+        1000,   // sparse_num_row
+        1000,   // sparse_num_col
+        1000,   // dense_num_inner
+
+        0.9,   // sparsity
+
+        100, // n_experiment_iterations
+        13 // n_cpu_threads
+    );
+    SDDMM::Experiments::sparsity_benchmark(info_sparsity);
+#endif
+
+#if defined(COMPARISON_BENCHMARK) || defined(COMPARISON_BENCHMARK_SIZE)
+    SDDMM::Results::ExperimentInfo info_size(
+        "Comparison Benchmark of Algorithms based on Size",
+        1000,   // sparse_num_row
+        1000,   // sparse_num_col
+        1000,   // dense_num_inner
+
+        0.9,   // sparsity
+
+        100, // n_experiment_iterations
+        13 // n_cpu_threads
+    );
+    SDDMM::Experiments::size_benchmark(info_size);
 #endif
 
     return 0;

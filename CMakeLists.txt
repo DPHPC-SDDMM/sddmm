@@ -77,6 +77,10 @@ add_compile_definitions(GPU_CACHE_BENCHMARK)
 # add_compile_definitions(UNROLLING_BENCHMARK)
 # add_compile_definitions(UNROLLING_BENCHMARK_2)
 
+# add_compile_definitions(COMPARISON_BENCHMARK)
+# add_compile_definitions(COMPARISON_BENCHMARK_SPARSITY)
+# add_compile_definitions(COMPARISON_BENCHMARK_SIZE)
+
 add_executable(main src/main.cpp)
 target_link_libraries(main OpenMP::OpenMP_CXX)
 target_link_libraries(main CUDA::cudart)
