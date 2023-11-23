@@ -18,7 +18,7 @@ def break_lines(string, line_length):
 
 
 if __name__ == '__main__':
-    data_file = 'Serial unrolling benchmark_tsR-50_tsI-30_tsC-60_dsR-512_dsI-1024_dsC-384_nIt-100_[Sat_Nov_11_18:59:27_2023].txt'
+    data_file = 'Serial unrolling benchmark [Release]__vs4-es4__tsR-50_tsI-30_tsC-60_dsR-512_dsI-1024_dsC-384_nIt-100_[Thu Nov 23 11-08-05 2023].txt'
     d_debug = data.Data(data_file)
 
     x_debug = [break_lines(s, 10) for s in  d_debug.data.keys()]
@@ -33,20 +33,20 @@ if __name__ == '__main__':
     for i in range(len(x_debug)):
         plt.text(i, y_debug[i], str(y_debug[i]) + "[us] +-" + str(p_y_std_debug[i]) + "%")
 
-    data_file = 'Serial unrolling benchmark [Release]_tsR-50_tsI-30_tsC-60_dsR-512_dsI-1024_dsC-384_nIt-100_[Sun_Nov_12_02:22:30_2023].txt'
-    d_release = data.Data(data_file)
+    # data_file = 'Serial unrolling benchmark [Release]_tsR-50_tsI-30_tsC-60_dsR-512_dsI-1024_dsC-384_nIt-100_[Sun_Nov_12_02:22:30_2023].txt'
+    # d_release = data.Data(data_file)
 
-    x_release = [break_lines(s, 10) for s in  d_release.data.keys()]
-    y_release = np.array([np.average(dd) for dd in d_release.data.values()]) / 1000.0
-    y_std_release = np.array([np.std(dd) for dd in d_release.data.values()]) / 1000.0
-    p_y_std_release = np.round(100.0 / y_release * y_std_release, 3)
+    # x_release = [break_lines(s, 10) for s in  d_release.data.keys()]
+    # y_release = np.array([np.average(dd) for dd in d_release.data.values()]) / 1000.0
+    # y_std_release = np.array([np.std(dd) for dd in d_release.data.values()]) / 1000.0
+    # p_y_std_release = np.round(100.0 / y_release * y_std_release, 3)
 
-    y_release = np.round(y_release,3)
-    y_std_release = np.round(y_std_release,3)
+    # y_release = np.round(y_release,3)
+    # y_std_release = np.round(y_std_release,3)
 
-    plt.errorbar(x_release, y_release, yerr=y_std_release, color='red', ecolor='orange')
-    for i in range(len(x_release)):
-        plt.text(i, y_release[i], str(y_release[i]) + "[us] +-" + str(p_y_std_release[i]) + "%")
+    # plt.errorbar(x_release, y_release, yerr=y_std_release, color='red', ecolor='orange')
+    # for i in range(len(x_release)):
+    #     plt.text(i, y_release[i], str(y_release[i]) + "[us] +-" + str(p_y_std_release[i]) + "%")
 
     plt.title("{0} n_experiments = {1}".format(d_debug.params["experiment_name"], d_debug.params['n_experiment_iterations']))
     plt.xlabel("Experiment")

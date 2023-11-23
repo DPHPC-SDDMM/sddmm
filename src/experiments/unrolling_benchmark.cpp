@@ -44,7 +44,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Simple 2D loop";
@@ -62,6 +63,7 @@ namespace SDDMM {
                         }
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -87,7 +89,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Precalc access ind";
@@ -108,6 +111,7 @@ namespace SDDMM {
                         }
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -134,7 +138,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind";
@@ -158,6 +163,7 @@ namespace SDDMM {
                         // However, multiplication is more often than not a more expensive operation.
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -185,7 +191,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Accum in loc var";
@@ -207,6 +214,7 @@ namespace SDDMM {
                         }
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -230,7 +238,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind and local acc var";
@@ -254,6 +263,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -280,7 +290,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (2x)";
@@ -312,6 +323,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -338,7 +350,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (4x)";
@@ -372,6 +385,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -398,7 +412,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (8x)";
@@ -436,6 +451,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -463,7 +479,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (16x)";
@@ -510,6 +527,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -537,7 +555,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (32x)";
@@ -602,6 +621,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -625,7 +645,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (4x), reassoc";
@@ -659,6 +680,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -686,7 +708,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (8x), reassociation";
@@ -724,6 +747,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -752,7 +776,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (2x), separate accumulators";
@@ -791,6 +816,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -814,7 +840,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (4x), separate accumulators";
@@ -858,6 +885,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -882,7 +910,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, loc acc, inner loop unroll (8x), separate accumulators";
@@ -934,6 +963,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -957,7 +987,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add access ind, precalc inner loop, loc acc, inner loop unroll (8x), separate accumulators";
@@ -1012,6 +1043,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -1031,7 +1063,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Add Vectorized m256";
@@ -1100,6 +1133,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -1120,24 +1154,41 @@ namespace SDDMM {
             auto Y = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
             auto res = X*Y;
 
+            Types::expmt_t total_1 = 0;
+            Types::expmt_t total_2 = 0;
+            Types::expmt_t total_3 = 0;
+            Types::expmt_t total_4 = 0;
+            Types::expmt_t total_5 = 0;
+            Types::expmt_t total_6 = 0;
+            Types::expmt_t total_7 = 0;
+            Types::expmt_t total_8 = 0;
+            Types::expmt_t total_9 = 0;
+            Types::expmt_t total_10 = 0;
+            Types::expmt_t total_11 = 0;
+            Types::expmt_t total_12 = 0;
+            Types::expmt_t total_13 = 0;
+            Types::expmt_t total_14 = 0;
+            Types::expmt_t total_15 = 0;
+            Types::expmt_t total_16 = 0;
+
             int tot = 16;
             std::vector<Results::ExperimentData> results {
-                UnrollingExperiments::naive(1, tot, X, Y, res, info),
-                UnrollingExperiments::precalc_mult_loop(2, tot, X, Y, res, info),
-                UnrollingExperiments::add_mult_loop(3, tot, X, Y, res, info),
-                UnrollingExperiments::accum_var(4, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_mult_loop(5, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_4(6, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_8(7, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_16(8, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_32(9, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_4_reassoc(10, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_8_reassoc(11, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_2_sep_acc(12, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_4_sep_acc(13, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_8_sep_acc(14, tot, X, Y, res, info),
-                UnrollingExperiments::add_and_loc_acc_prec_in_loop_unrol_inner_loop_mult_loop_8_sep_acc(15, tot, X, Y, res, info),
-                UnrollingExperiments::add_vectorized(16, tot, X, Y, res, info)
+                UnrollingExperiments::naive(1, tot, X, Y, res, info, total_1),
+                UnrollingExperiments::precalc_mult_loop(2, tot, X, Y, res, info, total_2),
+                UnrollingExperiments::add_mult_loop(3, tot, X, Y, res, info, total_3),
+                UnrollingExperiments::accum_var(4, tot, X, Y, res, info, total_4),
+                UnrollingExperiments::add_and_loc_acc_mult_loop(5, tot, X, Y, res, info, total_5),
+                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_4(6, tot, X, Y, res, info, total_6),
+                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_8(7, tot, X, Y, res, info, total_7),
+                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_16(8, tot, X, Y, res, info, total_8),
+                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_32(9, tot, X, Y, res, info, total_9),
+                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_4_reassoc(10, tot, X, Y, res, info, total_10),
+                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_8_reassoc(11, tot, X, Y, res, info, total_11),
+                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_2_sep_acc(12, tot, X, Y, res, info, total_12),
+                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_4_sep_acc(13, tot, X, Y, res, info, total_13),
+                UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_8_sep_acc(14, tot, X, Y, res, info, total_14),
+                UnrollingExperiments::add_and_loc_acc_prec_in_loop_unrol_inner_loop_mult_loop_8_sep_acc(15, tot, X, Y, res, info, total_15),
+                UnrollingExperiments::add_vectorized(16, tot, X, Y, res, info, total_16)
             };
 
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
