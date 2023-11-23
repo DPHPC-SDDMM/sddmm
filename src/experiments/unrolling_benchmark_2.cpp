@@ -8,7 +8,7 @@
 #include "../defines.h"
 #include "../data_structures/matrix/matrix.h"
 
-#define CHECK
+// #define CHECK
 
 namespace SDDMM {
     namespace Experiments {
@@ -38,7 +38,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Unroll (4x), separate accums, collecting 'while' " + get_dims(X,Y);
@@ -75,6 +76,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -94,7 +96,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label  = "Unroll (4x), separate accums, zero padding " + get_dims(X,Y);
@@ -138,6 +141,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -157,7 +161,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label = "Unroll (8x), separate accums, collecting 'while' " + get_dims(X,Y);
@@ -202,6 +207,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -221,7 +227,8 @@ namespace SDDMM {
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::Matrix& exp_res,
-                Results::SerialExperimentInfo& info
+                Results::SerialExperimentInfo& info,
+                Types::expmt_t& total
             ) {
                 Results::ExperimentData data;
                 data.label  = "Unroll (8x), separate accums, zero padding " + get_dims(X,Y);
@@ -281,6 +288,7 @@ namespace SDDMM {
                         ni += info.y_num_col;
                     }
                     auto end = std::chrono::high_resolution_clock::now();
+                    total += r1(0,0);
                     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
                     TEXT::Gadgets::print_progress(x+1, info.n_experiment_iterations);
 
@@ -323,16 +331,25 @@ namespace SDDMM {
             auto Y_prime = Types::Matrix::generate(info2.xy_num_inner, info2.y_num_col, 0.0);
             auto res_prime = X_prime*Y_prime;
 
+            Types::expmt_t total_1 = 0;
+            Types::expmt_t total_2 = 0;
+            Types::expmt_t total_3 = 0;
+            Types::expmt_t total_4 = 0;
+            Types::expmt_t total_5 = 0;
+            Types::expmt_t total_6 = 0;
+            Types::expmt_t total_7 = 0;
+            Types::expmt_t total_8 = 0;
+
             int tot = 8;
             std::vector<Results::ExperimentData> results {
-                UnrollingExperiments2::unroll_4(1, tot, X_fit, Y_fit, res_fit, info),
-                UnrollingExperiments2::unroll_4(2, tot, X_prime, Y_prime, res_prime, info2),
-                UnrollingExperiments2::unroll_8(3, tot, X_fit, Y_fit, res_fit, info),
-                UnrollingExperiments2::unroll_8(4, tot, X_prime, Y_prime, res_prime, info2),
-                UnrollingExperiments2::unroll_4_improve_1(5, tot, X_fit, Y_fit, res_fit, info),
-                UnrollingExperiments2::unroll_4_improve_1(6, tot, X_prime, Y_prime, res_prime, info2),
-                UnrollingExperiments2::unroll_8_improve_1(7, tot, X_fit, Y_fit, res_fit, info),
-                UnrollingExperiments2::unroll_8_improve_1(8, tot, X_prime, Y_prime, res_prime, info2)
+                UnrollingExperiments2::unroll_4(1, tot, X_fit, Y_fit, res_fit, info, total_1),
+                UnrollingExperiments2::unroll_4(2, tot, X_prime, Y_prime, res_prime, info2, total_2),
+                UnrollingExperiments2::unroll_8(3, tot, X_fit, Y_fit, res_fit, info, total_3),
+                UnrollingExperiments2::unroll_8(4, tot, X_prime, Y_prime, res_prime, info2, total_4),
+                UnrollingExperiments2::unroll_4_improve_1(5, tot, X_fit, Y_fit, res_fit, info, total_5),
+                UnrollingExperiments2::unroll_4_improve_1(6, tot, X_prime, Y_prime, res_prime, info2, total_6),
+                UnrollingExperiments2::unroll_8_improve_1(7, tot, X_fit, Y_fit, res_fit, info, total_7),
+                UnrollingExperiments2::unroll_8_improve_1(8, tot, X_prime, Y_prime, res_prime, info2, total_8)
             };
 
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
