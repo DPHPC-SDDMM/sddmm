@@ -1,7 +1,7 @@
 #include "../data_structures/coo/coo.h"
 #include "../data_structures/csr/csr.h"
 #include "../algos/cpu_sddmm/naive_sddmm.cpp"
-#include "../algos/cpu_sddmm/parallel_sddmm.cpp"
+#include "../algos/cpu_sddmm/parallel_sddmm_prototypes.cpp"
 #include "../algos/cuda_sddmm/cuda_sddmm.cpp"
 #include "../algos/cpu_sddmm/tiled_sddmm.cpp"
 #include "../results.h"

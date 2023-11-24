@@ -13,8 +13,7 @@
 #include "../data_structures/csr/csr.h"
 
 #include "../algos/cpu_sddmm/naive_sddmm.cpp"
-#include "../algos/cpu_sddmm/parallel_sddmm.cpp"
-
+#include "../algos/cpu_sddmm/parallel_cpu_sddmm.cpp"
 #include "../algos/cuda_sddmm/cuda_sddmm.cpp"
 
 // #define CHECK
@@ -75,7 +74,7 @@ namespace SDDMM {
 
                     auto start = std::chrono::high_resolution_clock::now();
 
-                    Algo::parallel_sddmm(s, A, B, info.n_cpu_threads);
+                    Algo::parallel_sddmm(s, A, B, info.n_cpu_threads, &data);
                     
                     auto end = std::chrono::high_resolution_clock::now();
                     if(n > 0){

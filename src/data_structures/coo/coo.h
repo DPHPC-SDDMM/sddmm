@@ -414,7 +414,10 @@ namespace SDDMM{
                 in >> output.n >> output.m >> nr_nonzeroes;
 
                 // Allocate memory for data.
-                output.data.resize(nr_nonzeroes);
+                // output.data.resize(nr_nonzeroes);
+                output.values.resize(nr_nonzeroes);
+                output.cols.resize(nr_nonzeroes);
+                output.rows.resize(nr_nonzeroes);
 
                 Types::vec_size_t index = 0;
                 // The second check is made in case
@@ -427,7 +430,10 @@ namespace SDDMM{
                     else { in >> r_in >> c_in >> v; }
 
                     // adjust from 1-based to 0-based
-                    output.data[index++] = {r_in-1, c_in-1, v};
+                    output.values[index++] = v;
+                    output.cols[index++] = c_in-1;
+                    output.rows[index++] = r_in-1;
+                    // output.data[index++] = {r_in-1, c_in-1, v};
                 }
 
                 in.close(); // Don't forget to close the file!
