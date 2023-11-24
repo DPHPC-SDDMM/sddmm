@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <cuda.h>
@@ -80,9 +82,9 @@ namespace SDDMM {
         public:
             SML2SDDMM() = default;
 
-            static int run() {
+            static Types::time_duration_unit run(SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B, bool check) {
                 // generate matrices
-                auto matrix_params = prepare_matrices();
+                auto matrix_params = prepare_matrices(S, sparsity, A, B);
 
                 // calculate tile sizes
                 auto tiling_params = determine_tiling_params(
@@ -104,10 +106,12 @@ namespace SDDMM {
 
                 // TODO postprocess (if needed), like cleaning up zeroes from res.values
 
-                // check correctness
-                check_result(matrix_params.S, matrix_params.A, matrix_params.B, res, matrix_params.K, tiling_params.Tj, tiling_params.num_J_tiles);
+                if(check){
+                    // check correctness
+                    check_result(matrix_params.S, matrix_params.A, matrix_params.B, res, matrix_params.K, tiling_params.Tj, tiling_params.num_J_tiles);
+                }
 
-                return 0;
+                return res.duration_ms;
             }
 
             struct MatrixParams {
@@ -147,34 +151,35 @@ namespace SDDMM {
 
             struct Result {
                 const std::vector<float> values;
-                long long duration_ms;
+                Types::time_duration_unit duration_ms;
             };
 
-            static MatrixParams prepare_matrices() {
+            static MatrixParams prepare_matrices(SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B) {
                 // dimensions
                 // NOTE: K has to be a multiple of 32
 //                Types::vec_size_t N = 1024;
 //                Types::vec_size_t M = 256;
 //                Types::vec_size_t K = 256;
-                Types::vec_size_t N = 234234;
-                Types::vec_size_t M = 2344;
-                Types::vec_size_t K = 256;
 
-                float sparsity = 0.97;
+                // Types::vec_size_t N = 234234;
+                // Types::vec_size_t M = 2344;
+                // Types::vec_size_t K = 256;
 
-                std::cout << "Matrix sizes:" << std::endl;
-                std::cout << "N: " << N << ";  M: " << M << ";  K: " << K << ";  Sparsity: " << sparsity << std::endl;
-                std::cout << std::endl;
+                // float sparsity = 0.97;
 
-                std::cout << "Creating matrices..." << std::endl;
+                // std::cout << "Matrix sizes:" << std::endl;
+                // std::cout << "N: " << N << ";  M: " << M << ";  K: " << K << ";  Sparsity: " << sparsity << std::endl;
+                // std::cout << std::endl;
 
-                // matrix S
-                auto S_dense = SDDMM::Types::Matrix::generate(N, M, sparsity);
-                SDDMM::Types::COO S = S_dense.to_coo();
+                // std::cout << "Creating matrices..." << std::endl;
 
-                // matrices A and B
-                auto A = SDDMM::Types::Matrix::generate(N, K, sparsity=0.);
-                auto B = SDDMM::Types::Matrix::generate(M, K, sparsity=0.);
+                // // matrix S
+                // auto S_dense = SDDMM::Types::Matrix::generate(N, M, sparsity);
+                // SDDMM::Types::COO S = S_dense.to_coo();
+
+                // // matrices A and B
+                // auto A = SDDMM::Types::Matrix::generate(N, K, sparsity=0.);
+                // auto B = SDDMM::Types::Matrix::generate(M, K, sparsity=0.);
 
                 // result matrix
                 SDDMM::Types::COO P;
@@ -190,9 +195,9 @@ namespace SDDMM {
                         S,
                         A,
                         B,
-                        N,
-                        M,
-                        K,
+                        A.n,
+                        B.n,
+                        A.m,
                         sparsity
                 };
             }
@@ -318,13 +323,13 @@ namespace SDDMM {
                         // values.push_back(S_tile.data[0].value);
                         rows.push_back(s_rows[0]);
                         cols.push_back(s_cols[0]);
-                        values.push_back(s_value[0]);
+                        values.push_back(s_values[0]);
 
                         // number of elements in the slice
                         int n = 1;
 
-                        for (int i = 1; i < S_tile.data.size(); i++) {
-                            if (S_tile.data[i].row != active_rows.back()) {
+                        for (int i = 1; i < s_values.size(); i++) {
+                            if (s_rows[i] != active_rows.back()) {
                                 a++;
                                 // active_rows.push_back(S_tile.data[i].row);
                                 active_rows.push_back(s_rows[0]);
@@ -346,7 +351,7 @@ namespace SDDMM {
                             // values.push_back(S_tile.data[i].value);
                             rows.push_back(s_rows[i]);
                             cols.push_back(s_cols[i]);
-                            values.push_back(s_value[i]);
+                            values.push_back(s_values[i]);
 
                             n++;
                         }
@@ -357,7 +362,7 @@ namespace SDDMM {
                         // push the number of active rows
                         active_rows_sizes.push_back(a);
 
-                        S_tile_starts.push_back(S_tile.data.size());
+                        S_tile_starts.push_back(s_values.size());
                     } else {
                         // TODO properly process empty slices
                         slice_sizes.push_back(0);
@@ -392,22 +397,43 @@ namespace SDDMM {
                 R.n = S.n;
                 R.m = S.m;
 
-                for (const auto & t : S.data) {
-                    auto row = t.row;
-                    auto col = t.col;
-                    auto v = t.value;
+                auto col_iter_begin = S.cols.begin();
+                auto col_iter_end = S.cols.end();
+                auto row_iter_begin = S.rows.begin();
+                auto row_iter_end = S.rows.end();
+                auto values_iter_begin = S.values.begin();
+                auto values_iter_end = S.values.end();
 
-                    float sum = 0.;
-                    for (auto i = 0; i < K; i++) {
-                        sum += A.at(row, i) * B.at(col, i);
-                    }
 
-                    R.data.push_back({
-                             row,
-                             col,
-                             v * sum
-                     });
+                while(col_iter_begin != col_iter_end){
+                    R.cols.push_back(*col_iter_begin);
+                    col_iter_begin++;
                 }
+                while(row_iter_begin != row_iter_end){
+                    R.rows.push_back(*row_iter_begin);
+                    row_iter_begin++;
+                }
+                while(values_iter_begin != values_iter_end){
+                    R.values.push_back(*values_iter_begin);
+                    values_iter_begin++;
+                }
+
+                // for (const auto & t : S.data) {
+                //     auto row = t.row;
+                //     auto col = t.col;
+                //     auto v = t.value;
+
+                //     float sum = 0.;
+                //     for (auto i = 0; i < K; i++) {
+                //         sum += A.at(row, i) * B.at(col, i);
+                //     }
+
+                //     R.data.push_back({
+                //              row,
+                //              col,
+                //              v * sum
+                //      });
+                // }
 
                 std::vector<float> R_values;
 
@@ -428,12 +454,18 @@ namespace SDDMM {
                         end_ind = R.m;
                     }
 
-                    // extract elements
-                    for (auto t: R.data) {
-                        if (t.col >= start_ind && t.col < end_ind) {
-                            R_values.push_back(t.value);
+                    for (int i=0; i<R.values.size(); i++) {
+                        if (R.cols[i] >= start_ind && R.cols[i] < end_ind) {
+                            R_values.push_back(R.values[i]);
                         }
                     }
+
+                    // extract elements
+                    // for (auto t: R.data) {
+                    //     if (t.col >= start_ind && t.col < end_ind) {
+                    //         R_values.push_back(t.value);
+                    //     }
+                    // }
                 }
 
                 std::cout << "Difference check:" << std::endl;
@@ -450,7 +482,7 @@ namespace SDDMM {
                         TilingParams& tiling_params,
                         SparseParams& sparse_params
                     ) {
-                auto S_size = matrix_params.S.data.size();
+                auto S_size = matrix_params.S.values.size();
 
                 // transfer data to GPU
                 std::cout << "Allocating memory & transferring data..." << std::endl;
@@ -558,7 +590,8 @@ namespace SDDMM {
                 gpuErrchk(cudaDeviceSynchronize());
 
                 auto end_time = std::chrono::high_resolution_clock::now();
-                auto duration_ms = (end_time - start_time) / std::chrono::milliseconds(1);
+                // auto duration_ms = (end_time - start_time) / std::chrono::nanoseconds(1);
+                auto duration_ms = std::chrono::duration_cast<Types::time_measure_unit>(end_time - start_time).count();
 
                 std::cout << std::endl << "Done processing!" << std::endl << std::endl;
                 std::cout << "Duration (GPU, without preprocessing): " << duration_ms << "ms" << std::endl << std::endl;

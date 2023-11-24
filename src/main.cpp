@@ -166,8 +166,8 @@ int main(int argc, char** argv){
 
         0.9,   // sparsity
 
-        100, // n_experiment_iterations
-        13 // n_cpu_threads
+        10, // n_experiment_iterations
+        17 // n_cpu_threads
     );
     SDDMM::Experiments::sparsity_benchmark(info_sparsity);
 #endif
@@ -179,10 +179,10 @@ int main(int argc, char** argv){
         1000,   // sparse_num_col
         1000,   // dense_num_inner
 
-        0.9,   // sparsity
+        0.1,   // sparsity
 
-        100, // n_experiment_iterations
-        13 // n_cpu_threads
+        10, // n_experiment_iterations
+        17 // n_cpu_threads
     );
     SDDMM::Experiments::size_benchmark(info_size);
 #endif

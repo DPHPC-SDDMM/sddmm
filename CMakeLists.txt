@@ -71,17 +71,17 @@ add_subdirectory(src/matrix_file_reading)
 # add_compile_definitions(TYPES_BENCHMARK)
 # add_compile_definitions(CACHE_BENCHMARK)
 
-add_compile_definitions(USE_LOW_PRECISION)
-add_compile_definitions(GPU_CACHE_BENCHMARK)
+# add_compile_definitions(USE_LOW_PRECISION)
+# add_compile_definitions(GPU_CACHE_BENCHMARK)
 
 # add_compile_definitions(USE_LOW_PRECISION)
 # add_compile_definitions(UNROLLING_BENCHMARK)
 # add_compile_definitions(UNROLLING_BENCHMARK_2)
-add_compile_definitions(MATRIX_MARKET_FILE_READ)
+# add_compile_definitions(MATRIX_MARKET_FILE_READ)
 
 # add_compile_definitions(COMPARISON_BENCHMARK)
 # add_compile_definitions(COMPARISON_BENCHMARK_SPARSITY)
-# add_compile_definitions(COMPARISON_BENCHMARK_SIZE)
+add_compile_definitions(COMPARISON_BENCHMARK_SIZE)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main OpenMP::OpenMP_CXX)
