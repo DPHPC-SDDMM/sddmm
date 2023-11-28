@@ -8,7 +8,7 @@ UTEST_MAIN();
 UTEST(Cuda_tiled_SDDMM, Init_test) {
     // const SDDMM::Types::vec_size_t max_thread_num = 50;
     {
-        auto X = SDDMM::Types::Matrix::deterministic_gen(5, 4, {
+        auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(5, 4, {
             1,  2,  3,  4,
             5,  6,  7,  8,
             9, 10, 11, 12,
@@ -16,14 +16,14 @@ UTEST(Cuda_tiled_SDDMM, Init_test) {
             17, 18, 19, 20
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 5, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 5, {
             2,  4,  6,  8, 10,
             12, 14, 16, 18, 20,
             22, 24, 26, 28, 30,
             32, 34, 36, 38, 40
         });
 
-        auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen(5,5, {
+        auto inner_prod_res = SDDMM::Types::Matrix::deterministic_gen_row_major(5,5, {
             220,  240,  260,  280,  300,
             492,  544,  596,  648,  700,
             764,  848,  932, 1016, 1100,
@@ -34,7 +34,7 @@ UTEST(Cuda_tiled_SDDMM, Init_test) {
         auto res = X*Y;
         ASSERT_TRUE(inner_prod_res == res);
 
-        auto temp = SDDMM::Types::Matrix::deterministic_gen(5, 5, {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(5, 5, {
             0.5, 1.0, 0.5, 1.0, 0.5,
             1.0, 0.5, 1.0, 0.5, 1.0,
             0.5, 1.0, 0.5, 1.0, 0.5,
@@ -44,7 +44,7 @@ UTEST(Cuda_tiled_SDDMM, Init_test) {
         auto coo_mat = temp.to_coo();
 
         // Expected COO outputs.
-        auto result_temp = SDDMM::Types::Matrix::deterministic_gen(5, 5, {
+        auto result_temp = SDDMM::Types::Matrix::deterministic_gen_row_major(5, 5, {
              110,  240,  130,  280,  150,
              492,  272,  596,  324,  700,
              382,  848,  466, 1016,  550,
@@ -63,7 +63,7 @@ UTEST(Cuda_tiled_SDDMM, Init_test) {
 
 // UTEST(Cuda_tiled_MMult, Test) {
 //     {
-//         auto X = SDDMM::Types::Matrix::deterministic_gen(8, 4, {
+//         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(8, 4, {
 //             1,  2,  3,  4,
 //             5,  6,  7,  8,
 //             9, 10, 11, 12,
@@ -74,7 +74,7 @@ UTEST(Cuda_tiled_SDDMM, Init_test) {
 //             29, 30, 31, 32
 //         });
 
-//         auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 8, {
+//         auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 8, {
 //             2,   4,  6,  8, 10, 12, 14, 16,
 //             18, 20, 22, 24, 26, 28, 30, 32,
 //             34, 36, 38, 40, 42, 44, 46, 48,
@@ -92,11 +92,11 @@ UTEST(Cuda_tiled_SDDMM, Init_test) {
 //         // }
 //     }
 //     {
-//         auto X = SDDMM::Types::Matrix::deterministic_gen(1, 4, {
+//         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 4, {
 //             1,  2,  3,  4
 //         });
 
-//         auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 8, {
+//         auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 8, {
 //             2,   4,  6,  8, 10, 12, 14, 16,
 //             18, 20, 22, 24, 26, 28, 30, 32,
 //             34, 36, 38, 40, 42, 44, 46, 48,

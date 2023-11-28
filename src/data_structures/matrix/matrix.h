@@ -25,6 +25,10 @@ namespace SDDMM {
         private:
             MatrixFormat _format = MatrixFormat::RowMajor;
 
+            void set_matrix_format(MatrixFormat format){
+                _format = format;
+            }
+
             void flip_matrix_format(){
                 std::vector<SDDMM::Types::expmt_t> d;
                 d.reserve(data.size());
@@ -59,16 +63,34 @@ namespace SDDMM {
                 return data[j*n + i];
             }
 
-            static Matrix deterministic_gen(Types::vec_size_t n, Types::vec_size_t m, const std::vector<SDDMM::Types::expmt_t>& vals){
+            static Matrix deterministic_gen_row_major(Types::vec_size_t n, Types::vec_size_t m, const std::vector<SDDMM::Types::expmt_t>& vals){
                 assert(n*m == vals.size() && "Size of the values must correspond to given size!");
                 Matrix newM(n, m);
                 std::copy(vals.begin(), vals.end(), newM.data.begin());
+
+                newM.set_matrix_format(MatrixFormat::RowMajor);
+                return newM;
+            }
+
+            static Matrix deterministic_gen_col_major(Types::vec_size_t n, Types::vec_size_t m, const std::vector<SDDMM::Types::expmt_t>& vals){
+                assert(n*m == vals.size() && "Size of the values must correspond to given size!");
+                Matrix newM(n, m);
+
+                Types::vec_size_t index = 0;
+                for (Types::vec_size_t i = 0; i < n; i++) {
+                    for (Types::vec_size_t j = 0; j < m; j++) {
+                        newM(j, i) = vals[index];
+                        index++;
+                    }
+                }
+
+                newM.set_matrix_format(MatrixFormat::ColMajor);
                 return newM;
             }
 
             // generates an NxM Matrix with elements in range [min,max] and desired sparsity (sparsity 0.7 means that
             // the matrix will be 70% empty)
-            static Matrix generate(Types::vec_size_t n, Types::vec_size_t m, float sparsity = 1.0, SDDMM::Types::expmt_t min = -1.0, SDDMM::Types::expmt_t max = 1.0) {
+            static Matrix generate_row_major(Types::vec_size_t n, Types::vec_size_t m, float sparsity = 1.0, SDDMM::Types::expmt_t min = -1.0, SDDMM::Types::expmt_t max = 1.0) {
                 std::random_device rd;
                 std::mt19937 gen(rd());
                 std::uniform_real_distribution<> value_dist(min, max);
@@ -84,6 +106,32 @@ namespace SDDMM {
                         }
                     }
                 }
+
+                output.set_matrix_format(MatrixFormat::RowMajor);
+
+                return output;
+            }
+
+            // generates an NxM Matrix with elements in range [min,max] and desired sparsity (sparsity 0.7 means that
+            // the matrix will be 70% empty)
+            static Matrix generate_col_major(Types::vec_size_t n, Types::vec_size_t m, float sparsity = 1.0, SDDMM::Types::expmt_t min = -1.0, SDDMM::Types::expmt_t max = 1.0) {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_real_distribution<> value_dist(min, max);
+                std::uniform_real_distribution<> sparsity_dist(0.0, 1.0);
+
+                Matrix output(n, m);
+                for (Types::vec_size_t i = 0; i < n; i++) {
+                    for (Types::vec_size_t j = 0; j < m; j++) {
+                        if (sparsity_dist(gen) < sparsity) {
+                            output(j, i) = 0.0;
+                        } else {
+                            output(j, i) = value_dist(gen);
+                        }
+                    }
+                }
+
+                output.set_matrix_format(MatrixFormat::ColMajor);
 
                 return output;
             }

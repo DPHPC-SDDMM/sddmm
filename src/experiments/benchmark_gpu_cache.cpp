@@ -56,8 +56,8 @@ namespace SDDMM {
             Types::vec_size_t xy_num_inner = 128;
             Types::vec_size_t y_num_col = 128;
 
-            Types::Matrix X = Types::Matrix::generate(x_num_row, xy_num_inner, 0.0);
-            Types::Matrix Y = Types::Matrix::generate(xy_num_inner, y_num_col, 0.0);
+            Types::Matrix X = Types::Matrix::generate_row_major(x_num_row, xy_num_inner, 0.0);
+            Types::Matrix Y = Types::Matrix::generate_row_major(xy_num_inner, y_num_col, 0.0);
 
             std::cout << "Finished matrix generation" << std::endl;
 

@@ -27,9 +27,9 @@ UTEST(Random, Vanilla_Mult) {
         2,3,2,10
     );
 
-    auto X = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
-    auto Y = SDDMM::Types::Matrix::deterministic_gen(3, 2, {1,2,3,4,5,6});
-    auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {22, 28, 49, 64});
+    auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,2,3,4,5,6});
+    auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {22, 28, 49, 64});
     auto res = X*Y;
     ASSERT_TRUE(matrix3 == res);
 
@@ -55,9 +55,9 @@ UTEST(Random, Vanilla_Precalc_Mult) {
         2,3,2,10
     );
 
-    auto X = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
-    auto Y = SDDMM::Types::Matrix::deterministic_gen(3, 2, {1,2,3,4,5,6});
-    auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {22, 28, 49, 64});
+    auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,2,3,4,5,6});
+    auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {22, 28, 49, 64});
     auto res = X*Y;
     ASSERT_TRUE(matrix3 == res);
 
@@ -84,9 +84,9 @@ UTEST(Random, Vanilla_Mult_Use_Add) {
         2,3,2,10
     );
 
-    auto X = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
-    auto Y = SDDMM::Types::Matrix::deterministic_gen(3, 2, {1,2,3,4,5,6});
-    auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {22, 28, 49, 64});
+    auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,2,3,4,5,6});
+    auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {22, 28, 49, 64});
     auto res = X*Y;
     ASSERT_TRUE(matrix3 == res);
 
@@ -115,9 +115,9 @@ UTEST(Random, Vanilla_Mult_Use_Loc_Var) {
         2,3,2,10
     );
 
-    auto X = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
-    auto Y = SDDMM::Types::Matrix::deterministic_gen(3, 2, {1,2,3,4,5,6});
-    auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {22, 28, 49, 64});
+    auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,2,3,4,5,6});
+    auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {22, 28, 49, 64});
     auto res = X*Y;
     ASSERT_TRUE(matrix3 == res);
 
@@ -146,12 +146,12 @@ UTEST(Random, Vanilla_Mult_Use_Loc_Var_Unroll) {
         20,30,20,10
     );
 
-    auto X = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
-    auto Y = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
+    auto X = Types::Matrix::generate_row_major(info.x_num_row, info.xy_num_inner, 0.0);
+    auto Y = Types::Matrix::generate_row_major(info.xy_num_inner, info.y_num_col, 0.0);
 
-    // auto X = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
-    // auto Y = SDDMM::Types::Matrix::deterministic_gen(3, 2, {1,2,3,4,5,6});
-    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {22, 28, 49, 64});
+    // auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    // auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,2,3,4,5,6});
+    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {22, 28, 49, 64});
     auto res = X*Y;
 
     Types::Matrix r1(info.x_num_row, info.y_num_col);
@@ -199,9 +199,9 @@ UTEST(Random, Vanilla_Mult_Use_Loc_Var_Unroll_Reassoc) {
     // auto X = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
     // auto Y = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
 
-    auto X = SDDMM::Types::Matrix::deterministic_gen(2, 4, {1,2,3,4,5,6,7,8});
-    auto Y = SDDMM::Types::Matrix::deterministic_gen(4, 2, {1,2,3,4,5,6,7,8});
-    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {50, 60, 114, 140});
+    auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 4, {1,2,3,4,5,6,7,8});
+    auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 2, {1,2,3,4,5,6,7,8});
+    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {50, 60, 114, 140});
     auto res = X*Y;
 
     Types::Matrix r1(info.x_num_row, info.y_num_col);
@@ -246,12 +246,12 @@ UTEST(Random, Vanilla_Mult_Use_Loc_Var_Unroll_sep_acc) {
         20,30,20,10
     );
 
-    auto X = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
-    auto Y = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
+    auto X = Types::Matrix::generate_row_major(info.x_num_row, info.xy_num_inner, 0.0);
+    auto Y = Types::Matrix::generate_row_major(info.xy_num_inner, info.y_num_col, 0.0);
 
-    // auto X = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
-    // auto Y = SDDMM::Types::Matrix::deterministic_gen(3, 2, {1,2,3,4,5,6});
-    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {22, 28, 49, 64});
+    // auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    // auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,2,3,4,5,6});
+    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {22, 28, 49, 64});
     auto res = X*Y;
 
     Types::Matrix r1(info.x_num_row, info.y_num_col);
@@ -319,12 +319,12 @@ UTEST(Random, Vanilla_Mult_Vectorized) {
         5,128,11,10
     );
 
-    auto X = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
-    auto Y = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
+    auto X = Types::Matrix::generate_row_major(info.x_num_row, info.xy_num_inner, 0.0);
+    auto Y = Types::Matrix::generate_row_major(info.xy_num_inner, info.y_num_col, 0.0);
 
-    // auto X = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
-    // auto Y = SDDMM::Types::Matrix::deterministic_gen(3, 2, {1,2,3,4,5,6});
-    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {22, 28, 49, 64});
+    // auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    // auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,2,3,4,5,6});
+    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {22, 28, 49, 64});
     auto res = X*Y;
 
     Types::Matrix r1(info.x_num_row, info.y_num_col);
@@ -401,12 +401,12 @@ UTEST(Random, Vanilla_Mult_Winner_Adapt) {
         19,31,23,10
     );
 
-    auto X = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
-    auto Y = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
+    auto X = Types::Matrix::generate_row_major(info.x_num_row, info.xy_num_inner, 0.0);
+    auto Y = Types::Matrix::generate_row_major(info.xy_num_inner, info.y_num_col, 0.0);
 
-    // auto X = SDDMM::Types::Matrix::deterministic_gen(2, 3, {1,2,3,4,5,6});
-    // auto Y = SDDMM::Types::Matrix::deterministic_gen(3, 2, {1,2,3,4,5,6});
-    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen(2,2, {22, 28, 49, 64});
+    // auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    // auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,2,3,4,5,6});
+    // auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {22, 28, 49, 64});
     auto res = X*Y;
 
     Types::Matrix r1(info.x_num_row, info.y_num_col);

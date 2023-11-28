@@ -174,12 +174,12 @@ namespace SDDMM {
                 // std::cout << "Creating matrices..." << std::endl;
 
                 // // matrix S
-                // auto S_dense = SDDMM::Types::Matrix::generate(N, M, sparsity);
+                // auto S_dense = SDDMM::Types::Matrix::generate_row_major(N, M, sparsity);
                 // SDDMM::Types::COO S = S_dense.to_coo();
 
                 // // matrices A and B
-                // auto A = SDDMM::Types::Matrix::generate(N, K, sparsity=0.);
-                // auto B = SDDMM::Types::Matrix::generate(M, K, sparsity=0.);
+                // auto A = SDDMM::Types::Matrix::generate_row_major(N, K, sparsity=0.);
+                // auto B = SDDMM::Types::Matrix::generate_row_major(M, K, sparsity=0.);
 
                 // result matrix
                 SDDMM::Types::COO P;

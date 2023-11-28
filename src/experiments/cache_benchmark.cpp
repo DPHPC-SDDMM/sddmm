@@ -543,8 +543,8 @@ namespace SDDMM {
         void cache_benchmark(Results::SerialExperimentInfo& info){
             // generate data
 
-            Types::Matrix A = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
-            Types::Matrix B = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
+            Types::Matrix A = Types::Matrix::generate_row_major(info.x_num_row, info.xy_num_inner, 0.0);
+            Types::Matrix B = Types::Matrix::generate_row_major(info.xy_num_inner, info.y_num_col, 0.0);
 
             std::cout << "Finished matrix generation" << std::endl;
 

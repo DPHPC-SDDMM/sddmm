@@ -1150,8 +1150,8 @@ namespace SDDMM {
         
         void unrolling_benchmark(Results::SerialExperimentInfo& info){
             // generate data
-            auto X = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
-            auto Y = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
+            auto X = Types::Matrix::generate_row_major(info.x_num_row, info.xy_num_inner, 0.0);
+            auto Y = Types::Matrix::generate_row_major(info.xy_num_inner, info.y_num_col, 0.0);
             auto res = X*Y;
 
             Types::expmt_t total_1 = 0;

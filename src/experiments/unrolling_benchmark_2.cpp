@@ -305,8 +305,8 @@ namespace SDDMM {
         
         void unrolling_benchmark_2(Results::SerialExperimentInfo& info){
             // generate data
-            auto X_fit = Types::Matrix::generate(info.x_num_row, info.xy_num_inner, 0.0);
-            auto Y_fit = Types::Matrix::generate(info.xy_num_inner, info.y_num_col, 0.0);
+            auto X_fit = Types::Matrix::generate_row_major(info.x_num_row, info.xy_num_inner, 0.0);
+            auto Y_fit = Types::Matrix::generate_row_major(info.xy_num_inner, info.y_num_col, 0.0);
             auto res_fit = X_fit*Y_fit;
 
             // construct something that is not divisible by 4 to test the while loop impact
@@ -327,8 +327,8 @@ namespace SDDMM {
                 info.n_experiment_iterations
             );
 
-            auto X_prime = Types::Matrix::generate(info2.x_num_row, info2.xy_num_inner, 0.0);
-            auto Y_prime = Types::Matrix::generate(info2.xy_num_inner, info2.y_num_col, 0.0);
+            auto X_prime = Types::Matrix::generate_row_major(info2.x_num_row, info2.xy_num_inner, 0.0);
+            auto Y_prime = Types::Matrix::generate_row_major(info2.xy_num_inner, info2.y_num_col, 0.0);
             auto res_prime = X_prime*Y_prime;
 
             Types::expmt_t total_1 = 0;
