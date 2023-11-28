@@ -477,10 +477,11 @@ namespace SDDMM {
                 std::cout << diff << std::endl << std::endl;
             }
 
-            static Result run_algo(
+            static Types::COO run_algo(
                         MatrixParams& matrix_params,
                         TilingParams& tiling_params,
-                        SparseParams& sparse_params
+                        SparseParams& sparse_params,
+                        Results::ExperimentData* measurements = nullptr
                     ) {
                 auto S_size = matrix_params.S.values.size();
 
@@ -542,7 +543,7 @@ namespace SDDMM {
                 Types::vec_size_t tile_starts_start_ind = 0;
                 Types::vec_size_t active_rows_start_ind = 0;
 
-                auto start_time = std::chrono::high_resolution_clock::now();
+                auto start = std::chrono::high_resolution_clock::now();
 
                 for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
                     std::cout << "Tile J id: " << tile_j_id << std::endl << std::endl;
@@ -589,12 +590,19 @@ namespace SDDMM {
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
 
-                auto end_time = std::chrono::high_resolution_clock::now();
-                // auto duration_ms = (end_time - start_time) / std::chrono::nanoseconds(1);
-                auto duration_ms = std::chrono::duration_cast<Types::time_measure_unit>(end_time - start_time).count();
+                // auto end_time = std::chrono::high_resolution_clock::now();
+                // auto duration = std::chrono::duration_cast<Types::time_measure_unit>(end_time - start_time).count();
 
-                std::cout << std::endl << "Done processing!" << std::endl << std::endl;
-                std::cout << "Duration (GPU, without preprocessing): " << duration_ms << "ms" << std::endl << std::endl;
+                auto end = std::chrono::high_resolution_clock::now();
+                // auto end = omp_get_wtime();
+
+                if(measurements != nullptr){
+                    Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                    measurements->durations.push_back(duration);
+                }
+
+                // std::cout << std::endl << "Done processing!" << std::endl << std::endl;
+                // std::cout << "Duration (GPU, without preprocessing): " << duration_ms << "ms" << std::endl << std::endl;
 
                 // read the result from device
                 std::vector<float> P_values = std::vector<float>(S_size);
@@ -616,10 +624,22 @@ namespace SDDMM {
 
                 cudaDeviceReset();
 
-                return {
-                    P_values,
-                    duration_ms
-                };
+
+                Types::COO result;
+                result.n = matrix_params.S.n;
+                result.m = matrix_params.S.m;
+                result.cols.resize(P_values.size());
+                result.rows.resize(P_values.size());
+                result.values.resize(P_values.size());
+
+                std::copy(P_values.begin(), P_values.end(), result.values.begin());
+                std::copy(matrix_params.S.cols.begin(), matrix_params.S.cols.end(), result.cols.begin());
+                std::copy(matrix_params.S.rows.begin(), matrix_params.S.rows.end(), result.rows.begin());
+                // return {
+                //     P_values,
+                //     duration_ms
+                // };
+                return result;
             }
         };
     }
