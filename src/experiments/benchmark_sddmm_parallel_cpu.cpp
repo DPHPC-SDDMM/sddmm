@@ -68,7 +68,7 @@ namespace SDDMM {
 
             std::cout << TEXT::Cast::Cyan("Generate matrix") << std::endl;
             auto X = Types::Matrix::generate_row_major(info.sparse_num_row, info.dense_num_inner, 0.0);
-            auto Y = Types::Matrix::generate_row_major(info.dense_num_inner, info.sparse_num_col, 0.0);
+            auto Y = Types::Matrix::generate_col_major(info.dense_num_inner, info.sparse_num_col, 0.0);
             auto sparse_mat = Types::Matrix::generate_row_major(info.sparse_num_row, info.sparse_num_col, info.sparsity);
 
             std::cout << TEXT::Cast::Cyan("Matrix to coo") << std::endl;

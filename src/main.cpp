@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include "experiments/sddmm_benchmark_prototype.cpp"
 #include "experiments/unrolling_benchmark.cpp"
 #include "experiments/cache_benchmark.cpp"
 #include "experiments/unrolling_benchmark_2.cpp"

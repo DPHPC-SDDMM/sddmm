@@ -230,10 +230,12 @@ namespace SDDMM{
                     output_file << sparse.rows[i] << " " << sparse.cols[i] << " " << std::setprecision(12) << sparse.values[i] << "|";
                 }
                 output_file << "\n" << X.n << " " << X.m << "\n";
+                output_file << (X.is_row_major() ? Constants::row_storage : Constants::col_storage) << "\n";
                 for(const SDDMM::Types::expmt_t& val : X.data){
                     output_file << std::setprecision(12) << val << " ";
                 }
                 output_file << "\n" << Y.n << " " << Y.m << "\n";
+                output_file << (Y.is_row_major() ? Constants::row_storage : Constants::col_storage) << "\n";
                 for(const SDDMM::Types::expmt_t& val : Y.data){
                     output_file << std::setprecision(12) << val << " ";
                 }
@@ -289,18 +291,34 @@ namespace SDDMM{
                             out_X.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
                             out_X.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
                             break;
-
-                        case 3: // values of X
+                        case 3:
+                            // row/col of X
+                            if(input.compare(std::to_string(Constants::row_storage)) == 0){
+                                out_X.set_matrix_format(Types::MatrixFormat::RowMajor);
+                            } 
+                            else{
+                                out_X.set_matrix_format(Types::MatrixFormat::ColMajor);
+                            }
+                            break;
+                        case 4: // values of X
                             out_X.data = string_to_num_vec(input);
                             break;
 
-                        case 4: // size of Y
+                        case 5: // size of Y
                             nums = string_to_num_vec(input);
                             out_Y.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
                             out_Y.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
                             break;
-
-                        case 5: // values of Y
+                        case 6:
+                            // row/col of Y
+                            if(input.compare(std::to_string(Constants::row_storage)) == 0){
+                                out_Y.set_matrix_format(Types::MatrixFormat::RowMajor);
+                            } 
+                            else{
+                                out_Y.set_matrix_format(Types::MatrixFormat::ColMajor);
+                            }
+                            break;
+                        case 7: // values of Y
                             out_Y.data = string_to_num_vec(input);
                             break;
                     }

@@ -183,7 +183,7 @@ namespace SDDMM {
             for (float sparsity = 0.9; sparsity >= 0.1; sparsity -= 0.2) {
                 Types::Matrix S = Types::Matrix::generate_row_major(info.dense_num_inner, info.sparse_num_col, sparsity);
                 Types::Matrix A = Types::Matrix::generate_row_major(info.sparse_num_row, info.dense_num_inner, 0);
-                Types::Matrix B = Types::Matrix::generate_row_major(info.dense_num_inner, info.sparse_num_col, 0);
+                Types::Matrix B = Types::Matrix::generate_col_major(info.dense_num_inner, info.sparse_num_col, 0);
                 std::cout << "Finished matrix generation for sparsity: " << sparsity << std::endl;
                 results.push_back(ComparisonExperiments::vary_naive("sparsity", 1, 3, info, 100 * sparsity, S, A, B, total_1));
                 results.push_back(ComparisonExperiments::vary_parallel("sparsity", 2, 3, info, 100 * sparsity, S, A, B, total_2));
@@ -210,7 +210,7 @@ namespace SDDMM {
             for (Types::vec_size_t n : sizes) {
                 Types::Matrix S = Types::Matrix::generate_row_major(n, n, info.sparsity);
                 Types::Matrix A = Types::Matrix::generate_row_major(n, n, 0);
-                Types::Matrix B = Types::Matrix::generate_row_major(n, n, 0);
+                Types::Matrix B = Types::Matrix::generate_col_major(n, n, 0);
                 std::cout << "Finished matrix generation for size: " << n << std::endl;
                 results.push_back(ComparisonExperiments::vary_naive("size", 1, 3, info, n, S, A, B, total_1));
                 results.push_back(ComparisonExperiments::vary_parallel("size", 2, 3, info, n, S, A, B, total_2));

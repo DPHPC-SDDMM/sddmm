@@ -8,7 +8,7 @@ __global__ void k_sddmm(
     SDDMM::Types::expmt_t* Y_dense_d,
     // !!!! SDDMM::Types::vec_size_t sparse_len,
     SDDMM::Types::vec_size_t X_m, 
-    SDDMM::Types::vec_size_t Y_m,
+    SDDMM::Types::vec_size_t Y_n,
     SDDMM::Types::expmt_t* out_values_d,
     SDDMM::Types::vec_size_t* out_row_d,
     SDDMM::Types::vec_size_t* out_col_d
@@ -32,7 +32,7 @@ __global__ void k_sddmm(
     // Y == Y_n x Y_m
     // ==> X_m == Y_n (if Y_n existed)
     for(SDDMM::Types::vec_size_t ind=0; ind < X_m; ++ind){
-        inner_product += X_dense_d[row * X_m + ind]*Y_dense_d[ind * Y_m + col];
+        inner_product += X_dense_d[row * X_m + ind]*Y_dense_d[col * Y_n + ind];
     }
 
     out_values_d[access_ind] = val*inner_product;
@@ -48,7 +48,7 @@ void CudaTiledSDDMM(
     SDDMM::Types::expmt_t* Y_dense_d,
     SDDMM::Types::vec_size_t sparse_len,
     SDDMM::Types::vec_size_t X_m, 
-    SDDMM::Types::vec_size_t Y_m,
+    SDDMM::Types::vec_size_t Y_n,
     SDDMM::Types::expmt_t* out_values_d,
     SDDMM::Types::vec_size_t* out_row_d,
     SDDMM::Types::vec_size_t* out_col_d
@@ -67,7 +67,7 @@ void CudaTiledSDDMM(
         X_dense_d, 
         Y_dense_d, 
         X_m, 
-        Y_m, 
+        Y_n, 
         out_values_d,
         out_row_d,
         out_col_d

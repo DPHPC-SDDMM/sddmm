@@ -36,6 +36,11 @@ namespace SDDMM {
         typedef int64_t time_duration_unit;
     }
 
+    namespace Constants {
+        constexpr int col_storage = 1;
+        constexpr int row_storage = 2;
+    }
+
     /**
      * All defines like structs, constants etc.
     */

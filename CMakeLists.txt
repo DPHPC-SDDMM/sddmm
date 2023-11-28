@@ -59,6 +59,11 @@ add_subdirectory(tests)
 add_subdirectory(src/experiments)
 add_subdirectory(src/matrix_file_reading)
 
+# use zero filtering in order to run all tests
+# add_compile_definitions(SDDMM_PARALLEL_CPU_ZERO_FILTER)
+# low precision requirements for floating point operations
+add_compile_definitions(USE_LOW_PRECISION)
+
 # Mark only one
 # add_compile_definitions(NONE)
 # add_compile_definitions(SAMPLE_ALGO)

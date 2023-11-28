@@ -16,7 +16,7 @@ UTEST(Cuda_tiled_SDDMM, Init_test) {
             17, 18, 19, 20
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 5, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(4, 5, {
             2,  4,  6,  8, 10,
             12, 14, 16, 18, 20,
             22, 24, 26, 28, 30,

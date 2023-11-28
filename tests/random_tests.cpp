@@ -13,7 +13,6 @@
 #include "../src/data_structures/coo/coo.h"
 #include "../src/algos/cpu_sddmm/naive_sddmm.cpp"
 #include "../src/algos/cpu_sddmm/tiled_sddmm.cpp"
-#include "../src/algos/cpu_sddmm/parallel_sddmm_prototypes.cpp"
 
 UTEST_MAIN();
 

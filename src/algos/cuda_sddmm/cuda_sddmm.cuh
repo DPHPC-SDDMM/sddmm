@@ -12,7 +12,7 @@ extern "C" void CudaTiledSDDMM(
     SDDMM::Types::expmt_t* Y_dense_d,
     SDDMM::Types::vec_size_t sparse_len,
     SDDMM::Types::vec_size_t X_m, 
-    SDDMM::Types::vec_size_t Y_m,
+    SDDMM::Types::vec_size_t Y_n,
     SDDMM::Types::expmt_t* out_values_d,
     SDDMM::Types::vec_size_t* out_row_d,
     SDDMM::Types::vec_size_t* out_col_d

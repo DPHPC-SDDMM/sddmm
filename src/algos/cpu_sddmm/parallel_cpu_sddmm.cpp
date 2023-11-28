@@ -14,7 +14,7 @@
  * @note If this is turned of, the resulting matrices may contain zeros which doesn't conform to sparse matrix format
  * @note parallel_sddmm_cuda_simulation is not included in this define because it makes not sense to benchmark it
 */
-#define SDDMM_PARALLEL_CPU_ZERO_FILTER
+// #define SDDMM_PARALLEL_CPU_ZERO_FILTER
 
 namespace SDDMM {
     namespace Algo {
@@ -90,6 +90,7 @@ namespace SDDMM {
             assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
             assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m>0 && "All involved matrices must be non-empty!");
             assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Matrix dimensions must match!");
+            assert(X_dense.is_row_major() && Y_dense.is_col_major() && "X_dense must be row major, Y_dense must be col major!");
 
             auto start = std::chrono::high_resolution_clock::now();
             // auto start = omp_get_wtime();
@@ -202,6 +203,8 @@ namespace SDDMM {
             Results::ExperimentData* measurements = nullptr
         )
         {
+            assert(X_dense.is_row_major() && Y_dense.is_col_major() && "X_dense must be row major, Y_dense must be col major!");
+
             auto start = std::chrono::high_resolution_clock::now();
 
             Types::vec_size_t k = X_dense.m;
@@ -209,10 +212,21 @@ namespace SDDMM {
 #ifdef SDDMM_PARALLEL_CPU_ZERO_FILTER
             std::vector<Types::expmt_t> p_ind(nnz, 0.0);
 #endif
+//             Types::COO res;
+//             res.n = A_sparse.n;
+//             res.m = A_sparse.m;
+
+// #ifndef SDDMM_PARALLEL_CPU_ZERO_FILTER
+//             res.rows.resize(nnz); 
+//             res.cols.resize(nnz);
+//             std::copy(A_sparse.rows.begin(), A_sparse.rows.end(), res.rows.begin());
+//             std::copy(A_sparse.cols.begin(), A_sparse.cols.end(), res.cols.begin());
+//             res.values.resize(nnz);
+// #endif
+
             Types::COO res;
             res.n = A_sparse.n;
             res.m = A_sparse.m;
-
 #ifndef SDDMM_PARALLEL_CPU_ZERO_FILTER
             res.rows.resize(nnz); 
             res.cols.resize(nnz);
@@ -271,22 +285,30 @@ namespace SDDMM {
             Types::vec_size_t num_threads,
             Results::ExperimentData* measurements = nullptr
         ){  
+            assert(X_dense.is_row_major() && Y_dense.is_col_major() && "X_dense must be row major, Y_dense must be col major!");
             auto start = std::chrono::high_resolution_clock::now();
 
             Types::vec_size_t xk = X_dense.m;
             Types::vec_size_t yk = Y_dense.m;
             Types::vec_size_t nnz = A_sparse.values.size();
-#ifdef SDDMM_PARALLEL_CPU_ZERO_FILTER
-            std::vector<Types::expmt_t> p_ind(nnz, 0.0);
-#endif
 
             Types::COO res;
             res.n = A_sparse.n;
             res.m = A_sparse.m;
+#ifdef SDDMM_PARALLEL_CPU_ZERO_FILTER
+            std::vector<Types::expmt_t> p_ind(nnz, 0.0);
             // not reserving space cost: about +14%
-            res.values.reserve(p_ind.size());
-            res.cols.reserve(p_ind.size());
-            res.rows.reserve(p_ind.size());
+            res.values.reserve(nnz);
+            res.cols.reserve(nnz);
+            res.rows.reserve(nnz);
+#else
+            // not reserving space cost: about +14%
+            res.values.resize(nnz, 0.0);
+            res.rows.resize(nnz); 
+            res.cols.resize(nnz);
+            std::copy(A_sparse.cols.begin(), A_sparse.cols.end(), res.cols.begin());
+            std::copy(A_sparse.rows.begin(), A_sparse.rows.end(), res.rows.begin());
+#endif
 
             // omp_set_num_threads(28);
             #pragma omp parallel for

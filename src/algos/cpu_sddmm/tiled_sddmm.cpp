@@ -13,17 +13,17 @@ namespace SDDMM {
          * __with memory tiling__
          * using a single CPU thread (sequential processing) with a sparse matrix in the CSR matrix representation format.
          * The SDDMM consists of a Hadamard product (i.e. element-wise multiplication) between
-         * - the dense matrix product AB between A and B and
+         * - the dense matrix product AB between X_dense and Y_dense and
          * - a sparse matrix S
          * 
          * @param S: A sparse matrix using the CSR matrix representation format.
-         * @param A: The left-hand side (LHS) of the dense matrix product.
-         * @param B: The right-hand side (RHS) of the dense matrix product.
+         * @param X_dense: The left-hand side (LHS) of the dense matrix product.
+         * @param Y_dense: The right-hand side (RHS) of the dense matrix product.
          * @param Ti: The number of rows (of matrix S) that a tile will be consisted of (a.k.a the "height" of the tile).
          * @param Tj: The number of columns (of matrix S) that a tile will be consisted of (a.k.a the "width" of the tile).
-         * @param Tk: The size of the tile over the inner dimension of matrices A and B.
+         * @param Tk: The size of the tile over the inner dimension of matrices X_dense and Y_dense.
          * @param measurements: Optional variable pointer which stores the time required to perform the operation. The duration time measure unit is defined in @ref "defines.h"
-         * @returns (A @ B) * S
+         * @returns (X_dense @ Y_dense) * S
          * 
          * @remark Potential zero values arising during computations are ignored, so as to comply with the COO format. 
          * 
@@ -37,12 +37,13 @@ namespace SDDMM {
         */
         Types::CSR tiled_sddmm(
             const Types::CSR& S, 
-            const Types::Matrix& A, 
-            const Types::Matrix& B, 
+            const Types::Matrix& X_dense, 
+            const Types::Matrix& Y_dense, 
             int Ti, int Tj, int Tk,
             Results::ExperimentData* measurements = nullptr
         ) {
-            
+            assert(X_dense.is_row_major() && Y_dense.is_col_major() && "X_dense must be row major, Y_dense must be col major!");
+
             auto start = std::chrono::high_resolution_clock::now();
 
             // initialise output matrix P
@@ -55,7 +56,7 @@ namespace SDDMM {
 
             Types::vec_size_t N = S.n;
             Types::vec_size_t M = S.m;
-            Types::vec_size_t K = A.m; // == B.n ==> inner dimension of dense matrices
+            Types::vec_size_t K = X_dense.m; // == Y_dense.n ==> inner dimension of dense matrices
             
             // starting row idx of the current *tile*
             for (Types::vec_size_t ii = 0; ii < N; ii += Ti) {
@@ -80,8 +81,8 @@ namespace SDDMM {
 
                                     // compute dot product
                                     for (Types::vec_size_t k = kk; k < std::min(kk + Tk, K); ++k) {
-                                        // P.values[ptr] += A.at(i,k) * B.at(k,j);
-                                        intermediate[ptr] += A.at(i,k) * B.at(k,j);
+                                        // P.values[ptr] += X_dense.at(i,k) * Y_dense.at(k,j);
+                                        intermediate[ptr] += X_dense.at(i,k) * Y_dense.at(k,j);
                                     }
                                 }
                             }

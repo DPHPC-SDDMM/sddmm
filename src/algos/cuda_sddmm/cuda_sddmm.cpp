@@ -23,6 +23,7 @@ namespace SDDMM {
             assert(X_dense.m == Y_dense.n && "Size of cols(X_dense) and rows(Y) must match!");
             assert(A_sparse.n>0 && A_sparse.m>0 && X_dense.n>0 && X_dense.m>0 && Y_dense.n>0 && Y_dense.m > 0 && "All involved matrices must be non-empty!");
             assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Sparse and dense matrices dimensions must match!");
+            assert(X_dense.is_row_major() && Y_dense.is_col_major() && "X_dense must be row major, Y_dense must be col major!");
 
             auto start = std::chrono::high_resolution_clock::now();
 
@@ -73,7 +74,7 @@ namespace SDDMM {
                 Y_dense_d, 
                 sparse_len,
                 X_dense.m, 
-                Y_dense.m, 
+                Y_dense.n, 
                 out_values_d, 
                 out_row_d, 
                 out_col_d

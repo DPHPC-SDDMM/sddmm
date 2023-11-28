@@ -25,10 +25,6 @@ namespace SDDMM {
         private:
             MatrixFormat _format = MatrixFormat::RowMajor;
 
-            void set_matrix_format(MatrixFormat format){
-                _format = format;
-            }
-
             void flip_matrix_format(){
                 std::vector<SDDMM::Types::expmt_t> d;
                 d.reserve(data.size());
@@ -43,6 +39,19 @@ namespace SDDMM {
             }
 
         public:
+
+            void set_matrix_format(MatrixFormat format){
+                _format = format;
+            }
+
+            bool is_col_major() const {
+                return _format == MatrixFormat::ColMajor;
+            }
+
+            bool is_row_major() const {
+                return _format == MatrixFormat::RowMajor;
+            }
+
             std::vector<SDDMM::Types::expmt_t> data;
             // n == number of rows
             // m == number of columns
@@ -75,16 +84,16 @@ namespace SDDMM {
             static Matrix deterministic_gen_col_major(Types::vec_size_t n, Types::vec_size_t m, const std::vector<SDDMM::Types::expmt_t>& vals){
                 assert(n*m == vals.size() && "Size of the values must correspond to given size!");
                 Matrix newM(n, m);
+                newM.set_matrix_format(MatrixFormat::ColMajor);
 
                 Types::vec_size_t index = 0;
                 for (Types::vec_size_t i = 0; i < n; i++) {
                     for (Types::vec_size_t j = 0; j < m; j++) {
-                        newM(j, i) = vals[index];
+                        newM(i, j) = vals[index];
                         index++;
                     }
                 }
 
-                newM.set_matrix_format(MatrixFormat::ColMajor);
                 return newM;
             }
 
@@ -121,17 +130,16 @@ namespace SDDMM {
                 std::uniform_real_distribution<> sparsity_dist(0.0, 1.0);
 
                 Matrix output(n, m);
+                output.set_matrix_format(MatrixFormat::ColMajor);
                 for (Types::vec_size_t i = 0; i < n; i++) {
                     for (Types::vec_size_t j = 0; j < m; j++) {
                         if (sparsity_dist(gen) < sparsity) {
-                            output(j, i) = 0.0;
+                            output(i, j) = 0.0;
                         } else {
-                            output(j, i) = value_dist(gen);
+                            output(i, j) = value_dist(gen);
                         }
                     }
                 }
-
-                output.set_matrix_format(MatrixFormat::ColMajor);
 
                 return output;
             }

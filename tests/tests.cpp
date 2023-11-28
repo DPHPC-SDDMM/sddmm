@@ -8,14 +8,13 @@
 #include "../src/data_structures/coo/coo.h"
 #include "../src/algos/cpu_sddmm/naive_sddmm.cpp"
 #include "../src/algos/cpu_sddmm/tiled_sddmm.cpp"
-#include "../src/algos/cpu_sddmm/parallel_sddmm_prototypes.cpp"
 #include "../src/algos/cpu_sddmm/parallel_cpu_sddmm.cpp"
 
 UTEST_MAIN();
 
 UTEST(Matrix, TestEquals) {
     auto matrix1 = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
-    auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_col_major(2, 3, {1,2,3,4,5,6});
 
     ASSERT_TRUE(matrix1 == matrix2);
 }
@@ -23,7 +22,7 @@ UTEST(Matrix, TestEquals) {
 UTEST(Matrix, TestDenseMult) {
     {
         auto matrix1 = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
-        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,2,3,4,5,6});
+        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_col_major(3, 2, {1,2,3,4,5,6});
 
         auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2,2, {22, 28, 49, 64});
         auto result = matrix1*matrix2;
@@ -33,7 +32,7 @@ UTEST(Matrix, TestDenseMult) {
     }
     {
         auto matrix1 = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 1, {2});
-        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 1, {1});
+        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_col_major(1, 1, {1});
 
         auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 1, {2});
         auto result = matrix1*matrix2;
@@ -43,7 +42,7 @@ UTEST(Matrix, TestDenseMult) {
     }
     {
         auto matrix1 = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 10, {1,2,3,4,5,6,7,8,9,10});
-        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_row_major(10, 1, {1,2,3,4,5,6,7,8,9,10});
+        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_col_major(10, 1, {1,2,3,4,5,6,7,8,9,10});
 
         auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 1, {385});
         auto result = matrix1*matrix2;
@@ -53,7 +52,7 @@ UTEST(Matrix, TestDenseMult) {
     }
     {
         auto matrix1 = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 1, {1,2,3});
-        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 3, {1,2,3});
+        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_col_major(1, 3, {1,2,3});
 
         auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 3, {1,2,3,2,4,6,3,6,9});
         auto result = matrix1*matrix2;
@@ -356,14 +355,21 @@ UTEST(Matrix, Hadamard) {
 }
 
 UTEST(Matrix, Flip) {
-    auto matrix1 = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
-    auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    {
+        auto matrix1 = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+        auto matrix2 = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
 
-    matrix2.to_dense_col_major();
-    std::vector<SDDMM::Types::expmt_t> newVals = {1,4,2,5,3,6};
-    ASSERT_TRUE(TestHelpers::compare_vectors(matrix2.data, newVals));
-    ASSERT_TRUE(matrix1 == matrix2);
+        matrix2.to_dense_col_major();
+        std::vector<SDDMM::Types::expmt_t> newVals = {1,4,2,5,3,6};
+        ASSERT_TRUE(TestHelpers::compare_vectors(matrix2.data, newVals));
+        ASSERT_TRUE(matrix1 == matrix2);
+    }
+    {
+        auto matrix1 = SDDMM::Types::Matrix::deterministic_gen_col_major(2, 3, {1,2,3,4,5,6});
 
+        std::vector<SDDMM::Types::expmt_t> newVals = {1,4,2,5,3,6};
+        ASSERT_TRUE(TestHelpers::compare_vectors(matrix1.data, newVals));
+    }
 }
 
 UTEST(Matrix, SDDMM_op) {
@@ -374,7 +380,7 @@ UTEST(Matrix, SDDMM_op) {
             9, 10, 11, 12
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 3, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(4, 3, {
             2,  4,  6,
             8, 10, 12,
             14, 16, 18,
@@ -423,7 +429,7 @@ UTEST(Matrix, SDDMM_op) {
             9, 10, 11, 12
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 3, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(4, 3, {
             2,  4,  6,
             8, 10, 12,
             14, 16, 18,
@@ -472,7 +478,7 @@ UTEST(Matrix, SDDMM_op) {
             9, 10, 11, 12
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 3, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(4, 3, {
             2,  4,  6,
             8, 10, 12,
             14, 16, 18,
@@ -521,7 +527,7 @@ UTEST(Matrix, SDDMM_op) {
             9, 10, 11, 12
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 3, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(4, 3, {
             2,  4,  6,
             8, 10, 12,
             14, 16, 18,
@@ -572,7 +578,7 @@ UTEST(Matrix, SDDMM_op) {
             17, 18, 19, 20
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 5, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(4, 5, {
              2,  4,  6,  8, 10,
             12, 14, 16, 18, 20,
             22, 24, 26, 28, 30,
@@ -645,7 +651,7 @@ UTEST(Matrix, SDDMM_parallel) {
             17, 18, 19, 20
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 5, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(4, 5, {
             2,  4,  6,  8, 10,
             12, 14, 16, 18, 20,
             22, 24, 26, 28, 30,
@@ -693,6 +699,7 @@ UTEST(Matrix, SDDMM_parallel) {
         }
     }
     {
+#ifdef SDDMM_PARALLEL_CPU_ZERO_FILTER
         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(5, 4, {
             6,  -1,  0,  0,
             5,   6,  7,  8,
@@ -701,7 +708,7 @@ UTEST(Matrix, SDDMM_parallel) {
             17, 18, 19, 20
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 5, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(4, 5, {
              2,  4,  6,  8, 10,
             12, 14, 16, 18, 20,
             22, 24, 26, 28, 30,
@@ -747,13 +754,14 @@ UTEST(Matrix, SDDMM_parallel) {
             auto result3 = SDDMM::Algo::parallel_sddmm_slow(coo_mat, X, Y, num_threads);
             ASSERT_TRUE(result3 == exp_result);
         }
+#endif
     }
     {
         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 1, {
             1
         });
 
-        auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 1, {
+        auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(1, 1, {
              2
         });
 
@@ -793,7 +801,7 @@ UTEST(Matrix, Generator_to_file){
     for(int i=1; i<100; i*=10)
     {
         auto X = SDDMM::Types::Matrix::generate_row_major(i*5, i*8, 0.0f);
-        auto Y = SDDMM::Types::Matrix::generate_row_major(i*8, i*5, 0.0f);
+        auto Y = SDDMM::Types::Matrix::generate_col_major(i*8, i*5, 0.0f);
         auto mat = SDDMM::Types::Matrix::generate_row_major(i*5, i*5, 0.1f);
         auto coo_mat = mat.to_coo();
         auto exp_result = coo_mat.hadamard(X*Y);
@@ -931,7 +939,7 @@ UTEST(Matrix, SDDMM_tiled_op) {
         9, 10, 11, 12
     });
 
-    auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 3, {
+    auto Y = SDDMM::Types::Matrix::deterministic_gen_col_major(4, 3, {
          2,  4,  6,
          8, 10, 12,
         14, 16, 18,
