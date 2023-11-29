@@ -130,7 +130,8 @@ namespace SDDMM {
 
             static Params preparations(
                 SDDMM::Types::COO& S, 
-                float sparsity, 
+                float sparsity,
+                Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K, 
                 SDDMM::Types::Matrix& A, 
                 SDDMM::Types::Matrix& B
             ) {
@@ -142,9 +143,9 @@ namespace SDDMM {
 //              B.n = M,
 //              A.m = K,
                 auto tiling_params = determine_tiling_params(
-                        A.n,
-                        B.n,
-                        A.m,
+                        N,
+                        M,
+                        K,
                         sparsity
                 );
 
@@ -242,8 +243,8 @@ namespace SDDMM {
                 // GPU and format params
 //                Types::vec_size_t l2_cache_capacity = 6291456;  // 6MB 3080Ti
 //                Types::vec_size_t shared_mem_size = 101376;  // 99KB 3080Ti
-                unsigned int l2_cache_capacity = 2097152;  // 2MB for testing
-                unsigned int shared_mem_size = 49152;  // 48KB for testing
+                unsigned int l2_cache_capacity = 524288; //2097152;  // 2MB for testing
+                unsigned int shared_mem_size = 12288; //49152;  // 48KB for testing
                 double c = 3.; // 3 for COO
 
                 // std::cout << "Parameters:" << std::endl;
@@ -535,10 +536,11 @@ namespace SDDMM {
             }
 
             static Types::COO run_sm_l2(
-                        // MatrixParams& matrix_params,
-                        SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,
-                        Params& params,
-                        Results::ExperimentData* measurements = nullptr
+                // MatrixParams& matrix_params,
+                SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,
+                Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K,
+                Params& params,
+                Results::ExperimentData* measurements = nullptr
             ) {
                 TilingParams& tiling_params = params.tiling_params;
                 SparseParams& sparse_params = params.sparse_params;
@@ -590,8 +592,8 @@ namespace SDDMM {
 //                         A.n = N,
 //                         B.n = M,
 //                         A.m = K,
-                auto A_size = A.n * A.m * sizeof(float);
-                auto B_size = B.n * A.m * sizeof(float);
+                auto A_size = N * K * sizeof(float);
+                auto B_size = M * K * sizeof(float);
 
                 gpuErrchk(cudaMalloc((void**)&A_d, A_size));
                 gpuErrchk(cudaMalloc((void**)&B_d, B_size));
@@ -608,17 +610,17 @@ namespace SDDMM {
                 auto start = std::chrono::high_resolution_clock::now();
 
                 for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
-                    // std::cout << "Tile J id: " << tile_j_id << std::endl << std::endl;
+                    std::cout << "Tile J id: " << tile_j_id << std::endl << std::endl;
 
                     // std::cout << "Calculating the number of threadblocks..." << std::endl;
                     int num_threadblocks = (sparse_params.active_rows_sizes.at(tile_j_id) + tiling_params.Ti - 1) / tiling_params.Ti;
-                    // std::cout << "size: " << num_threadblocks << std::endl;
-                    // std::cout << std::endl;
+                    std::cout << "size: " << num_threadblocks << std::endl;
+                    std::cout << std::endl;
 
                     // iterate over Tk tiles and launch a kernel for each Tk tile
                     for (int tile_k_id = 0; tile_k_id < tiling_params.num_K_tiles; tile_k_id++) {
                         // the innermost loop, streaming is done along dimension i (assuming that i is the smaller dimension, i.e. N < M)
-                        // std::cout << "Tile K id: " << tile_k_id << std::endl;
+                        std::cout << "Tile K id: " << tile_k_id << std::endl;
 
                         // launch num_threadblocks with 512 threads in each
                         run_kernel(
@@ -632,7 +634,8 @@ namespace SDDMM {
                                 // starts
                                 &starts_d[tile_starts_start_ind],
                                 // active rows
-                                &active_rows_d[active_rows_start_ind], sparse_params.active_rows_sizes.at(tile_j_id),
+                                &active_rows_d[active_rows_start_ind], 
+                                sparse_params.active_rows_sizes.at(tile_j_id),
                                 // A & B
                                 A_d, 
                                 B_d,
@@ -641,7 +644,7 @@ namespace SDDMM {
                                 tiling_params.Ti,
                                 tile_k_id,
                                 tiling_params.num_K_tiles,
-                                A.m
+                                K
                         );
                     }
 
@@ -651,8 +654,8 @@ namespace SDDMM {
                     active_rows_start_ind += sparse_params.active_rows_sizes.at(tile_j_id);
                 }
 
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
+                auto err1 = cudaPeekAtLastError();
+                auto err2 = cudaDeviceSynchronize();
 
                 // auto end_time = std::chrono::high_resolution_clock::now();
                 // auto duration = std::chrono::duration_cast<Types::time_measure_unit>(end_time - start_time).count();
