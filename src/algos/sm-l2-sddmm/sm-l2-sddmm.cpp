@@ -82,49 +82,17 @@ namespace SDDMM {
         public:
             SML2SDDMM() = default;
 
-            static Types::time_duration_unit run(SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B, bool check) {
-                // generate matrices
-                auto matrix_params = prepare_matrices(S, sparsity, A, B);
+            // struct MatrixParams {
+            //     const Types::COO S;
+            //     const Types::Matrix A;
+            //     const Types::Matrix B;
 
-                // calculate tile sizes
-                auto tiling_params = determine_tiling_params(
-                        matrix_params.N,
-                        matrix_params.M,
-                        matrix_params.K,
-                        matrix_params.sparsity
-                );
+            //     const Types::vec_size_t N;
+            //     const Types::vec_size_t M;
+            //     const Types::vec_size_t K;
 
-                // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
-                auto sparse_params = prepare_sparse(matrix_params.S, tiling_params.Tj, tiling_params.Ti, tiling_params.num_J_tiles);
-
-                // allocate GPU memory and run the algorithm
-                auto res = run_algo(
-                        matrix_params,
-                        tiling_params,
-                        sparse_params
-                );
-
-                // TODO postprocess (if needed), like cleaning up zeroes from res.values
-
-                if(check){
-                    // check correctness
-                    check_result(matrix_params.S, matrix_params.A, matrix_params.B, res, matrix_params.K, tiling_params.Tj, tiling_params.num_J_tiles);
-                }
-
-                return res.duration_ms;
-            }
-
-            struct MatrixParams {
-                const Types::COO S;
-                const Types::Matrix A;
-                const Types::Matrix B;
-
-                const Types::vec_size_t N;
-                const Types::vec_size_t M;
-                const Types::vec_size_t K;
-
-                const double sparsity;
-            };
+            //     const double sparsity;
+            // };
 
             struct TilingParams {
                 const Types::vec_size_t Ti;
@@ -149,58 +117,123 @@ namespace SDDMM {
                 std::vector<SDDMM::Types::vec_size_t> S_tile_starts;
             };
 
+            struct Params {
+                // MatrixParams matrix_params;
+                TilingParams tiling_params;
+                SparseParams sparse_params;
+            };
+
             struct Result {
                 const std::vector<float> values;
                 Types::time_duration_unit duration_ms;
             };
 
-            static MatrixParams prepare_matrices(SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B) {
-                // dimensions
-                // NOTE: K has to be a multiple of 32
-//                Types::vec_size_t N = 1024;
-//                Types::vec_size_t M = 256;
-//                Types::vec_size_t K = 256;
+            static Params preparations(
+                SDDMM::Types::COO& S, 
+                float sparsity, 
+                SDDMM::Types::Matrix& A, 
+                SDDMM::Types::Matrix& B
+            ) {
+                // generate matrices
+                auto matrix_params = prepare_matrices(S, sparsity, A, B);
 
-                // Types::vec_size_t N = 234234;
-                // Types::vec_size_t M = 2344;
-                // Types::vec_size_t K = 256;
+                // calculate tile sizes
+                auto tiling_params = determine_tiling_params(
+                        matrix_params.N,
+                        matrix_params.M,
+                        matrix_params.K,
+                        matrix_params.sparsity
+                );
 
-                // float sparsity = 0.97;
+                // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
+                auto sparse_params = prepare_sparse(
+                    matrix_params.S, 
+                    tiling_params.Tj, 
+                    tiling_params.Ti, 
+                    tiling_params.num_J_tiles
+                );
 
-                // std::cout << "Matrix sizes:" << std::endl;
-                // std::cout << "N: " << N << ";  M: " << M << ";  K: " << K << ";  Sparsity: " << sparsity << std::endl;
-                // std::cout << std::endl;
-
-                // std::cout << "Creating matrices..." << std::endl;
-
-                // // matrix S
-                // auto S_dense = SDDMM::Types::Matrix::generate_row_major(N, M, sparsity);
-                // SDDMM::Types::COO S = S_dense.to_coo();
-
-                // // matrices A and B
-                // auto A = SDDMM::Types::Matrix::generate_row_major(N, K, sparsity=0.);
-                // auto B = SDDMM::Types::Matrix::generate_row_major(M, K, sparsity=0.);
-
-                // result matrix
-                SDDMM::Types::COO P;
-                P.n = S.n;
-                P.m = S.m;
-
-                std::cout << "S nxm: " << S.n * S.m << ";  S non-zero: " << S.values.size() << std::endl;
-                std::cout << "A nxm: " << A.n * A.m << std::endl;
-                std::cout << "B nxm: " << B.n * B.m << std::endl;
-                std::cout << std::endl;
-
-                return {
-                        S,
-                        A,
-                        B,
-                        A.n,
-                        B.n,
-                        A.m,
-                        sparsity
+                return Params {
+                    .matrix_params=matrix_params,
+                    .tiling_params=tiling_params,
+                    .sparse_params=sparse_params
                 };
             }
+
+            static Types::COO run(
+                Params& params, 
+                SDDMM::Types::COO& S, 
+                float sparsity, 
+                SDDMM::Types::Matrix& A, 
+                SDDMM::Types::Matrix& B,
+                Results::ExperimentData* measurements = nullptr
+            ) {
+                
+
+                // allocate GPU memory and run the algorithm
+                auto res = run_algo(
+                        params.matrix_params,
+                        params.tiling_params,
+                        params.sparse_params
+                );
+
+                // TODO postprocess (if needed), like cleaning up zeroes from res.values
+
+                // if(check){
+                //     // check correctness
+                //     check_result(matrix_params.S, matrix_params.A, matrix_params.B, res, matrix_params.K, tiling_params.Tj, tiling_params.num_J_tiles);
+                // }
+
+                return res;
+            }
+
+//             static MatrixParams prepare_matrices(SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B) {
+//                 // dimensions
+//                 // NOTE: K has to be a multiple of 32
+// //                Types::vec_size_t N = 1024;
+// //                Types::vec_size_t M = 256;
+// //                Types::vec_size_t K = 256;
+
+//                 // Types::vec_size_t N = 234234;
+//                 // Types::vec_size_t M = 2344;
+//                 // Types::vec_size_t K = 256;
+
+//                 // float sparsity = 0.97;
+
+//                 // std::cout << "Matrix sizes:" << std::endl;
+//                 // std::cout << "N: " << N << ";  M: " << M << ";  K: " << K << ";  Sparsity: " << sparsity << std::endl;
+//                 // std::cout << std::endl;
+
+//                 // std::cout << "Creating matrices..." << std::endl;
+
+//                 // // matrix S
+//                 // auto S_dense = SDDMM::Types::Matrix::generate_row_major(N, M, sparsity);
+//                 // SDDMM::Types::COO S = S_dense.to_coo();
+
+//                 // // matrices A and B
+//                 // auto A = SDDMM::Types::Matrix::generate_row_major(N, K, sparsity=0.);
+//                 // auto B = SDDMM::Types::Matrix::generate_row_major(M, K, sparsity=0.);
+
+//                 // result matrix
+//                 SDDMM::Types::COO P;
+//                 P.n = S.n;
+//                 P.m = S.m;
+
+//                 // std::cout << "S nxm: " << S.n * S.m << ";  S non-zero: " << S.values.size() << std::endl;
+//                 // std::cout << "A nxm: " << A.n * A.m << std::endl;
+//                 // std::cout << "B nxm: " << B.n * B.m << std::endl;
+//                 // std::cout << std::endl;
+
+//                 return {
+//                         S,
+//                         A,
+//                         B,
+//                         A.n,
+//                         B.n,
+//                         A.m,
+//                         sparsity
+//                 };
+//             }
 
             static TilingParams determine_tiling_params(Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K, double sparsity) {
                 // GPU and format params
@@ -210,17 +243,17 @@ namespace SDDMM {
                 unsigned int shared_mem_size = 49152;  // 48KB for testing
                 double c = 3.; // 3 for COO
 
-                std::cout << "Parameters:" << std::endl;
-                std::cout << "L2: " << l2_cache_capacity << "B;  SM " << shared_mem_size << "B;  c: " << c << std::endl;
-                std::cout << std::endl;
+                // std::cout << "Parameters:" << std::endl;
+                // std::cout << "L2: " << l2_cache_capacity << "B;  SM " << shared_mem_size << "B;  c: " << c << std::endl;
+                // std::cout << std::endl;
 
                 auto Tj = std::min(compute_tile_size_using_model(l2_cache_capacity, c, 1 - sparsity), M);
 //                auto Tj = M / 4;
                 auto num_J_tiles = (M + Tj - 1) / Tj;
 //                std::cout << "Dimension Tj (from model):" << std::endl;
-                std::cout << "Dimension Tj:" << std::endl;
-                std::cout << "size: " << Tj << ";  count: " << num_J_tiles << std::endl;
-                std::cout << std::endl;
+                // std::cout << "Dimension Tj:" << std::endl;
+                // std::cout << "size: " << Tj << ";  count: " << num_J_tiles << std::endl;
+                // std::cout << std::endl;
 
 //                std::cout << "Starting autotuning..." << std::endl;
 //                Types::vec_size_t Tk = compute_k_slice_using_auto_tuning();
@@ -228,11 +261,11 @@ namespace SDDMM {
                 Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
                 Types::vec_size_t Ti = std::min(static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
 //                std::cout << "Autotuning completed!" << std::endl;
-                std::cout << "Dimension Tk:" << std::endl;
-                std::cout << "size: " << Tk << ";  count: " << num_K_tiles << std::endl;
-                std::cout << "Dimension Ti:" << std::endl;
-                std::cout << "size: " << Ti << std::endl;
-                std::cout << std::endl;
+                // std::cout << "Dimension Tk:" << std::endl;
+                // std::cout << "size: " << Tk << ";  count: " << num_K_tiles << std::endl;
+                // std::cout << "Dimension Ti:" << std::endl;
+                // std::cout << "size: " << Ti << std::endl;
+                // std::cout << std::endl;
 
                 return {
                     Ti,
@@ -384,8 +417,16 @@ namespace SDDMM {
                 };
             }
 
-            static void check_result(const Types::COO& S, const Types::Matrix& A, const Types::Matrix& B, const Result& res, Types::vec_size_t K, Types::vec_size_t Tj, Types::vec_size_t num_J_tiles) {
-                std::cout << "Calculating the correct result..." << std::endl << std::endl;
+            static void check_result(
+                const Types::COO& S, 
+                const Types::Matrix& A, 
+                const Types::Matrix& B, 
+                const Types::COO& res, 
+                Types::vec_size_t K, 
+                Types::vec_size_t Tj, 
+                Types::vec_size_t num_J_tiles
+            ) {
+                // std::cout << "Calculating the correct result..." << std::endl << std::endl;
 
                 auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -439,9 +480,9 @@ namespace SDDMM {
 
                 auto end_time = std::chrono::high_resolution_clock::now();
                 auto duration_ms = (end_time - start_time) / std::chrono::milliseconds(1);
-                std::cout << "Duration (CPU, single-threaded): " << duration_ms << "ms" << std::endl << std::endl;
+                // std::cout << "Duration (CPU, single-threaded): " << duration_ms << "ms" << std::endl << std::endl;
 
-                std::cout << "Speedup: " << duration_ms / res.duration_ms << "x" << std::endl << std::endl;
+                // std::cout << "Speedup: " << duration_ms / res.duration_ms << "x" << std::endl << std::endl;
 
                 // put it in the slice-by-slice form to be able to compare with P
                 for (int j = 0; j < num_J_tiles; j++) {
@@ -468,7 +509,7 @@ namespace SDDMM {
                     // }
                 }
 
-                std::cout << "Difference check:" << std::endl;
+                // std::cout << "Difference check:" << std::endl;
                 float diff = 0.;
                 for (int i = 0; i < res.values.size(); i++) {
                     diff += abs(R_values.at(i) - res.values.at(i));
@@ -478,15 +519,16 @@ namespace SDDMM {
             }
 
             static Types::COO run_algo(
-                        MatrixParams& matrix_params,
+                        // MatrixParams& matrix_params,
+                        SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,
                         TilingParams& tiling_params,
                         SparseParams& sparse_params,
                         Results::ExperimentData* measurements = nullptr
-                    ) {
+            ) {
                 auto S_size = matrix_params.S.values.size();
 
                 // transfer data to GPU
-                std::cout << "Allocating memory & transferring data..." << std::endl;
+                // std::cout << "Allocating memory & transferring data..." << std::endl;
 
                 // sparse matrix S
                 SDDMM::Types::vec_size_t* rows_d;
@@ -537,7 +579,7 @@ namespace SDDMM {
                 gpuErrchk(cudaMemcpy(A_d, matrix_params.A.data.data(), A_size, cudaMemcpyHostToDevice));
                 gpuErrchk(cudaMemcpy(B_d, matrix_params.B.data.data(), B_size, cudaMemcpyHostToDevice));
 
-                std::cout << std::endl << "Starting processing..." << std::endl << std::endl;
+                // std::cout << std::endl << "Starting processing..." << std::endl << std::endl;
 
                 Types::vec_size_t slice_start_ind = 0;
                 Types::vec_size_t tile_starts_start_ind = 0;
@@ -546,17 +588,17 @@ namespace SDDMM {
                 auto start = std::chrono::high_resolution_clock::now();
 
                 for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
-                    std::cout << "Tile J id: " << tile_j_id << std::endl << std::endl;
+                    // std::cout << "Tile J id: " << tile_j_id << std::endl << std::endl;
 
-                    std::cout << "Calculating the number of threadblocks..." << std::endl;
+                    // std::cout << "Calculating the number of threadblocks..." << std::endl;
                     int num_threadblocks = (sparse_params.active_rows_sizes.at(tile_j_id) + tiling_params.Ti - 1) / tiling_params.Ti;
-                    std::cout << "size: " << num_threadblocks << std::endl;
-                    std::cout << std::endl;
+                    // std::cout << "size: " << num_threadblocks << std::endl;
+                    // std::cout << std::endl;
 
                     // iterate over Tk tiles and launch a kernel for each Tk tile
                     for (int tile_k_id = 0; tile_k_id < tiling_params.num_K_tiles; tile_k_id++) {
                         // the innermost loop, streaming is done along dimension i (assuming that i is the smaller dimension, i.e. N < M)
-                        std::cout << "Tile K id: " << tile_k_id << std::endl;
+                        // std::cout << "Tile K id: " << tile_k_id << std::endl;
 
                         // launch num_threadblocks with 512 threads in each
                         run_kernel(

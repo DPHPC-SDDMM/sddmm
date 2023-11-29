@@ -46,15 +46,20 @@ namespace SDDMM {
                     
                     Types::COO s = S.to_coo();
 
-                    auto start = std::chrono::high_resolution_clock::now();
+                    // auto start = std::chrono::high_resolution_clock::now();
 
-                    total += Algo::naive_sddmm(s, A, B).values[0];
-                    
-                    auto end = std::chrono::high_resolution_clock::now();
-                    if(n > 0){
-                        // discard warmup
-                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    if(n>0){
+                        total += Algo::naive_sddmm(s, A, B, &data).values[0];
                     }
+                    else {
+                        total += Algo::naive_sddmm(s, A, B).values[0];
+                    }
+                    
+                    // auto end = std::chrono::high_resolution_clock::now();
+                    // if(n > 0){
+                    //     // discard warmup
+                    //     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    // }
                 }
 
                 return data;
@@ -73,15 +78,20 @@ namespace SDDMM {
                     
                     Types::COO s = S.to_coo();
 
-                    auto start = std::chrono::high_resolution_clock::now();
+                    // auto start = std::chrono::high_resolution_clock::now();
 
-                    total += Algo::parallel_sddmm(s, A, B, info.n_cpu_threads, &data).values[0];
-                    
-                    auto end = std::chrono::high_resolution_clock::now();
-                    if(n > 0){
-                        // discard warmup
-                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    if(n>0){
+                        total += Algo::parallel_sddmm(s, A, B, info.n_cpu_threads, &data).values[0];
                     }
+                    else{
+                        total += Algo::parallel_sddmm(s, A, B, info.n_cpu_threads).values[0];
+                    }
+                    
+                    // auto end = std::chrono::high_resolution_clock::now();
+                    // if(n > 0){
+                    //     // discard warmup
+                    //     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    // }
                 }
 
                 return data;
@@ -100,15 +110,20 @@ namespace SDDMM {
                     
                     Types::COO s = S.to_coo();
 
-                    auto start = std::chrono::high_resolution_clock::now();
+                    // auto start = std::chrono::high_resolution_clock::now();
 
-                    total += Algo::cuda_tiled_sddmm(s, A, B).values[0];
-                    
-                    auto end = std::chrono::high_resolution_clock::now();
-                    if(n > 0){
-                        // discard warmup
-                        data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    if(n>0){
+                        total += Algo::cuda_tiled_sddmm(s, A, B, &data).values[0];
                     }
+                    else {
+                        total += Algo::cuda_tiled_sddmm(s, A, B).values[0];
+                    }
+                    
+                    // auto end = std::chrono::high_resolution_clock::now();
+                    // if(n > 0){
+                    //     // discard warmup
+                    //     data.durations.push_back(std::chrono::duration_cast<Types::time_measure_unit>(end - start).count());
+                    // }
                 }
 
                 return data;
