@@ -123,10 +123,10 @@ namespace SDDMM {
                 SparseParams sparse_params;
             };
 
-            struct Result {
-                const std::vector<float> values;
-                Types::time_duration_unit duration_ms;
-            };
+            // struct Result {
+            //     const std::vector<float> values;
+            //     Types::time_duration_unit duration_ms;
+            // };
 
             static Params preparations(
                 SDDMM::Types::COO& S, 
@@ -135,47 +135,50 @@ namespace SDDMM {
                 SDDMM::Types::Matrix& B
             ) {
                 // generate matrices
-                auto matrix_params = prepare_matrices(S, sparsity, A, B);
+                // auto matrix_params = prepare_matrices(S, sparsity, A, B);
 
                 // calculate tile sizes
+//              A.n = N,
+//              B.n = M,
+//              A.m = K,
                 auto tiling_params = determine_tiling_params(
-                        matrix_params.N,
-                        matrix_params.M,
-                        matrix_params.K,
-                        matrix_params.sparsity
+                        A.n,
+                        B.n,
+                        A.m,
+                        sparsity
                 );
 
                 // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
                 auto sparse_params = prepare_sparse(
-                    matrix_params.S, 
+                    S, 
                     tiling_params.Tj, 
                     tiling_params.Ti, 
                     tiling_params.num_J_tiles
                 );
 
                 return Params {
-                    .matrix_params=matrix_params,
+                    // .matrix_params=matrix_params,
                     .tiling_params=tiling_params,
                     .sparse_params=sparse_params
                 };
             }
 
-            static Types::COO run(
-                Params& params, 
-                SDDMM::Types::COO& S, 
-                float sparsity, 
-                SDDMM::Types::Matrix& A, 
-                SDDMM::Types::Matrix& B,
-                Results::ExperimentData* measurements = nullptr
-            ) {
+            // static Types::COO run(
+            //     Params& params, 
+            //     SDDMM::Types::COO& S, 
+            //     float sparsity, 
+            //     SDDMM::Types::Matrix& A, 
+            //     SDDMM::Types::Matrix& B,
+            //     Results::ExperimentData* measurements = nullptr
+            // ) {
                 
 
                 // allocate GPU memory and run the algorithm
-                auto res = run_algo(
-                        params.matrix_params,
-                        params.tiling_params,
-                        params.sparse_params
-                );
+                // auto res = run_algo(
+                //         params.matrix_params,
+                //         params.tiling_params,
+                //         params.sparse_params
+                // );
 
                 // TODO postprocess (if needed), like cleaning up zeroes from res.values
 
@@ -184,8 +187,8 @@ namespace SDDMM {
                 //     check_result(matrix_params.S, matrix_params.A, matrix_params.B, res, matrix_params.K, tiling_params.Tj, tiling_params.num_J_tiles);
                 // }
 
-                return res;
-            }
+            //     return res;
+            // }
 
 //             static MatrixParams prepare_matrices(SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B) {
 //                 // dimensions
@@ -417,16 +420,26 @@ namespace SDDMM {
                 };
             }
 
-            static void check_result(
+            static bool check_result(
                 const Types::COO& S, 
                 const Types::Matrix& A, 
                 const Types::Matrix& B, 
                 const Types::COO& res, 
-                Types::vec_size_t K, 
-                Types::vec_size_t Tj, 
-                Types::vec_size_t num_J_tiles
+                const Params& params
             ) {
                 // std::cout << "Calculating the correct result..." << std::endl << std::endl;
+                // check_result(
+                //     matrix_params.S, 
+                //     matrix_params.A, 
+                //     matrix_params.B, 
+                //     res, 
+                //     matrix_params.K, 
+                //     tiling_params.Tj, 
+                //     tiling_params.num_J_tiles
+                // );
+                Types::vec_size_t K = A.m; 
+                Types::vec_size_t Tj = params.tiling_params.Tj; 
+                Types::vec_size_t num_J_tiles = params.tiling_params.num_J_tiles;
 
                 auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -516,16 +529,19 @@ namespace SDDMM {
                     // std::cout << P_values.at(i) << " [" << R_values.at(i) << "]" << std::endl;
                 }
                 std::cout << diff << std::endl << std::endl;
+                return true;
             }
 
-            static Types::COO run_algo(
+            static Types::COO run_sm_l2(
                         // MatrixParams& matrix_params,
                         SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,
-                        TilingParams& tiling_params,
-                        SparseParams& sparse_params,
+                        Params& params,
                         Results::ExperimentData* measurements = nullptr
             ) {
-                auto S_size = matrix_params.S.values.size();
+                TilingParams& tiling_params = params.tiling_params;
+                SparseParams& sparse_params = params.sparse_params;
+
+                auto S_size = S.values.size();
 
                 // transfer data to GPU
                 // std::cout << "Allocating memory & transferring data..." << std::endl;
@@ -569,15 +585,17 @@ namespace SDDMM {
                 // A & B
                 float* A_d;
                 float* B_d;
-
-                auto A_size = matrix_params.N * matrix_params.K * sizeof(float);
-                auto B_size = matrix_params.M * matrix_params.K * sizeof(float);
+//                         A.n = N,
+//                         B.n = M,
+//                         A.m = K,
+                auto A_size = A.n * A.m * sizeof(float);
+                auto B_size = B.n * A.m * sizeof(float);
 
                 gpuErrchk(cudaMalloc((void**)&A_d, A_size));
                 gpuErrchk(cudaMalloc((void**)&B_d, B_size));
 
-                gpuErrchk(cudaMemcpy(A_d, matrix_params.A.data.data(), A_size, cudaMemcpyHostToDevice));
-                gpuErrchk(cudaMemcpy(B_d, matrix_params.B.data.data(), B_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(A_d, A.data.data(), A_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(B_d, B.data.data(), B_size, cudaMemcpyHostToDevice));
 
                 // std::cout << std::endl << "Starting processing..." << std::endl << std::endl;
 
@@ -612,14 +630,16 @@ namespace SDDMM {
                                 // starts
                                 &starts_d[tile_starts_start_ind],
                                 // active rows
-                               &active_rows_d[active_rows_start_ind], sparse_params.active_rows_sizes.at(tile_j_id),
+                                &active_rows_d[active_rows_start_ind], sparse_params.active_rows_sizes.at(tile_j_id),
                                 // A & B
-                                A_d, B_d,
+                                A_d, 
+                                B_d,
                                 // tiles
-                                tiling_params.Tk, tiling_params.Ti,
+                                tiling_params.Tk, 
+                                tiling_params.Ti,
                                 tile_k_id,
                                 tiling_params.num_K_tiles,
-                                matrix_params.K
+                                A.m
                         );
                     }
 
@@ -668,15 +688,15 @@ namespace SDDMM {
 
 
                 Types::COO result;
-                result.n = matrix_params.S.n;
-                result.m = matrix_params.S.m;
+                result.n = S.n;
+                result.m = S.m;
                 result.cols.resize(P_values.size());
                 result.rows.resize(P_values.size());
                 result.values.resize(P_values.size());
 
                 std::copy(P_values.begin(), P_values.end(), result.values.begin());
-                std::copy(matrix_params.S.cols.begin(), matrix_params.S.cols.end(), result.cols.begin());
-                std::copy(matrix_params.S.rows.begin(), matrix_params.S.rows.end(), result.rows.begin());
+                std::copy(S.cols.begin(), S.cols.end(), result.cols.begin());
+                std::copy(S.rows.begin(), S.rows.end(), result.rows.begin());
                 // return {
                 //     P_values,
                 //     duration_ms
