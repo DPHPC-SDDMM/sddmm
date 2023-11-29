@@ -15,7 +15,13 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 {
     if (code != cudaSuccess)
     {
-        fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+        fprintf(stdout, "==================================================================\n");
+        fprintf(stdout, "==================================================================\n");
+        fprintf(stdout, "==================================================================\n");
+        fprintf(stdout,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+        fprintf(stdout, "==================================================================\n");
+        fprintf(stdout, "==================================================================\n");
+        fprintf(stdout, "==================================================================\n");
         if (abort) exit(code);
     }
 }
@@ -654,8 +660,8 @@ namespace SDDMM {
                     active_rows_start_ind += sparse_params.active_rows_sizes.at(tile_j_id);
                 }
 
-                auto err1 = cudaPeekAtLastError();
-                auto err2 = cudaDeviceSynchronize();
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
 
                 // auto end_time = std::chrono::high_resolution_clock::now();
                 // auto duration = std::chrono::duration_cast<Types::time_measure_unit>(end_time - start_time).count();
