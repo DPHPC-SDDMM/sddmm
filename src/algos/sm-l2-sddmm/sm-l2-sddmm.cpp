@@ -285,6 +285,8 @@ namespace SDDMM {
                 std::vector<SDDMM::Types::vec_size_t> cols;
                 std::vector<float> values;
 
+                auto s = S.values.size();
+
                 std::vector<SDDMM::Types::vec_size_t> slice_sizes;
 
                 std::vector<SDDMM::Types::vec_size_t> active_rows;

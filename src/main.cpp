@@ -5,7 +5,7 @@
 #include "experiments/unrolling_benchmark_2.cpp"
 #include "experiments/benchmark_sddmm_parallel_cpu.cpp"
 #include "experiments/benchmark_gpu_cache.cpp"
-#include "experiments/comparison_benchmarks.cpp"
+// #include "experiments/comparison_benchmarks.cpp"
 
 
 /**
@@ -156,35 +156,35 @@ int main(int argc, char** argv){
     );
 #endif
 
-#if defined(COMPARISON_BENCHMARK) || defined(COMPARISON_BENCHMARK_SPARSITY)
-    SDDMM::Results::ExperimentInfo info_sparsity(
-        "Comparison Benchmark of Algorithms based on Sparsity",
-        1000,   // sparse_num_row
-        1000,   // sparse_num_col
-        1000,   // dense_num_inner
+// #if defined(COMPARISON_BENCHMARK) || defined(COMPARISON_BENCHMARK_SPARSITY)
+//     SDDMM::Results::ExperimentInfo info_sparsity(
+//         "Comparison Benchmark of Algorithms based on Sparsity",
+//         1000,   // sparse_num_row
+//         1000,   // sparse_num_col
+//         1000,   // dense_num_inner
 
-        0.9,   // sparsity
+//         0.9,   // sparsity
 
-        10, // n_experiment_iterations
-        17 // n_cpu_threads
-    );
-    SDDMM::Experiments::sparsity_benchmark(info_sparsity);
-#endif
+//         10, // n_experiment_iterations
+//         17 // n_cpu_threads
+//     );
+//     SDDMM::Experiments::sparsity_benchmark(info_sparsity);
+// #endif
 
-#if defined(COMPARISON_BENCHMARK) || defined(COMPARISON_BENCHMARK_SIZE)
-    SDDMM::Results::ExperimentInfo info_size(
-        "Comparison Benchmark of Algorithms based on Size",
-        1000,   // sparse_num_row
-        1000,   // sparse_num_col
-        1000,   // dense_num_inner
+// #if defined(COMPARISON_BENCHMARK) || defined(COMPARISON_BENCHMARK_SIZE)
+//     SDDMM::Results::ExperimentInfo info_size(
+//         "Comparison Benchmark of Algorithms based on Size",
+//         1000,   // sparse_num_row
+//         1000,   // sparse_num_col
+//         1000,   // dense_num_inner
 
-        0.1,   // sparsity
+//         0.1,   // sparsity
 
-        10, // n_experiment_iterations
-        17 // n_cpu_threads
-    );
-    SDDMM::Experiments::size_benchmark(info_size);
-#endif
+//         10, // n_experiment_iterations
+//         17 // n_cpu_threads
+//     );
+//     SDDMM::Experiments::size_benchmark(info_size);
+// #endif
 
 #ifdef MATRIX_MARKET_FILE_READ
 

@@ -185,11 +185,17 @@ namespace SDDMM{
                     Types::vec_size_t col = cols[t];
                     Types::vec_size_t row = rows[t];
                     Types::expmt_t new_val = values[t] * other.at(row, col);
+#ifdef SDDMM_PARALLEL_CPU_ZERO_FILTER
                     if(new_val != 0){
                         res.cols.push_back(col);
                         res.rows.push_back(row);
                         res.values.push_back(new_val);
                     }
+#else
+                    res.cols.push_back(col);
+                    res.rows.push_back(row);
+                    res.values.push_back(new_val);
+#endif
                 }
 
                 return res;
