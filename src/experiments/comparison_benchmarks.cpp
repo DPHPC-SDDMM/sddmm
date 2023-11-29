@@ -129,7 +129,7 @@ namespace SDDMM {
 
                     auto start = std::chrono::high_resolution_clock::now();
 
-                    total += Algo::SML2SDDMM::run(s, sparsity, A, B, false);
+                    total += Algo::SML2SDDMM::run(s, sparsity, A, B, true);
                     
                     auto end = std::chrono::high_resolution_clock::now();
                     if(n > 0){
@@ -185,11 +185,11 @@ namespace SDDMM {
                 Types::Matrix A = Types::Matrix::generate(info.sparse_num_row, info.dense_num_inner, 0);
                 Types::Matrix B = Types::Matrix::generate(info.dense_num_inner, info.sparse_num_col, 0);
                 std::cout << "Finished matrix generation for sparsity: " << sparsity << std::endl;
-                results.push_back(ComparisonExperiments::vary_naive("sparsity", 1, 3, info, 100 * sparsity, S, A, B, total_1));
-                results.push_back(ComparisonExperiments::vary_parallel("sparsity", 2, 3, info, 100 * sparsity, S, A, B, total_2));
-                results.push_back(ComparisonExperiments::vary_cuda("sparsity", 3, 3, info, 100 * sparsity, S, A, B, total_3));
+                // results.push_back(ComparisonExperiments::vary_naive("sparsity", 1, 3, info, 100 * sparsity, S, A, B, total_1));
+                // results.push_back(ComparisonExperiments::vary_parallel("sparsity", 2, 3, info, 100 * sparsity, S, A, B, total_2));
+                // results.push_back(ComparisonExperiments::vary_cuda("sparsity", 3, 3, info, 100 * sparsity, S, A, B, total_3));
                 results.push_back(ComparisonExperiments::vary_sl2("sparsity", 3, 3, info, 100 * sparsity, S, A, B, total_4, sparsity));
-                results.push_back(ComparisonExperiments::vary_sl2_2("sparsity", 3, 3, info, 100 * sparsity, S, A, B, total_5, sparsity));
+                // results.push_back(ComparisonExperiments::vary_sl2_2("sparsity", 3, 3, info, 100 * sparsity, S, A, B, total_5, sparsity));
             }
 
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;

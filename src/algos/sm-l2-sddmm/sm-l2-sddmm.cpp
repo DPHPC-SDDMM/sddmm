@@ -387,6 +387,8 @@ namespace SDDMM {
             static void check_result(const Types::COO& S, const Types::Matrix& A, const Types::Matrix& B, const Result& res, Types::vec_size_t K, Types::vec_size_t Tj, Types::vec_size_t num_J_tiles) {
                 std::cout << "Calculating the correct result..." << std::endl << std::endl;
 
+                auto s = S.values.size();
+
                 auto start_time = std::chrono::high_resolution_clock::now();
 
 //                // compare with the correct (rearranged) result

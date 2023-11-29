@@ -160,13 +160,13 @@ int main(int argc, char** argv){
 #if defined(COMPARISON_BENCHMARK) || defined(COMPARISON_BENCHMARK_SPARSITY)
     SDDMM::Results::ExperimentInfo info_sparsity(
         "Comparison Benchmark of Algorithms based on Sparsity",
-        1000,   // sparse_num_row
-        1000,   // sparse_num_col
-        1000,   // dense_num_inner
+        128,   // sparse_num_row
+        256,   // sparse_num_col
+        32,   // dense_num_inner
 
         0.9,   // sparsity
 
-        10, // n_experiment_iterations
+        1, // n_experiment_iterations
         17 // n_cpu_threads
     );
     SDDMM::Experiments::sparsity_benchmark(info_sparsity);

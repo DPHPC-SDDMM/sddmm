@@ -80,8 +80,8 @@ add_subdirectory(src/matrix_file_reading)
 # add_compile_definitions(MATRIX_MARKET_FILE_READ)
 
 # add_compile_definitions(COMPARISON_BENCHMARK)
-# add_compile_definitions(COMPARISON_BENCHMARK_SPARSITY)
-add_compile_definitions(COMPARISON_BENCHMARK_SIZE)
+add_compile_definitions(COMPARISON_BENCHMARK_SPARSITY)
+# add_compile_definitions(COMPARISON_BENCHMARK_SIZE)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main OpenMP::OpenMP_CXX)
