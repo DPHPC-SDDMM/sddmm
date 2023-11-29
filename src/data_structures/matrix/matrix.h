@@ -40,6 +40,9 @@ namespace SDDMM {
 
         public:
 
+            /**
+             * Just flip the format identifier without changing the data
+            */
             void set_matrix_format(MatrixFormat format){
                 _format = format;
             }
@@ -254,6 +257,56 @@ namespace SDDMM {
                 if(_format == MatrixFormat::ColMajor) return;
                 flip_matrix_format();
                 _format = MatrixFormat::ColMajor;
+            }
+
+            /**
+             * Create new matrix in row major order from a col major order matrix
+            */
+            Matrix get_dense_row_major() {
+                assert(is_col_major() && "Attempted to convert row major matrix to row major");
+
+                return get_major_version(*this, MatrixFormat::RowMajor);
+            }
+
+            /**
+             * Create new matrix in col major order from a row major order matrix
+            */
+            Matrix get_dense_col_major() {
+                assert(is_row_major() && "Attempted to convert col major matrix to col major");
+
+                return get_major_version(*this, MatrixFormat::ColMajor);
+            }
+
+            static Matrix get_major_version(Matrix& matrix, MatrixFormat to_format) {
+                Matrix res(matrix.n, matrix.m);
+                res.data.resize(matrix.data.size());
+                res.set_matrix_format(to_format);
+
+                auto m = matrix.m;
+                auto n = matrix.n;
+                for (Types::vec_size_t i = 0; i < n; i++) {
+                    for (Types::vec_size_t j = 0; j < m; j++) {
+                        res(i,j) = matrix.at(i,j);
+                    }
+                }
+
+                return res;
+            }
+
+            Matrix get_transposed() {
+                Matrix res(this->m, this->n);
+                res.data.resize(this->data.size());
+                res.set_matrix_format(this->format());
+
+                auto m = this->m;
+                auto n = this->n;
+                for (Types::vec_size_t i = 0; i < n; i++) {
+                    for (Types::vec_size_t j = 0; j < m; j++) {
+                        res(j,i) = this->at(i,j);
+                    }
+                }
+
+                return res;
             }
         };
     }

@@ -253,17 +253,17 @@ namespace SDDMM {
                 unsigned int shared_mem_size = 12288; //49152;  // 48KB for testing
                 double c = 3.; // 3 for COO
 
-                // std::cout << "Parameters:" << std::endl;
-                // std::cout << "L2: " << l2_cache_capacity << "B;  SM " << shared_mem_size << "B;  c: " << c << std::endl;
-                // std::cout << std::endl;
+                std::cout << "Parameters:" << std::endl;
+                std::cout << "L2: " << l2_cache_capacity << "B;  SM " << shared_mem_size << "B;  c: " << c << std::endl;
+                std::cout << std::endl;
 
                 auto Tj = std::min(compute_tile_size_using_model(l2_cache_capacity, c, 1 - sparsity), M);
 //                auto Tj = M / 4;
                 auto num_J_tiles = (M + Tj - 1) / Tj;
 //                std::cout << "Dimension Tj (from model):" << std::endl;
-                // std::cout << "Dimension Tj:" << std::endl;
-                // std::cout << "size: " << Tj << ";  count: " << num_J_tiles << std::endl;
-                // std::cout << std::endl;
+                std::cout << "Dimension Tj:" << std::endl;
+                std::cout << "size: " << Tj << ";  count: " << num_J_tiles << std::endl;
+                std::cout << std::endl;
 
 //                std::cout << "Starting autotuning..." << std::endl;
 //                Types::vec_size_t Tk = compute_k_slice_using_auto_tuning();
@@ -271,11 +271,11 @@ namespace SDDMM {
                 Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
                 Types::vec_size_t Ti = std::min(static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
 //                std::cout << "Autotuning completed!" << std::endl;
-                // std::cout << "Dimension Tk:" << std::endl;
-                // std::cout << "size: " << Tk << ";  count: " << num_K_tiles << std::endl;
-                // std::cout << "Dimension Ti:" << std::endl;
-                // std::cout << "size: " << Ti << std::endl;
-                // std::cout << std::endl;
+                std::cout << "Dimension Tk:" << std::endl;
+                std::cout << "size: " << Tk << ";  count: " << num_K_tiles << std::endl;
+                std::cout << "Dimension Ti:" << std::endl;
+                std::cout << "size: " << Ti << std::endl;
+                std::cout << std::endl;
 
                 return {
                     Ti,
@@ -436,7 +436,7 @@ namespace SDDMM {
                 const Types::COO& res, 
                 const Params& params
             ) {
-                // std::cout << "Calculating the correct result..." << std::endl << std::endl;
+                std::cout << "Calculating the correct result..." << std::endl << std::endl;
                 // check_result(
                 //     matrix_params.S, 
                 //     matrix_params.A, 
@@ -502,7 +502,7 @@ namespace SDDMM {
 
                 auto end_time = std::chrono::high_resolution_clock::now();
                 auto duration_ms = (end_time - start_time) / std::chrono::milliseconds(1);
-                // std::cout << "Duration (CPU, single-threaded): " << duration_ms << "ms" << std::endl << std::endl;
+                std::cout << "Duration (CPU, single-threaded): " << duration_ms << "ms" << std::endl << std::endl;
 
                 // std::cout << "Speedup: " << duration_ms / res.duration_ms << "x" << std::endl << std::endl;
 
@@ -554,7 +554,7 @@ namespace SDDMM {
                 auto S_size = S.values.size();
 
                 // transfer data to GPU
-                // std::cout << "Allocating memory & transferring data..." << std::endl;
+                std::cout << "Allocating memory & transferring data..." << std::endl;
 
                 // sparse matrix S
                 SDDMM::Types::vec_size_t* rows_d;
@@ -669,13 +669,13 @@ namespace SDDMM {
                 auto end = std::chrono::high_resolution_clock::now();
                 // auto end = omp_get_wtime();
 
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
                 if(measurements != nullptr){
-                    Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
                     measurements->durations.push_back(duration);
                 }
 
-                // std::cout << std::endl << "Done processing!" << std::endl << std::endl;
-                // std::cout << "Duration (GPU, without preprocessing): " << duration_ms << "ms" << std::endl << std::endl;
+                std::cout << std::endl << "Done processing!" << std::endl << std::endl;
+                std::cout << "Duration (GPU, without preprocessing): " << duration << "ms" << std::endl << std::endl;
 
                 // read the result from device
                 std::vector<float> P_values = std::vector<float>(S_size);

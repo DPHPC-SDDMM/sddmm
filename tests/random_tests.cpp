@@ -16,6 +16,71 @@
 
 UTEST_MAIN();
 
+UTEST(Random, Row_To_Col_Major) {
+    // generate data
+    using namespace SDDMM;
+
+    auto X_rm = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    auto X_cm = SDDMM::Types::Matrix::deterministic_gen_col_major(2, 3, {1,2,3,4,5,6});
+
+    auto X_cm_to_rm = X_cm.get_dense_row_major();
+    auto X_rm_to_cm = X_rm.get_dense_col_major();
+
+    ASSERT_TRUE(TestHelpers::compare_vectors<SDDMM::Types::expmt_t>(X_rm.data, {1,2,3,4,5,6}));
+    ASSERT_TRUE(TestHelpers::compare_vectors<SDDMM::Types::expmt_t>(X_cm_to_rm.data, {1,2,3,4,5,6}));
+    ASSERT_TRUE(TestHelpers::compare_vectors<SDDMM::Types::expmt_t>(X_cm.data, {1,4,2,5,3,6}));
+    ASSERT_TRUE(TestHelpers::compare_vectors<SDDMM::Types::expmt_t>(X_rm_to_cm.data, {1,4,2,5,3,6}));
+    
+    ASSERT_TRUE(X_rm == X_cm);
+    ASSERT_TRUE(X_rm == X_rm_to_cm);
+    ASSERT_TRUE(X_cm == X_cm_to_rm);
+    ASSERT_TRUE(X_rm_to_cm == X_cm_to_rm);
+
+    ASSERT_TRUE(X_rm.n == 2);
+    ASSERT_TRUE(X_rm.m == 3);
+    ASSERT_TRUE(X_rm_to_cm.n == 2);
+    ASSERT_TRUE(X_rm_to_cm.m == 3);
+
+    ASSERT_TRUE(X_cm.n == 2);
+    ASSERT_TRUE(X_cm.m == 3);
+    ASSERT_TRUE(X_cm_to_rm.n == 2);
+    ASSERT_TRUE(X_cm_to_rm.m == 3);
+}
+
+UTEST(Random, Transposed) {
+    // generate data
+    using namespace SDDMM;
+
+    auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,6});
+    auto XT = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 2, {1,4,2,5,3,6});
+
+    auto X_T = X.get_transposed();
+    auto XTT = XT.get_transposed();
+
+    ASSERT_TRUE(TestHelpers::compare_vectors<SDDMM::Types::expmt_t>(X.data, {1,2,3,4,5,6}));
+    ASSERT_TRUE(TestHelpers::compare_vectors<SDDMM::Types::expmt_t>(XTT.data, {1,2,3,4,5,6}));
+    ASSERT_TRUE(TestHelpers::compare_vectors<SDDMM::Types::expmt_t>(XT.data, {1,4,2,5,3,6}));
+    ASSERT_TRUE(TestHelpers::compare_vectors<SDDMM::Types::expmt_t>(X_T.data, {1,4,2,5,3,6}));
+    
+    ASSERT_TRUE(X == XTT);
+    ASSERT_TRUE(X_T == XT);
+
+    ASSERT_TRUE(X.n == 2);
+    ASSERT_TRUE(X.m == 3);
+    ASSERT_TRUE(XTT.n == 2);
+    ASSERT_TRUE(XTT.m == 3);
+
+    ASSERT_TRUE(X_T.n == 3);
+    ASSERT_TRUE(X_T.m == 2);
+    ASSERT_TRUE(XT.n == 3);
+    ASSERT_TRUE(XT.m == 2);
+
+    ASSERT_TRUE(X.n == X_T.m);
+    ASSERT_TRUE(X.m == X_T.n);
+    ASSERT_TRUE(XTT.n == XT.m);
+    ASSERT_TRUE(XTT.m == XT.n);
+}
+
 UTEST(Random, Vanilla_Mult) {
     // generate data
     using namespace SDDMM;

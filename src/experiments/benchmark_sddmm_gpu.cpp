@@ -42,7 +42,7 @@ namespace SDDMM {
 
                 if(subject == TestSubject::Sm_L2){
                     Types::vec_size_t n_max = info.n_experiment_iterations+1;
-                    
+
                     for(Types::vec_size_t n=0; n<n_max; ++n){
                         TEXT::Gadgets::print_progress(n, info.n_experiment_iterations);
                         // total += SDDMM::Algo::parallel_sddmm_slow(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
