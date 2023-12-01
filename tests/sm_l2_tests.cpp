@@ -82,10 +82,13 @@ UTEST(Random, Transposed) {
 UTEST(SM_L2, Init_test) {
     // const SDDMM::Types::vec_size_t max_thread_num = 50;
     {
-        float sparsity = 0.9;
-        SDDMM::Types::COO S = SDDMM::Types::Matrix::generate_row_major(128, 256, sparsity).to_coo();
-        SDDMM::Types::Matrix A = SDDMM::Types::Matrix::generate_row_major(128, 32, 0);
-        SDDMM::Types::Matrix B = SDDMM::Types::Matrix::generate_col_major(32, 256, 0);
+        float sparsity = 0.97;
+        SDDMM::Types::vec_size_t N = 1024;
+        SDDMM::Types::vec_size_t M = 256;
+        SDDMM::Types::vec_size_t K = 256;
+        SDDMM::Types::COO S = SDDMM::Types::Matrix::generate_row_major(N, M, sparsity).to_coo();
+        SDDMM::Types::Matrix A = SDDMM::Types::Matrix::generate_row_major(N, K, 0);
+        SDDMM::Types::Matrix B = SDDMM::Types::Matrix::generate_col_major(K, M, 0);
         // to fit sddmm SM L2 algo requirements exactly, transpose B and then change
         // the definition of the storage to make indexing work correctly
         auto BT = B.get_transposed();
