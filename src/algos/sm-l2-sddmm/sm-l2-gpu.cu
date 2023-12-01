@@ -95,8 +95,12 @@ __global__ void SM_L2_GPU(const SDDMM::Types::vec_size_t* __restrict__ S_tile_ro
 //            unsigned mask = 0xffffffff;
 
             // __shfl_xor is deprecated in cuda >=  9.0
-            sum1 += __shfl_xor_sync(mask, sum1, vws);
-            sum2 += __shfl_xor_sync(mask, sum2, vws);
+            /**
+             * Remove these two because of suspected driver bug...
+            */
+            // sum1 += __shfl_xor_sync(mask, sum1, vws);
+            // sum2 += __shfl_xor_sync(mask, sum2, vws);
+            // ===================================================
         }
 
         // P_tile_values[idx] = S_tile_values[idx] * (sum1 + sum2);
