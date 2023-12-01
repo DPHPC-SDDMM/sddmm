@@ -4,7 +4,7 @@
 #include "../../data_structures/coo/coo.h"
 #include <cmath>
 
-extern "C" void CudaSDDMM(
+extern "C" void CudaTiledSDDMM(
     SDDMM::Types::expmt_t* A_sparse_values_d,
     SDDMM::Types::vec_size_t* A_sparse_rows_d,
     SDDMM::Types::vec_size_t* A_sparse_cols_d,

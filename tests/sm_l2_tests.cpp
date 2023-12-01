@@ -92,7 +92,7 @@ UTEST(SM_L2, Init_test) {
         // to fit sddmm SM L2 algo requirements exactly, transpose B and then change
         // the definition of the storage to make indexing work correctly
         auto BT = B.get_transposed();
-        B.set_matrix_format(SDDMM::Types::MatrixFormat::RowMajor);
+        BT.set_matrix_format(SDDMM::Types::MatrixFormat::RowMajor);
         // **=> BT is now in row major storage and has sizes n=256, m=32 <=**
 
         // Sanity print outs ^^ (or check the two tests above)

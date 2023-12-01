@@ -10,11 +10,11 @@
 #include "../../data_structures/matrix/matrix.h"
 #include "../../data_structures/coo/coo.h"
 
-#include "cuda_sddmm.cuh"
+#include "cuda_tiled_sddmm.cuh"
 
 namespace SDDMM {
     namespace Algo {
-        Types::COO cuda_sddmm(
+        Types::COO cuda_tiled_sddmm(
             const Types::COO& A_sparse, 
             const Types::Matrix& X_dense, 
             const Types::Matrix& Y_dense,
@@ -66,7 +66,7 @@ namespace SDDMM {
             auto err12 = cudaMemcpy(X_dense_d, X_dense.data.data(), x_dense_len_values_d, cudaMemcpyHostToDevice);
             auto err13 = cudaMemcpy(Y_dense_d, Y_dense.data.data(), y_dense_len_values_d, cudaMemcpyHostToDevice);
 
-            CudaSDDMM(
+            CudaTiledSDDMM(
                 A_sparse_values_d, 
                 A_sparse_rows_d, 
                 A_sparse_cols_d, 

@@ -1,6 +1,6 @@
-#include "cuda_sddmm.cuh"
+#include "cuda_tiled_sddmm.cuh"
 
-__global__ void k_sddmm(
+__global__ void k_tiled_sddmm(
     SDDMM::Types::expmt_t* A_sparse_values_d,
     SDDMM::Types::vec_size_t* A_sparse_rows_d,
     SDDMM::Types::vec_size_t* A_sparse_cols_d,
@@ -40,7 +40,7 @@ __global__ void k_sddmm(
     out_col_d[access_ind] = col;
 }
 
-void CudaSDDMM(
+void CudaTiledSDDMM(
     SDDMM::Types::expmt_t* A_sparse_values_d,
     SDDMM::Types::vec_size_t* A_sparse_rows_d,
     SDDMM::Types::vec_size_t* A_sparse_cols_d,
@@ -60,7 +60,7 @@ void CudaSDDMM(
                 static_cast<double>(sparse_len) / static_cast<double>(SDDMM::Defines::warp_size)
             ));
 
-    k_sddmm<<<block_num, SDDMM::Defines::warp_size>>>(
+    k_tiled_sddmm<<<block_num, SDDMM::Defines::warp_size>>>(
         A_sparse_values_d,
         A_sparse_rows_d,
         A_sparse_cols_d,

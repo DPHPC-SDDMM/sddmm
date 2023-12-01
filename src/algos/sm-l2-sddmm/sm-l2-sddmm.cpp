@@ -8,6 +8,8 @@
 #include "../../data_structures/coo/coo.h"
 #include "../../results.h"
 
+#define LOCAL_PRINT
+
 // "proper cuda error checking"
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -24,6 +26,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
         fprintf(stdout, "==================================================================\n");
         if (abort) exit(code);
     }
+}
+
+inline void local_print(const std::string& message){
+#ifdef LOCAL_PRINT
+    std::cout << message << std::endl;
+#endif
 }
 
 SDDMM::Types::vec_size_t compute_tile_size_using_model(unsigned int L2_size, double c, double p) {
@@ -253,17 +261,17 @@ namespace SDDMM {
                 unsigned int shared_mem_size = 49152;  // 48KB for testing
                 double c = 3.; // 3 for COO
 
-                 std::cout << "Parameters:" << std::endl;
-                 std::cout << "L2: " << l2_cache_capacity << "B;  SM " << shared_mem_size << "B;  c: " << c << std::endl;
-                 std::cout << std::endl;
+                 local_print("Parameters:");
+                 local_print("L2: " + std::to_string(l2_cache_capacity) + "B;  SM " + std::to_string(shared_mem_size) + "B;  c: " + std::to_string(c));
+                 local_print("");
 
                 auto Tj = std::min(compute_tile_size_using_model(l2_cache_capacity, c, 1 - sparsity), M);
 //                auto Tj = M / 4;
                 auto num_J_tiles = (M + Tj - 1) / Tj;
 //                std::cout << "Dimension Tj (from model):" << std::endl;
-                 std::cout << "Dimension Tj:" << std::endl;
-                 std::cout << "size: " << Tj << ";  count: " << num_J_tiles << std::endl;
-                 std::cout << std::endl;
+                 local_print("Dimension Tj:");
+                 local_print("size: " + std::to_string(Tj) + ";  count: " + std::to_string(num_J_tiles));
+                 local_print("");
 
 //                std::cout << "Starting autotuning..." << std::endl;
 //                Types::vec_size_t Tk = compute_k_slice_using_auto_tuning();
@@ -271,11 +279,11 @@ namespace SDDMM {
                 Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
                 Types::vec_size_t Ti = std::min(static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
 //                std::cout << "Autotuning completed!" << std::endl;
-                 std::cout << "Dimension Tk:" << std::endl;
-                 std::cout << "size: " << Tk << ";  count: " << num_K_tiles << std::endl;
-                 std::cout << "Dimension Ti:" << std::endl;
-                 std::cout << "size: " << Ti << std::endl;
-                 std::cout << std::endl;
+                 local_print("Dimension Tk:");
+                 local_print("size: " + std::to_string(Tk) + ";  count: " + std::to_string(num_K_tiles));
+                 local_print("Dimension Ti:");
+                 local_print("size: " + std::to_string(Ti));
+                 local_print("");
 
                 return {
                     Ti,
