@@ -98,8 +98,8 @@ __global__ void SM_L2_GPU(const SDDMM::Types::vec_size_t* __restrict__ S_tile_ro
             /**
              * Remove these two because of suspected driver bug...
             */
-            // sum1 += __shfl_xor_sync(mask, sum1, vws);
-            // sum2 += __shfl_xor_sync(mask, sum2, vws);
+            sum1 += __shfl_xor_sync(mask, sum1, vws);
+            sum2 += __shfl_xor_sync(mask, sum2, vws);
             // ===================================================
         }
 
