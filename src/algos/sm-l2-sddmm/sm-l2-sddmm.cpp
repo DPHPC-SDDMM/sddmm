@@ -400,7 +400,7 @@ namespace SDDMM {
                             if (S_tile_rows[i] != active_rows.back()) {
                                 a++;
                                 // active_rows.push_back(S_tile.data[i].row);
-                                active_rows.push_back(S_tile_rows[0]);
+                                active_rows.push_back(S_tile_rows[i]);
 
                                 c++;
                                 if (c > Ti) {
