@@ -765,6 +765,20 @@ namespace SDDMM {
 
                 cudaDeviceReset();
 
+                int64_t sum2=0;
+                for(int i=0; i<P_values.size(); ++i){
+                    sum2 += P_values[i];
+                }
+                std::stringstream name;
+                name << "results.txt";
+                std::ofstream output_file;
+                output_file.open("../../" + name.str());
+                for(const auto& val : P_values){
+                    output_file << val << " ";
+                }
+                output_file << "\n";
+                output_file.close();
+
 
                 Types::COO result;
                 result.n = S.n;
