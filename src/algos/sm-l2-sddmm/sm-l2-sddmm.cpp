@@ -492,10 +492,10 @@ namespace SDDMM {
                 };
             }
 
-            static Types::COO check_result(
-                const Types::COO& S, 
-                const Types::Matrix& A, 
-                const Types::Matrix& B, 
+            static bool check_result(
+                // const Types::COO& S, 
+                // const Types::Matrix& A, 
+                // const Types::Matrix& B, 
                 const Types::vec_size_t K,
                 const Types::COO& expected_res,
                 const Types::COO& res, 
@@ -521,9 +521,9 @@ namespace SDDMM {
 //                auto R_values = get_correct_result(S, K, A, B, num_J_tiles, Tj);
 
                 // calculate the resulting matrix
-                SDDMM::Types::COO R;
-                R.n = S.n;
-                R.m = S.m;
+                // SDDMM::Types::COO R;
+                // R.n = S.n;
+                // R.m = S.m;
 
                 // auto col_iter_begin = S.cols.begin();
                 // auto col_iter_end = S.cols.end();
@@ -547,20 +547,20 @@ namespace SDDMM {
                 // }
 
                 // the same as the expected res
-                for (int i=0; i<S.values.size(); ++i) {
-                    auto row = S.rows[i];
-                    auto col = S.cols[i];
-                    auto v = S.values[i];
+                // for (int i=0; i<S.values.size(); ++i) {
+                //     auto row = S.rows[i];
+                //     auto col = S.cols[i];
+                //     auto v = S.values[i];
 
-                    float sum = 0.;
-                    for (auto i = 0; i < K; i++) {
-                        sum += A.at(row, i) * B.at(i, col);
-                    }
+                //     float sum = 0.;
+                //     for (auto i = 0; i < K; i++) {
+                //         sum += A.at(row, i) * B.at(i, col);
+                //     }
 
-                    R.values.push_back(v * sum);
-                    R.cols.push_back(col);
-                    R.rows.push_back(row);
-                }
+                //     R.values.push_back(v * sum);
+                //     R.cols.push_back(col);
+                //     R.rows.push_back(row);
+                // }
 
                 std::vector<float> R_values;
 
@@ -577,13 +577,13 @@ namespace SDDMM {
                     SDDMM::Types::vec_size_t end_ind = start_ind + Tj;
 
                     // limit the max col
-                    if (end_ind > R.m) {
-                        end_ind = R.m;
+                    if (end_ind > expected_res.m) {
+                        end_ind = expected_res.m;
                     }
 
-                    for (int i=0; i<R.values.size(); i++) {
-                        if (R.cols[i] >= start_ind && R.cols[i] < end_ind) {
-                            R_values.push_back(R.values[i]);
+                    for (int i=0; i<expected_res.values.size(); i++) {
+                        if (expected_res.cols[i] >= start_ind && expected_res.cols[i] < end_ind) {
+                            R_values.push_back(expected_res.values[i]);
                         }
                     }
 
@@ -601,8 +601,10 @@ namespace SDDMM {
                     diff += abs(R_values.at(i) - res.values.at(i));
                 }
                 local_print(std::to_string(diff) + "\n");
-                std::cout << diff << std::endl;
-                return R;
+                if(std::abs(diff) < SDDMM::Defines::epsilon)
+                    return true;
+                else
+                    return false;
             }
 
             static Types::COO run_sm_l2(

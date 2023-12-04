@@ -83,7 +83,7 @@ UTEST(Random, Transposed) {
 UTEST(SM_L2, Init_test) {
     // const SDDMM::Types::vec_size_t max_thread_num = 50;
     {
-        float sparsity = 0.97;
+        float sparsity = 0.5; // 0.97;
         SDDMM::Types::vec_size_t N = 32; //1024;
         SDDMM::Types::vec_size_t M = 32; //256;
         SDDMM::Types::vec_size_t K = 32; //256;
@@ -143,8 +143,17 @@ UTEST(SM_L2, Init_test) {
         }
         // to fit sddmm SM L2 algo requirements exactly, transpose B and then change
         // the definition of the storage to make indexing work correctly
-        auto BT = B.get_transposed();
-        BT.set_matrix_format(SDDMM::Types::MatrixFormat::RowMajor);
+        // auto BT = B.get_transposed();
+        // BT.set_matrix_format(SDDMM::Types::MatrixFormat::RowMajor);
+        // std::stringstream name;
+        // name << "BT.txt";
+        // std::ofstream output_file;
+        // output_file.open("../../" + name.str());
+        // for(const auto& val : BT.data){
+        //     output_file << val << " ";
+        // }
+        // output_file << "\n";
+        // output_file.close();
         // **=> BT is now in row major storage and has sizes n=256, m=32 <=**
 
         // Sanity print outs ^^ (or check the two tests above)
@@ -176,35 +185,34 @@ UTEST(SM_L2, Init_test) {
         auto params = SDDMM::Algo::SML2SDDMM::preparations(
             S, sparsity,
             // N, M, K
-            A.n, BT.n, BT.m, 
-            A, BT);
+            A.n, B.m, B.n, 
+            A, B);
         auto result = SDDMM::Algo::SML2SDDMM::run_sm_l2(
             S, sparsity, 
-            A, BT,
+            A, B,
             // N, M, K 
-            A.n, BT.n, BT.m, 
+            A.n, B.m, B.n, 
 
             params);
 
-        auto result2 = SDDMM::Algo::cuda_sddmm(S, A, B);
+        // auto result2 = SDDMM::Algo::cuda_sddmm(S, A, B);
 
-        int64_t sum=0;
-        for(int i=0; i<exp_result.values.size(); ++i){
-            sum += exp_result.values[i];
-        }
+        // int64_t sum=0;
+        // for(int i=0; i<exp_result.values.size(); ++i){
+        //     sum += exp_result.values[i];
+        // }
 
-        int64_t sum2=0;
-        for(int i=0; i<result.values.size(); ++i){
-            sum2 += result.values[i];
-        }
+        // int64_t sum2=0;
+        // for(int i=0; i<result.values.size(); ++i){
+        //     sum2 += result.values[i];
+        // }
 
-        int64_t sum3=0;
-        for(int i=0; i<result2.values.size(); ++i){
-            sum3 += result2.values[i];
-        }
+        // int64_t sum3=0;
+        // for(int i=0; i<result2.values.size(); ++i){
+        //     sum3 += result2.values[i];
+        // }
 
-        auto res3 = SDDMM::Algo::SML2SDDMM::check_result(S, A, B, BT.m /*K*/, exp_result, result, params);
-        ASSERT_TRUE(res3 == exp_result);
+        ASSERT_TRUE(SDDMM::Algo::SML2SDDMM::check_result(/*S, A, B,*/ B.n /*K*/, exp_result, result, params));
         // ASSERT_TRUE(SDDMM::Algo::SML2SDDMM::check_result(S, A, B, BT.m /*K*/, exp_result, result, params));
 
         // this test should "kind of" work too
