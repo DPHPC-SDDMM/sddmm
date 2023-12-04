@@ -8,7 +8,7 @@
 #include "../../data_structures/coo/coo.h"
 #include "../../results.h"
 
-#define LOCAL_PRINT
+// #define LOCAL_PRINT
 
 // "proper cuda error checking"
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
@@ -552,13 +552,13 @@ namespace SDDMM {
                     // }
                 }
 
-                // std::cout << "Difference check:" << std::endl;
+                local_print("Difference check:");
                 float diff = 0.;
                 for (int i = 0; i < res.values.size(); i++) {
                     diff += abs(R_values.at(i) - res.values.at(i));
-                    // std::cout << P_values.at(i) << " [" << R_values.at(i) << "]" << std::endl;
                 }
-                std::cout << diff << std::endl << std::endl;
+                local_print(std::to_string(diff) + "\n");
+                std::cout << diff << std::endl;
                 return true;
             }
 
@@ -569,9 +569,9 @@ namespace SDDMM {
                 Params& params,
                 Results::ExperimentData* measurements = nullptr
             ) {
-                std::cout << "Matrix sizes:" << std::endl;
-                std::cout << "N: " << N << ";  M: " << M << ";  K: " << K << ";  Sparsity: " << sparsity << std::endl;
-                std::cout << std::endl;
+                local_print("Matrix sizes:");
+                local_print("N: " + std::to_string(N) + ";  M: " + std::to_string(M) + ";  K: " + std::to_string(K) + ";  Sparsity: " + std::to_string(sparsity));
+                local_print("\n");
 
                 TilingParams& tiling_params = params.tiling_params;
                 SparseParams& sparse_params = params.sparse_params;
@@ -579,7 +579,7 @@ namespace SDDMM {
                 auto S_size = S.values.size();
 
                 // transfer data to GPU
-                std::cout << "Allocating memory & transferring data..." << std::endl;
+                local_print("Allocating memory & transferring data...");
 
                 // sparse matrix S
                 SDDMM::Types::vec_size_t* rows_d;
@@ -630,7 +630,7 @@ namespace SDDMM {
                 gpuErrchk(cudaMemcpy(A_d, A.data.data(), A_size, cudaMemcpyHostToDevice));
                 gpuErrchk(cudaMemcpy(B_d, B.data.data(), B_size, cudaMemcpyHostToDevice));
 
-                std::cout << std::endl << "Starting processing..." << std::endl << std::endl;
+                local_print("\nStarting processing...\n");
 
                 Types::vec_size_t slice_start_ind = 0;
                 Types::vec_size_t tile_starts_start_ind = 0;
@@ -640,17 +640,17 @@ namespace SDDMM {
 //                auto start_time = std::chrono::high_resolution_clock::now();
 
                 for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
-                    std::cout << "Tile J id: " << tile_j_id << std::endl << std::endl;
+                    local_print("Tile J id: " + std::to_string(tile_j_id) + "\n");
 
-                    std::cout << "Calculating the number of threadblocks..." << std::endl;
+                    local_print("Calculating the number of threadblocks...");
                     int num_threadblocks = (sparse_params.active_rows_sizes.at(tile_j_id) + tiling_params.Ti - 1) / tiling_params.Ti;
-                    std::cout << "size: " << num_threadblocks << std::endl;
-                    std::cout << std::endl;
+                    local_print("size: " + std::to_string(num_threadblocks));
+                    local_print("\n");
 
                     // iterate over Tk tiles and launch a kernel for each Tk tile
                     for (int tile_k_id = 0; tile_k_id < tiling_params.num_K_tiles; tile_k_id++) {
                         // the innermost loop, streaming is done along dimension i (assuming that i is the smaller dimension, i.e. N < M)
-                        std::cout << "Tile K id: " << tile_k_id << std::endl;
+                        local_print("Tile K id: " + std::to_string(tile_k_id));
 
                         // launch num_threadblocks with 512 threads in each
                         run_kernel(
