@@ -8,6 +8,7 @@
 #include "../../data_structures/coo/coo.h"
 #include "../../results.h"
 
+// use this one to get some output that disrupts the output of the unit tests
 // #define LOCAL_PRINT
 
 // "proper cuda error checking"
@@ -18,11 +19,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     if (code != cudaSuccess)
     {
         fprintf(stdout, "==================================================================\n");
-        fprintf(stdout, "==================================================================\n");
-        fprintf(stdout, "==================================================================\n");
         fprintf(stdout,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-        fprintf(stdout, "==================================================================\n");
-        fprintf(stdout, "==================================================================\n");
         fprintf(stdout, "==================================================================\n");
         if (abort) exit(code);
     }
@@ -43,70 +40,11 @@ int compute_k_slice_using_auto_tuning() {
     return 32;  // TODO
 }
 
-//std::vector<float> get_correct_result(const SDDMM::Types::COO& S, SDDMM::Types::vec_size_t k, const SDDMM::Types::Matrix& A, const SDDMM::Types::Matrix& B, SDDMM::Types::vec_size_t num_J_tiles, SDDMM::Types::vec_size_t Tj) {
-//    // calculate the resulting matrix
-//    SDDMM::Types::COO R;
-//    R.n = S.n;
-//    R.m = S.m;
-//
-//    for (const auto & t : S.data) {
-//        auto row = t.row;
-//        auto col = t.col;
-//        auto v = t.value;
-//
-//        float sum = 0.;
-//        for (auto i = 0; i < k; i++) {
-//            sum += A.at(row, i) * B.at(col, i);
-//        }
-//
-//        R.data.push_back({
-//             row,
-//             col,
-//             v * sum
-//        });
-//    }
-//
-//    std::vector<float> R_values;
-//
-//    // put it in the slice-by-slice form to be able to compare with P
-//    for (int j = 0; j < num_J_tiles; j++) {
-//        // start and end col indices for the tile
-//        SDDMM::Types::vec_size_t start_ind = j * Tj;
-//        SDDMM::Types::vec_size_t end_ind = start_ind + Tj;
-//
-//        // limit the max col
-//        if (end_ind > R.m) {
-//            end_ind = R.m;
-//        }
-//
-//        // extract elements
-//        for (auto t: R.data) {
-//            if (t.col >= start_ind && t.col < end_ind) {
-//                R_values.push_back(t.value);
-//            }
-//        }
-//    }
-//
-//    return R_values;
-//}
-
 namespace SDDMM {
     namespace Algo {
         class SML2SDDMM {
         public:
             SML2SDDMM() = default;
-
-            // struct MatrixParams {
-            //     const Types::COO S;
-            //     const Types::Matrix A;
-            //     const Types::Matrix B;
-
-            //     const Types::vec_size_t N;
-            //     const Types::vec_size_t M;
-            //     const Types::vec_size_t K;
-
-            //     const double sparsity;
-            // };
 
             struct TilingParams {
                 const Types::vec_size_t Ti;
@@ -124,10 +62,8 @@ namespace SDDMM {
                 const std::vector<float> values;
 
                 std::vector<SDDMM::Types::vec_size_t> slice_sizes;
-
                 std::vector<SDDMM::Types::vec_size_t> active_rows;
                 std::vector<SDDMM::Types::vec_size_t> active_rows_sizes;
-
                 std::vector<SDDMM::Types::vec_size_t> S_tile_starts;
             };
 
@@ -137,11 +73,6 @@ namespace SDDMM {
                 SparseParams sparse_params;
             };
 
-            // struct Result {
-            //     const std::vector<float> values;
-            //     Types::time_duration_unit duration_ms;
-            // };
-
             static Params preparations(
                 SDDMM::Types::COO& S, 
                 float sparsity,
@@ -149,13 +80,10 @@ namespace SDDMM {
                 SDDMM::Types::Matrix& A, 
                 SDDMM::Types::Matrix& B
             ) {
-                // generate matrices
-                // auto matrix_params = prepare_matrices(S, sparsity, A, B);
-
                 // calculate tile sizes
-//              A.n = N,
-//              B.n = M,
-//              A.m = K,
+                // A.n = N,
+                // B.m = M,
+                // B.n == A.m = K,
                 auto tiling_params = determine_tiling_params(
                         N,
                         M,
@@ -178,81 +106,6 @@ namespace SDDMM {
                 };
             }
 
-            // static Types::COO run(
-            //     Params& params, 
-            //     SDDMM::Types::COO& S, 
-            //     float sparsity, 
-            //     SDDMM::Types::Matrix& A, 
-            //     SDDMM::Types::Matrix& B,
-            //     Results::ExperimentData* measurements = nullptr
-            // ) {
-                
-
-                // allocate GPU memory and run the algorithm
-                // auto res = run_algo(
-                //         params.matrix_params,
-                //         params.tiling_params,
-                //         params.sparse_params
-                // );
-
-                // TODO postprocess (if needed), like cleaning up zeroes from res.values
-
-                // if(check){
-                //     // check correctness
-                //     check_result(matrix_params.S, matrix_params.A, matrix_params.B, res, matrix_params.K, tiling_params.Tj, tiling_params.num_J_tiles);
-                // }
-
-            //     return res;
-            // }
-
-//             static MatrixParams prepare_matrices(SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B) {
-//                 // dimensions
-//                 // NOTE: K has to be a multiple of 32
-// //                Types::vec_size_t N = 1024;
-// //                Types::vec_size_t M = 256;
-// //                Types::vec_size_t K = 256;
-
-//                  Types::vec_size_t N = 234234;
-//                  Types::vec_size_t M = 2344;
-//                  Types::vec_size_t K = 256;
-
-//                 // float sparsity = 0.97;
-
-//                 // std::cout << "Matrix sizes:" << std::endl;
-//                 // std::cout << "N: " << N << ";  M: " << M << ";  K: " << K << ";  Sparsity: " << sparsity << std::endl;
-//                 // std::cout << std::endl;
-
-//                 // std::cout << "Creating matrices..." << std::endl;
-
-//                 // // matrix S
-//                 // auto S_dense = SDDMM::Types::Matrix::generate_row_major(N, M, sparsity);
-//                 // SDDMM::Types::COO S = S_dense.to_coo();
-
-//                 // // matrices A and B
-//                 // auto A = SDDMM::Types::Matrix::generate_row_major(N, K, sparsity=0.);
-//                 // auto B = SDDMM::Types::Matrix::generate_row_major(M, K, sparsity=0.);
-
-//                 // result matrix
-//                 SDDMM::Types::COO P;
-//                 P.n = S.n;
-//                 P.m = S.m;
-
-//                 // std::cout << "S nxm: " << S.n * S.m << ";  S non-zero: " << S.values.size() << std::endl;
-//                 // std::cout << "A nxm: " << A.n * A.m << std::endl;
-//                 // std::cout << "B nxm: " << B.n * B.m << std::endl;
-//                 // std::cout << std::endl;
-
-//                 return {
-//                         S,
-//                         A,
-//                         B,
-//                         A.n,
-//                         B.n,
-//                         A.m,
-//                         sparsity
-//                 };
-//             }
-
             static TilingParams determine_tiling_params(Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K, double sparsity) {
                 // GPU and format params
 //                Types::vec_size_t l2_cache_capacity = 6291456;  // 6MB 3080Ti
@@ -263,29 +116,24 @@ namespace SDDMM {
 
                 assert(l2_cache_capacity % 32 == 0 && shared_mem_size % 32 == 0 && "L2 cache capacity and shared memory size must be multiples of 32!");
 
-                 local_print("Parameters:");
-                 local_print("L2: " + std::to_string(l2_cache_capacity) + "B;  SM " + std::to_string(shared_mem_size) + "B;  c: " + std::to_string(c));
-                 local_print("");
+                local_print("Parameters:");
+                local_print("L2: " + std::to_string(l2_cache_capacity) + "B;  SM " + std::to_string(shared_mem_size) + "B;  c: " + std::to_string(c));
+                local_print("");
 
                 auto Tj = std::min(compute_tile_size_using_model(l2_cache_capacity, c, 1 - sparsity), M);
-//                auto Tj = M / 4;
                 auto num_J_tiles = (M + Tj - 1) / Tj;
-//                std::cout << "Dimension Tj (from model):" << std::endl;
-                 local_print("Dimension Tj:");
-                 local_print("size: " + std::to_string(Tj) + ";  count: " + std::to_string(num_J_tiles));
-                 local_print("");
+                local_print("Dimension Tj:");
+                local_print("size: " + std::to_string(Tj) + ";  count: " + std::to_string(num_J_tiles));
+                local_print("");
 
-//                std::cout << "Starting autotuning..." << std::endl;
-//                Types::vec_size_t Tk = compute_k_slice_using_auto_tuning();
                 Types::vec_size_t Tk = 32;
                 Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
                 Types::vec_size_t Ti = std::min(static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
-//                std::cout << "Autotuning completed!" << std::endl;
-                 local_print("Dimension Tk:");
-                 local_print("size: " + std::to_string(Tk) + ";  count: " + std::to_string(num_K_tiles));
-                 local_print("Dimension Ti:");
-                 local_print("size: " + std::to_string(Ti));
-                 local_print("");
+                local_print("Dimension Tk:");
+                local_print("size: " + std::to_string(Tk) + ";  count: " + std::to_string(num_K_tiles));
+                local_print("Dimension Ti:");
+                local_print("size: " + std::to_string(Ti));
+                local_print("");
 
                 return {
                     Ti,
@@ -302,13 +150,9 @@ namespace SDDMM {
                 std::vector<SDDMM::Types::vec_size_t> cols;
                 std::vector<float> values;
 
-//                auto s = S.values.size();
-
                 std::vector<SDDMM::Types::vec_size_t> slice_sizes;
-
                 std::vector<SDDMM::Types::vec_size_t> active_rows;
                 std::vector<SDDMM::Types::vec_size_t> active_rows_sizes;
-
                 std::vector<SDDMM::Types::vec_size_t> S_tile_starts;
 
                 for (int j = 0; j < num_J_tiles; j++) {
@@ -326,27 +170,6 @@ namespace SDDMM {
                         end_ind = S.m;
                     }
 
-//                    auto col_iter_begin = S.cols.begin() + start_ind;
-//                    auto col_iter_end = S.cols.begin() + end_ind;
-//                    auto row_iter_begin = S.rows.begin() + start_ind;
-//                    auto row_iter_end = S.rows.begin() + end_ind;
-//                    auto values_iter_begin = S.values.begin() + start_ind;
-//                    auto values_iter_end = S.values.begin() + end_ind;
-//
-//
-//                    while(col_iter_begin != col_iter_end){
-//                        S_tile_cols.push_back(*col_iter_begin);
-//                        col_iter_begin++;
-//                    }
-//                    while(row_iter_begin != row_iter_end){
-//                        S_tile_rows.push_back(*row_iter_begin);
-//                        row_iter_begin++;
-//                    }
-//                    while(values_iter_begin != values_iter_end){
-//                        S_tile_values.push_back(*values_iter_begin);
-//                        values_iter_begin++;
-//                    }
-
                     for (int i = 0; i < S.values.size(); i++) {
                         auto row = S.rows[i];
                         auto col = S.cols[i];
@@ -359,24 +182,9 @@ namespace SDDMM {
                         }
                     }
 
-
-                    // extract elements
-                    // for (auto t: S.data) {
-                    //     if (t.col >= start_ind && t.col < end_ind) {
-                    //         S_tile.data.push_back(t);
-                    //     }
-                    // }
-
-                    // S_tile.n = S.n;
-                    // S_tile.m = end_ind - start_ind;
-//                    Types::vec_size_t S_tile_n = S.n;
-//                    Types::vec_size_t S_tile_m = end_ind - start_ind;
-
                     // process the slice
-                    // if (!S_tile.data.empty()) {a
                     if(!S_tile_values.empty()) {
                         int a = 1;
-                        // active_rows.push_back(S_tile.data[0].row);
                         active_rows.push_back(S_tile_rows[0]);
 
                         // counter for the elements in a single Ti x Tj tile
@@ -386,9 +194,6 @@ namespace SDDMM {
                         int local_row = 0;
                         rows_local.push_back(local_row);
 
-                        // rows.push_back(S_tile.data[0].row);
-                        // cols.push_back(S_tile.data[0].col);
-                        // values.push_back(S_tile.data[0].value);
                         rows.push_back(S_tile_rows[0]);
                         cols.push_back(S_tile_cols[0]);
                         values.push_back(S_tile_values[0]);
@@ -414,9 +219,6 @@ namespace SDDMM {
 
                             // populate row, col and vals lists
                             rows_local.push_back(local_row);
-                            // rows.push_back(S_tile.data[i].row);
-                            // cols.push_back(S_tile.data[i].col);
-                            // values.push_back(S_tile.data[i].value);
                             rows.push_back(S_tile_rows[i]);
                             cols.push_back(S_tile_cols[i]);
                             values.push_back(S_tile_values[i]);
@@ -433,49 +235,10 @@ namespace SDDMM {
                         S_tile_starts.push_back(S_tile_values.size());
                     } else {
                         // TODO properly process empty slices
+                        // => hmmmmmmm??
                         slice_sizes.push_back(0);
                     }
                 }
-
-                std::stringstream name;
-                name << "data2.txt";
-
-                std::ofstream output_file;
-                output_file.open("../../" + name.str());
-                output_file << "rows\n";
-                for(const auto& val : rows){
-                    output_file << val << " ";
-                }
-                output_file << "\n" << "rows_local\n";
-                for(const auto& val : rows_local){
-                    output_file << val << " ";
-                }
-                output_file << "\n" << "cols\n";
-                for(const auto& val : cols){
-                    output_file << val << " ";
-                }
-                output_file << "\n" << "values\n";
-                for(const auto& val : values){
-                    output_file << val << " ";
-                }
-                output_file << "\n" << "slice_sizes\n";
-                for(const auto& val : slice_sizes){
-                    output_file << val << " ";
-                }
-                output_file << "\n" << "active_rows\n";
-                for(const auto& val : active_rows){
-                    output_file << val << " ";
-                }
-                output_file << "\n" << "active_rows_sizes\n";
-                for(const auto& val : active_rows_sizes){
-                    output_file << val << " ";
-                }
-                output_file << "\n" << "S_tile_starts\n";
-                for(const auto& val : S_tile_starts){
-                    output_file << val << " ";
-                }
-                output_file << "\n";
-                output_file.close();
 
                 return {
                         rows,
@@ -493,82 +256,20 @@ namespace SDDMM {
             }
 
             static bool check_result(
-                // const Types::COO& S, 
-                // const Types::Matrix& A, 
-                // const Types::Matrix& B, 
                 const Types::vec_size_t K,
                 const Types::COO& expected_res,
                 const Types::COO& res, 
                 const Params& params
             ) {
-                // std::cout << "Calculating the correct result..." << std::endl << std::endl;
-                // check_result(
-                //     matrix_params.S, 
-                //     matrix_params.A, 
-                //     matrix_params.B, 
-                //     res, 
-                //     matrix_params.K, 
-                //     tiling_params.Tj, 
-                //     tiling_params.num_J_tiles
-                // );
-                // Types::vec_size_t K = A.m; 
                 Types::vec_size_t Tj = params.tiling_params.Tj; 
                 Types::vec_size_t num_J_tiles = params.tiling_params.num_J_tiles;
 
                 auto start_time = std::chrono::high_resolution_clock::now();
 
-//                // compare with the correct (rearranged) result
-//                auto R_values = get_correct_result(S, K, A, B, num_J_tiles, Tj);
-
-                // calculate the resulting matrix
-                // SDDMM::Types::COO R;
-                // R.n = S.n;
-                // R.m = S.m;
-
-                // auto col_iter_begin = S.cols.begin();
-                // auto col_iter_end = S.cols.end();
-                // auto row_iter_begin = S.rows.begin();
-                // auto row_iter_end = S.rows.end();
-                // auto values_iter_begin = S.values.begin();
-                // auto values_iter_end = S.values.end();
-
-
-                // while(col_iter_begin != col_iter_end){
-                //     R.cols.push_back(*col_iter_begin);
-                //     col_iter_begin++;
-                // }
-                // while(row_iter_begin != row_iter_end){
-                //     R.rows.push_back(*row_iter_begin);
-                //     row_iter_begin++;
-                // }
-                // while(values_iter_begin != values_iter_end){
-                //     R.values.push_back(*values_iter_begin);
-                //     values_iter_begin++;
-                // }
-
-                // the same as the expected res
-                // for (int i=0; i<S.values.size(); ++i) {
-                //     auto row = S.rows[i];
-                //     auto col = S.cols[i];
-                //     auto v = S.values[i];
-
-                //     float sum = 0.;
-                //     for (auto i = 0; i < K; i++) {
-                //         sum += A.at(row, i) * B.at(i, col);
-                //     }
-
-                //     R.values.push_back(v * sum);
-                //     R.cols.push_back(col);
-                //     R.rows.push_back(row);
-                // }
-
                 std::vector<float> R_values;
 
                 auto end_time = std::chrono::high_resolution_clock::now();
                 auto duration_ms = (end_time - start_time) / std::chrono::milliseconds(1);
-                // std::cout << "Duration (CPU, single-threaded): " << duration_ms << "ms" << std::endl << std::endl;
-
-                // std::cout << "Speedup: " << duration_ms / res.duration_ms << "x" << std::endl << std::endl;
 
                 // put it in the slice-by-slice form to be able to compare with P
                 for (int j = 0; j < num_J_tiles; j++) {
@@ -586,25 +287,16 @@ namespace SDDMM {
                             R_values.push_back(expected_res.values[i]);
                         }
                     }
-
-                    // extract elements
-                    // for (auto t: R.data) {
-                    //     if (t.col >= start_ind && t.col < end_ind) {
-                    //         R_values.push_back(t.value);
-                    //     }
-                    // }
                 }
 
                 local_print("Difference check:");
                 float diff = 0.;
                 for (int i = 0; i < res.values.size(); i++) {
-                    diff += abs(R_values.at(i) - res.values.at(i));
+                    if(abs(R_values.at(i) - res.values.at(i)) > SDDMM::Defines::epsilon){
+                        return false;
+                    }
                 }
-                local_print(std::to_string(diff) + "\n");
-                if(std::abs(diff) < SDDMM::Defines::epsilon)
-                    return true;
-                else
-                    return false;
+                return true;
             }
 
             static Types::COO run_sm_l2(
@@ -732,16 +424,7 @@ namespace SDDMM {
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
 
-//                auto end_time = std::chrono::high_resolution_clock::now();
-//                auto duration_ms = (end_time - start_time) / std::chrono::milliseconds(1);
-
-//                std::cout << std::endl << "Done processing!" << std::endl << std::endl;
-//                std::cout << "Duration (GPU, without preprocessing): " << duration_ms << "ms" << std::endl << std::endl;
-
-
                 auto end = std::chrono::high_resolution_clock::now();
-                // auto end = omp_get_wtime();
-
                 if(measurements != nullptr){
                     Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
                     measurements->durations.push_back(duration);
@@ -767,21 +450,6 @@ namespace SDDMM {
 
                 cudaDeviceReset();
 
-                int64_t sum2=0;
-                for(int i=0; i<P_values.size(); ++i){
-                    sum2 += P_values[i];
-                }
-                std::stringstream name;
-                name << "results.txt";
-                std::ofstream output_file;
-                output_file.open("../../" + name.str());
-                for(const auto& val : P_values){
-                    output_file << val << " ";
-                }
-                output_file << "\n";
-                output_file.close();
-
-
                 Types::COO result;
                 result.n = S.n;
                 result.m = S.m;
@@ -792,10 +460,6 @@ namespace SDDMM {
                 std::copy(P_values.begin(), P_values.end(), result.values.begin());
                 std::copy(S.cols.begin(), S.cols.end(), result.cols.begin());
                 std::copy(S.rows.begin(), S.rows.end(), result.rows.begin());
-                // return {
-                //     P_values,
-                //     duration_ms
-                // };
                 return result;
             }
         };
