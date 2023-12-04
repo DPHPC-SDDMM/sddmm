@@ -452,7 +452,7 @@ namespace SDDMM {
                 };
             }
 
-            static bool check_result(
+            static Types::COO check_result(
                 const Types::COO& S, 
                 const Types::Matrix& A, 
                 const Types::Matrix& B, 
@@ -506,6 +506,7 @@ namespace SDDMM {
                 //     values_iter_begin++;
                 // }
 
+                // the same as the expected res
                 for (int i=0; i<S.values.size(); ++i) {
                     auto row = S.rows[i];
                     auto col = S.cols[i];
@@ -513,7 +514,7 @@ namespace SDDMM {
 
                     float sum = 0.;
                     for (auto i = 0; i < K; i++) {
-                        sum += A.at(row, i) * B.at(col, i);
+                        sum += A.at(row, i) * B.at(i, col);
                     }
 
                     R.values.push_back(v * sum);
@@ -561,7 +562,7 @@ namespace SDDMM {
                 }
                 local_print(std::to_string(diff) + "\n");
                 std::cout << diff << std::endl;
-                return true;
+                return R;
             }
 
             static Types::COO run_sm_l2(
