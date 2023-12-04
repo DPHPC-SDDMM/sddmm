@@ -261,6 +261,8 @@ namespace SDDMM {
                 unsigned int shared_mem_size = 49152;  // 48KB for testing
                 double c = 3.; // 3 for COO
 
+                assert(l2_cache_capacity % 32 == 0 && shared_mem_size % 32 == 0 && "L2 cache capacity and shared memory size must be multiples of 32!");
+
                  local_print("Parameters:");
                  local_print("L2: " + std::to_string(l2_cache_capacity) + "B;  SM " + std::to_string(shared_mem_size) + "B;  c: " + std::to_string(c));
                  local_print("");
@@ -454,6 +456,8 @@ namespace SDDMM {
                 const Types::COO& S, 
                 const Types::Matrix& A, 
                 const Types::Matrix& B, 
+                const Types::vec_size_t K,
+                const Types::COO& expected_res,
                 const Types::COO& res, 
                 const Params& params
             ) {
@@ -467,7 +471,7 @@ namespace SDDMM {
                 //     tiling_params.Tj, 
                 //     tiling_params.num_J_tiles
                 // );
-                Types::vec_size_t K = A.m; 
+                // Types::vec_size_t K = A.m; 
                 Types::vec_size_t Tj = params.tiling_params.Tj; 
                 Types::vec_size_t num_J_tiles = params.tiling_params.num_J_tiles;
 
@@ -481,43 +485,41 @@ namespace SDDMM {
                 R.n = S.n;
                 R.m = S.m;
 
-                auto col_iter_begin = S.cols.begin();
-                auto col_iter_end = S.cols.end();
-                auto row_iter_begin = S.rows.begin();
-                auto row_iter_end = S.rows.end();
-                auto values_iter_begin = S.values.begin();
-                auto values_iter_end = S.values.end();
+                // auto col_iter_begin = S.cols.begin();
+                // auto col_iter_end = S.cols.end();
+                // auto row_iter_begin = S.rows.begin();
+                // auto row_iter_end = S.rows.end();
+                // auto values_iter_begin = S.values.begin();
+                // auto values_iter_end = S.values.end();
 
 
-                while(col_iter_begin != col_iter_end){
-                    R.cols.push_back(*col_iter_begin);
-                    col_iter_begin++;
-                }
-                while(row_iter_begin != row_iter_end){
-                    R.rows.push_back(*row_iter_begin);
-                    row_iter_begin++;
-                }
-                while(values_iter_begin != values_iter_end){
-                    R.values.push_back(*values_iter_begin);
-                    values_iter_begin++;
-                }
-
-                // for (const auto & t : S.data) {
-                //     auto row = t.row;
-                //     auto col = t.col;
-                //     auto v = t.value;
-
-                //     float sum = 0.;
-                //     for (auto i = 0; i < K; i++) {
-                //         sum += A.at(row, i) * B.at(col, i);
-                //     }
-
-                //     R.data.push_back({
-                //              row,
-                //              col,
-                //              v * sum
-                //      });
+                // while(col_iter_begin != col_iter_end){
+                //     R.cols.push_back(*col_iter_begin);
+                //     col_iter_begin++;
                 // }
+                // while(row_iter_begin != row_iter_end){
+                //     R.rows.push_back(*row_iter_begin);
+                //     row_iter_begin++;
+                // }
+                // while(values_iter_begin != values_iter_end){
+                //     R.values.push_back(*values_iter_begin);
+                //     values_iter_begin++;
+                // }
+
+                for (int i=0; i<S.values.size(); ++i) {
+                    auto row = S.rows[i];
+                    auto col = S.cols[i];
+                    auto v = S.values[i];
+
+                    float sum = 0.;
+                    for (auto i = 0; i < K; i++) {
+                        sum += A.at(row, i) * B.at(col, i);
+                    }
+
+                    R.values.push_back(v * sum);
+                    R.cols.push_back(col);
+                    R.rows.push_back(row);
+                }
 
                 std::vector<float> R_values;
 
