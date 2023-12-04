@@ -437,6 +437,46 @@ namespace SDDMM {
                     }
                 }
 
+                std::stringstream name;
+                name << "data2.txt";
+
+                std::ofstream output_file;
+                output_file.open("../../" + name.str());
+                output_file << "rows\n";
+                for(const auto& val : rows){
+                    output_file << val << " ";
+                }
+                output_file << "\n" << "rows_local\n";
+                for(const auto& val : rows_local){
+                    output_file << val << " ";
+                }
+                output_file << "\n" << "cols\n";
+                for(const auto& val : cols){
+                    output_file << val << " ";
+                }
+                output_file << "\n" << "values\n";
+                for(const auto& val : values){
+                    output_file << val << " ";
+                }
+                output_file << "\n" << "slice_sizes\n";
+                for(const auto& val : slice_sizes){
+                    output_file << val << " ";
+                }
+                output_file << "\n" << "active_rows\n";
+                for(const auto& val : active_rows){
+                    output_file << val << " ";
+                }
+                output_file << "\n" << "active_rows_sizes\n";
+                for(const auto& val : active_rows_sizes){
+                    output_file << val << " ";
+                }
+                output_file << "\n" << "S_tile_starts\n";
+                for(const auto& val : S_tile_starts){
+                    output_file << val << " ";
+                }
+                output_file << "\n";
+                output_file.close();
+
                 return {
                         rows,
                         rows_local,
