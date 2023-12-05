@@ -47,7 +47,7 @@ namespace SDDMM {
             auto err5 = cudaMemcpy(Y_d, Y.data.data(), y_len_values_d, cudaMemcpyHostToDevice);
             auto err8 = cudaMemcpy(XY_out_d, std::vector<Types::expmt_t>(xy_len_values, 0.0).data(), xy_len_values_d, cudaMemcpyHostToDevice);
 
-            CudaTiledMatMult (
+            CUDA_TILED_MAT_MULT::CudaTiledMatMult (
                 X_d, X.n, X.m, Y_d, Y.m, ts, XY_out_d
             );
 

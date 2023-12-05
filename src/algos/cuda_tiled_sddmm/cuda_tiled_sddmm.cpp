@@ -66,7 +66,7 @@ namespace SDDMM {
             auto err12 = cudaMemcpy(X_dense_d, X_dense.data.data(), x_dense_len_values_d, cudaMemcpyHostToDevice);
             auto err13 = cudaMemcpy(Y_dense_d, Y_dense.data.data(), y_dense_len_values_d, cudaMemcpyHostToDevice);
 
-            CudaTiledSDDMM(
+            CUDA_TILED_SDDMM_KERNEL::CudaTiledSDDMM(
                 A_sparse_values_d, 
                 A_sparse_rows_d, 
                 A_sparse_cols_d, 
