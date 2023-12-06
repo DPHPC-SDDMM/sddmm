@@ -4,7 +4,10 @@
 
 #include "../../defines.h"
 
-extern "C" void run_kernel(int num_threadblocks,
+namespace SDDMM {
+    namespace Algo {
+        namespace SML2SDDMM_Kernel {
+            extern "C" void run_kernel(int num_threadblocks,
                 const SDDMM::Types::vec_size_t* __restrict__ S_tile_rows, 
                 const SDDMM::Types::vec_size_t* __restrict__ S_tile_cols, 
                 const float* __restrict__ S_tile_values,
@@ -19,3 +22,6 @@ extern "C" void run_kernel(int num_threadblocks,
                 SDDMM::Types::vec_size_t tile_k_id,
                 SDDMM::Types::vec_size_t num_k_tiles,
                 SDDMM::Types::vec_size_t K);
+        }
+    }
+}

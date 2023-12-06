@@ -390,7 +390,7 @@ namespace SDDMM {
                         local_print("Tile K id: " + std::to_string(tile_k_id));
 
                         // launch num_threadblocks with 512 threads in each
-                        run_kernel(
+                        SML2SDDMM_Kernel::run_kernel(
                                 num_threadblocks,
                                 // S
                                 &rows_local_d[slice_start_ind],

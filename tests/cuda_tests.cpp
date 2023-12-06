@@ -3,6 +3,7 @@
 #include "../src/algos/cuda_tiled_sddmm/cuda_tiled_sddmm.cpp"
 #include "../src/algos/cuda_mat_mult/cuda_tiled_mat_mult.cpp"
 #include "../src/algos/sm-l2-sddmm/sm-l2-sddmm.cpp"
+#include "../src/cuda_examples/cusparse_example_1.cpp"
 
 UTEST_MAIN();
 
@@ -126,56 +127,9 @@ UTEST(Cuda_SDDMM, Tiled) {
     }
 }
 
-// UTEST(Cuda_tiled_MMult, Test) {
-//     {
-//         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(8, 4, {
-//             1,  2,  3,  4,
-//             5,  6,  7,  8,
-//             9, 10, 11, 12,
-//             13, 14, 15, 16,
-//             17, 18, 19, 20,
-//             21, 22, 23, 24,
-//             25, 26, 27, 28,
-//             29, 30, 31, 32
-//         });
-
-//         auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 8, {
-//             2,   4,  6,  8, 10, 12, 14, 16,
-//             18, 20, 22, 24, 26, 28, 30, 32,
-//             34, 36, 38, 40, 42, 44, 46, 48,
-//             50, 52, 54, 56, 58, 60, 62, 64
-//         });
-
-//         auto expected = X*Y;
-//         auto result2 = X.tmult(4, Y);
-//         ASSERT_TRUE(result2 == expected);
-
-//         // for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
-//         // omp_set_num_threads(num_threads);
-//         auto result = SDDMM::Algo::cuda_tiled_mat_mult(X, Y, 4);
-//         ASSERT_TRUE(result == expected);
-//         // }
-//     }
-//     {
-//         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 4, {
-//             1,  2,  3,  4
-//         });
-
-//         auto Y = SDDMM::Types::Matrix::deterministic_gen_row_major(4, 8, {
-//             2,   4,  6,  8, 10, 12, 14, 16,
-//             18, 20, 22, 24, 26, 28, 30, 32,
-//             34, 36, 38, 40, 42, 44, 46, 48,
-//             50, 52, 54, 56, 58, 60, 62, 64
-//         });
-
-//         auto expected = X*Y;
-//         auto result2 = X.tmult(4, Y);
-//         ASSERT_TRUE(result2 == expected);
-
-//         // for(int num_threads = 1; num_threads<max_thread_num; ++num_threads){
-//         // omp_set_num_threads(num_threads);
-//         auto result = SDDMM::Algo::cuda_tiled_mat_mult(X, Y, 4);
-//         ASSERT_TRUE(result == expected);
-//         // }
-//     }
-// }
+UTEST(cuSPARSE, Test) {
+    {
+        // cuSPARSE test
+        SDDMM::CUDA_EXAMPLES::cuSPARSE_example_1();
+    }
+}
