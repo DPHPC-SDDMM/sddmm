@@ -24,3 +24,6 @@ http://www.gnuplot.info/download.html
 
 ### Expected results
 There should be a build folder containing either Debug, Release or both containing all executables that are listed as targets inside the toplevel CMakeLists.txt
+
+### cuSPARSE examples
+https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuSPARSE
