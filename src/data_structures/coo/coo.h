@@ -15,6 +15,7 @@
 
 #include "../../defines.h"
 #include "../matrix/matrix.h"
+#include "../csr/csr.h"
 #include "../../matrix_file_reading/mmio.h"
 
 namespace SDDMM{
@@ -44,6 +45,27 @@ namespace SDDMM{
                     return row < other.row;
                 }
             };
+
+            inline static const char* _ptr_cast(const Types::vec_size_t* src){
+                const void* ptot = static_cast<const void*>(src);
+                return static_cast<const char*>(ptot);
+            }
+
+            inline static const char* _ptr_cast(const Types::expmt_t* src){
+                const void* ptot = static_cast<const void*>(src);
+                return static_cast<const char*>(ptot);
+            }
+
+            inline static const char* _uint_ptr_cast(const uint32_t* src){
+                const void* ptot = static_cast<const void*>(src);
+                return static_cast<const char*>(ptot);
+            }
+
+            inline static const char* _float_ptr_cast(const float* src){
+                const void* ptot = static_cast<const void*>(src);
+                return static_cast<const char*>(ptot);
+            }
+
         public:
             // structs could be a bit easier to access than tuples but that's up for a discussion
 
@@ -141,7 +163,7 @@ namespace SDDMM{
             }
 
             /**
-             * @param other: A reference to a sparse matrix.
+             * @param other: A reference to a COO sparse matrix.
              * @returns Whether all elements of both matrices are equal within an error margin of `Defines::epsilon`.
             */
             bool operator==(const COO& other){
@@ -201,7 +223,7 @@ namespace SDDMM{
                 return res;
             }
 
-            static std::string hadamard_to_file(
+            static std::string hadamard_to_bin_file(
                 std::string path, 
                 const SDDMM::Types::COO& sparse, 
                 const float sparse_sparsity,
@@ -225,169 +247,135 @@ namespace SDDMM{
                      << "_Y-" << Y.n << "x" << Y.m << "-" << Y_sparsity 
                      << "___" << time
                      << "___" << created_at.time_since_epoch().count()
-                     << ".txt";
+                     << ".bindat";
 
-                std::ofstream output_file;
-                output_file.open(path + name.str());
-                output_file << sparse.n << " " << sparse.m << "\n";
-                // for(const triplet& val : sparse.data){
-                auto s = sparse.values.size();
-                for(auto i=0; i<s; ++i){
-                    output_file << sparse.rows[i] << " " << sparse.cols[i] << " " << std::setprecision(12) << sparse.values[i] << "|";
-                }
-                output_file << "\n" << X.n << " " << X.m << "\n";
-                output_file << (X.is_row_major() ? Constants::row_storage : Constants::col_storage) << "\n";
-                for(const SDDMM::Types::expmt_t& val : X.data){
-                    output_file << std::setprecision(12) << val << " ";
-                }
-                output_file << "\n" << Y.n << " " << Y.m << "\n";
-                output_file << (Y.is_row_major() ? Constants::row_storage : Constants::col_storage) << "\n";
-                for(const SDDMM::Types::expmt_t& val : Y.data){
-                    output_file << std::setprecision(12) << val << " ";
-                }
-                output_file << "\n";
+                std::ofstream output_file(path + name.str(), std::ios::out | std::ios::binary);
+
+                // header
+                uint32_t s_t_vec_size = sizeof(Types::vec_size_t);
+                uint32_t s_t_expmt_size = sizeof(Types::expmt_t);
+                output_file.write(_uint_ptr_cast(&s_t_vec_size), sizeof(uint32_t));
+                output_file.write(_uint_ptr_cast(&s_t_expmt_size), sizeof(uint32_t));
+
+                // sparse matrix
+                Types::vec_size_t s = sparse.values.size();
+                output_file.write(_float_ptr_cast(&sparse_sparsity), sizeof(float));
+                output_file.write(_ptr_cast(&s), sizeof(Types::vec_size_t));
+                output_file.write(_ptr_cast(&sparse.n), sizeof(Types::vec_size_t));
+                output_file.write(_ptr_cast(&sparse.m), sizeof(Types::vec_size_t));
+                output_file.write(_ptr_cast(sparse.values.data()), sparse.values.size() * sizeof(Types::expmt_t));
+                output_file.write(_ptr_cast(sparse.rows.data()), sparse.rows.size() * sizeof(Types::vec_size_t));
+                output_file.write(_ptr_cast(sparse.cols.data()), sparse.cols.size() * sizeof(Types::vec_size_t));
+
+                // matrix X
+                s = X.data.size();
+                output_file.write(_float_ptr_cast(&X_sparsity), sizeof(float));
+                output_file.write(_ptr_cast(&s), sizeof(Types::vec_size_t));
+                output_file.write(_ptr_cast(&X.n), sizeof(Types::vec_size_t));
+                output_file.write(_ptr_cast(&X.m), sizeof(Types::vec_size_t));
+                output_file.write(_uint_ptr_cast(X.is_row_major() ? &Constants::row_storage : &Constants::col_storage), sizeof(uint32_t));
+                output_file.write(_ptr_cast(X.data.data()), X.data.size() * sizeof(Types::expmt_t));
+
+                // matrix Y
+                s = Y.data.size();
+                output_file.write(_float_ptr_cast(&Y_sparsity), sizeof(float));
+                output_file.write(_ptr_cast(&s), sizeof(Types::vec_size_t));
+                output_file.write(_ptr_cast(&Y.n), sizeof(Types::vec_size_t));
+                output_file.write(_ptr_cast(&Y.m), sizeof(Types::vec_size_t));
+                output_file.write(_uint_ptr_cast(Y.is_row_major() ? &Constants::row_storage : &Constants::col_storage), sizeof(uint32_t));
+                output_file.write(_ptr_cast(Y.data.data()), Y.data.size() * sizeof(Types::expmt_t));
+
                 output_file.close();
+
                 return name.str();
             }
 
-            static void hadamard_from_file(
+            static void hadamard_from_bin_file(
                 std::string file_name, 
-                SDDMM::Types::COO& out_sparse, 
-                SDDMM::Types::Matrix& out_X, 
-                SDDMM::Types::Matrix& out_Y)
+                SDDMM::Types::COO& out_coo,
+                SDDMM::Types::CSR& out_csr,
+                float& out_sparse_sparsity,
+                SDDMM::Types::Matrix& out_X,
+                float& out_x_sparsity, 
+                SDDMM::Types::Matrix& out_Y,
+                float& out_y_sparsity)
             {
-                std::ifstream input_file;
-                input_file.open(file_name);
+                std::ifstream input_file(file_name, std::ios::in | std::ios::binary);
+                input_file.seekg (0, input_file.end);
+                uint64_t length = input_file.tellg();
+                input_file.seekg (0, input_file.beg);
 
-                int state = 0;
-                // Variable which stores the numerical content of a single line of the file.
-                std::vector<SDDMM::Types::expmt_t> nums;
-                while(!input_file.eof()){
-                    std::string input;
-                    std::getline(input_file, input, '\n');
-                    /*
-                    NOTE: 
-                    Although in most cases a switch-case block is harder to maintain than multiple if-elses,
-                    switch statements are generally faster than nested if-else statements.
-                    This is because during compilation the compiler generates a jump table
-                    that is used to select the path of execution.
-                    Since our software is performance-critical,
-                    as minimally useful as it may be in practice, it should be considered.
-                    */
-                    switch (state){
-                        case 0: // size of sparse matrix
-                            nums = string_to_num_vec(input);
-                            out_sparse.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
-                            out_sparse.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
-                            break;
-                        
-                        case 1: // value triplets of sparse matrix
-                            // out_sparse.data
-                            {
-                                auto trip = string_to_triplets(input);
-                                for(auto t : trip){
-                                    out_sparse.rows.push_back(t.row);
-                                    out_sparse.cols.push_back(t.col);
-                                    out_sparse.values.push_back(t.value);
-                                }
-                            }
-                            break;
-                        case 2: // size of X
-                            nums = string_to_num_vec(input);
-                            out_X.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
-                            out_X.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
-                            break;
-                        case 3:
-                            // row/col of X
-                            if(input.compare(std::to_string(Constants::row_storage)) == 0){
-                                out_X.set_matrix_format(Types::MatrixFormat::RowMajor);
-                            } 
-                            else{
-                                out_X.set_matrix_format(Types::MatrixFormat::ColMajor);
-                            }
-                            break;
-                        case 4: // values of X
-                            out_X.data = string_to_num_vec(input);
-                            break;
+                char* buffer = new char[length];
+                input_file.read(buffer, length);
 
-                        case 5: // size of Y
-                            nums = string_to_num_vec(input);
-                            out_Y.n = static_cast<SDDMM::Types::vec_size_t>(nums[0]);
-                            out_Y.m = static_cast<SDDMM::Types::vec_size_t>(nums[1]);
-                            break;
-                        case 6:
-                            // row/col of Y
-                            if(input.compare(std::to_string(Constants::row_storage)) == 0){
-                                out_Y.set_matrix_format(Types::MatrixFormat::RowMajor);
-                            } 
-                            else{
-                                out_Y.set_matrix_format(Types::MatrixFormat::ColMajor);
-                            }
-                            break;
-                        case 7: // values of Y
-                            out_Y.data = string_to_num_vec(input);
-                            break;
-                    }
-                    state++; // Transition to the next state of reading
+                uint32_t s_t_vec_size;
+                memcpy(&s_t_vec_size, &buffer[0], sizeof(uint32_t));
+                uint32_t s_t_expmt_size;
+                memcpy(&s_t_expmt_size, &buffer[4], sizeof(uint32_t));
+                // uint32_t next_size = static_cast<uint32_t>(buffer[8]);
+                // memcpy(&next_size, &buffer[8], sizeof(uint32_t));
+
+                if(sizeof(Types::vec_size_t) != s_t_vec_size){
+                    throw std::runtime_error(
+                        std::string("Impossible to import file ") + 
+                        file_name + 
+                        std::string("\n...required sizeof vec_size_t is ") + 
+                        std::to_string(s_t_vec_size) + 
+                        std::string(" but program sizeof vec_size_t is ") + 
+                        std::to_string(sizeof(Types::vec_size_t)) +
+                        std::string("\nRecompile the program with the appropriate type size")
+                    );
                 }
 
-                
-            }
-
-            static std::vector<triplet> string_to_triplets(std::string input){
-                std::vector<triplet> values;
-                std::stringstream temp;
-                for(char s : input){
-                    if(s == '|'){
-                        std::string str = temp.str();
-                        triplet t = string_to_triplet(str);
-                        values.push_back(t);
-                        temp.str(std::string());
-                    }
-                    else{
-                        temp << s;
-                    }
+                if(sizeof(Types::expmt_t) != s_t_expmt_size){
+                    throw std::runtime_error(
+                        std::string("Impossible to import file ") + 
+                        file_name + 
+                        std::string("\n...required sizeof expmt_t is ") + 
+                        std::to_string(s_t_vec_size) + 
+                        std::string(" but program sizeof expmt_t is ") + 
+                        std::to_string(sizeof(Types::expmt_t)) +
+                        std::string("\nRecompile the program with the appropriate type size")
+                    );
                 }
-                return values;
-            }
 
-            static triplet string_to_triplet(std::string input){
-                std::vector<SDDMM::Types::expmt_t> vals = string_to_num_vec(input);
-                triplet t = {
-                    static_cast<SDDMM::Types::vec_size_t>(vals[0]),
-                    static_cast<SDDMM::Types::vec_size_t>(vals[1]),
-                    static_cast<SDDMM::Types::expmt_t>(vals[2])
-                };
+                uint64_t f_index = 8;
+                                      memcpy(&out_sparse_sparsity, &buffer[f_index], sizeof(float)); f_index += sizeof(float);
+                Types::vec_size_t s1; memcpy(&s1, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
+                Types::vec_size_t n1; memcpy(&n1, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
+                Types::vec_size_t m1; memcpy(&m1, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
+                out_coo.n = n1;
+                out_coo.m = m1;
+                out_coo.values.resize(s1); memcpy(out_coo.values.data(), &buffer[f_index], s1*sizeof(Types::expmt_t)); f_index += s1*sizeof(Types::expmt_t);
+                out_coo.rows.resize(s1);   memcpy(out_coo.rows.data(),   &buffer[f_index], s1*sizeof(Types::expmt_t)); f_index += s1*sizeof(Types::vec_size_t);
+                out_coo.cols.resize(s1);   memcpy(out_coo.cols.data(),   &buffer[f_index], s1*sizeof(Types::expmt_t)); f_index += s1*sizeof(Types::vec_size_t);
 
-                return t;
-            }
+                                      memcpy(&out_x_sparsity, &buffer[f_index], sizeof(float)); f_index += sizeof(float);
+                Types::vec_size_t s2; memcpy(&s2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
+                Types::vec_size_t n2; memcpy(&n2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
+                Types::vec_size_t m2; memcpy(&m2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
+                uint32_t          t2; memcpy(&t2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(uint32_t);
+                out_X.n = n2;
+                out_X.m = m2;
+                out_X.set_matrix_format(t2 == Constants::col_storage ? Types::MatrixFormat::ColMajor : Types::MatrixFormat::RowMajor);
+                out_X.data.resize(s2);
+                memcpy(out_X.data.data(), &buffer[f_index], s2*sizeof(Types::expmt_t)); f_index += s2*sizeof(Types::expmt_t);
 
-            static std::vector<SDDMM::Types::expmt_t> string_to_num_vec(std::string input){
-                std::vector<SDDMM::Types::expmt_t> values;
-                std::stringstream temp;
-                for(char s : input){
-                    if(s == ' '){ // Element (number) of file is finished 
-                        std::string t = temp.str(); // Copy content of buffer
-                        if(!t.empty()){
-                            SDDMM::Types::expmt_t val = std::stod(t);
-                            val = std::round(1e12*val)/1e12;
-                            values.push_back(static_cast<SDDMM::Types::expmt_t>(val));
-                        }
-                        temp.str(std::string()); // Empty content of buffer
-                    }
-                    else{
-                        temp << s; // Read character from file 
-                    }
-                }
-                //? Why is this not captured by the above loop?
-                // last one
-                std::string t = temp.str();
-                if(!t.empty()){
-                    SDDMM::Types::expmt_t val = std::stod(t);
-                    val = std::round(1e12*val)/1e12;
-                    values.push_back(static_cast<SDDMM::Types::expmt_t>(val));
-                }
-                return values;
+                                      memcpy(&out_y_sparsity, &buffer[f_index], sizeof(float)); f_index += sizeof(float);
+                Types::vec_size_t s3; memcpy(&s3, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
+                Types::vec_size_t n3; memcpy(&n3, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
+                Types::vec_size_t m3; memcpy(&m3, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
+                uint32_t          t3; memcpy(&t3, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(uint32_t);
+                out_Y.n = n3;
+                out_Y.m = m3;
+                out_Y.set_matrix_format(t3 == Constants::col_storage ? Types::MatrixFormat::ColMajor : Types::MatrixFormat::RowMajor);
+                out_Y.data.resize(s3);
+                memcpy(out_Y.data.data(), &buffer[f_index], s3*sizeof(Types::expmt_t)); f_index += s3*sizeof(Types::expmt_t);
+
+                assert(f_index == length && "f_index must be the same as length at the end!!");
+
+                out_csr = out_coo.to_csr();
+                delete[] buffer;
             }
 
             static COO read_matrix_market_file(const char* filepath)

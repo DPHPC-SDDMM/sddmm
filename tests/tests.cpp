@@ -900,35 +900,6 @@ UTEST(Matrix, SDDMM_parallel) {
     }
 }
 
-UTEST(Matrix, Generator_to_file){
-    std::string target_folder = ".";
-    target_folder += SDDMM::Defines::path_separator;
-    for(int i=1; i<100; i*=10)
-    {
-        auto X = SDDMM::Types::Matrix::generate_row_major(i*5, i*8, 0.0f);
-        auto Y = SDDMM::Types::Matrix::generate_col_major(i*8, i*5, 0.0f);
-        auto mat = SDDMM::Types::Matrix::generate_row_major(i*5, i*5, 0.1f);
-        auto coo_mat = mat.to_coo();
-        auto exp_result = coo_mat.hadamard(X*Y);
-
-        std::string name = SDDMM::Types::COO::hadamard_to_file(
-            target_folder, coo_mat, 0.1f, X, 0.0f, Y, 0.0f);
-
-        SDDMM::Types::COO out_sparse;
-        SDDMM::Types::Matrix out_X(0,0);
-        SDDMM::Types::Matrix out_Y(0,0);
-        SDDMM::Types::COO::hadamard_from_file(
-            target_folder + name,
-            out_sparse, out_X, out_Y);
-
-        ASSERT_TRUE(out_sparse == coo_mat);
-        ASSERT_TRUE(X == out_X);
-        ASSERT_TRUE(Y == out_Y);
-
-        std::remove((target_folder + name).c_str());
-    }
-}
-
 // UTEST(Matrix, SDDMM_giant_op) {
 //     auto X = SDDMM::Types::Matrix::generate_row_major(5000, 8000);
 

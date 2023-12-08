@@ -64,8 +64,8 @@ namespace SDDMM {
     }
 
     namespace Constants {
-        constexpr int col_storage = 1;
-        constexpr int row_storage = 2;
+        constexpr uint32_t col_storage = 1;
+        constexpr uint32_t row_storage = 2;
     }
 
     /**
