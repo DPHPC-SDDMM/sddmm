@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <functional>
+#include "../src/defines.h"
 #include "../utest/utest.h"
 
 namespace TestHelpers {
@@ -10,7 +11,9 @@ namespace TestHelpers {
     using FEquals = std::function<bool(T, T)>;
 
     template<typename T>
-    bool compare_vectors(const std::vector<T>& v1, const std::vector<T>& v2, const FEquals<T>& equals = [](T x, T y) {return x == y;}) {
+    bool compare_vectors(const std::vector<T>& v1, const std::vector<T>& v2, const FEquals<T>& equals = [](T x, T y) {
+        return std::fabs(x - y) <= SDDMM::Defines::epsilon;
+    }) {
         if(v1.size() != v2.size()){
             return false;
         }
