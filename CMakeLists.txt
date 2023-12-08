@@ -58,10 +58,15 @@ add_subdirectory(tests)
 add_subdirectory(src/experiments)
 add_subdirectory(src/matrix_file_reading)
 
-# use zero filtering in order to run all tests
-# add_compile_definitions(SDDMM_PARALLEL_CPU_ZERO_FILTER)
+# ======================================================================================
+# NOTE: you MUST enable SDDMM_PARALLEL_CPU_ZERO_FILTER for all the tests to work!!!
+add_compile_definitions(SDDMM_PARALLEL_CPU_ZERO_FILTER)
+# ======================================================================================
 # low precision requirements for floating point operations
+# GPU tests will likely fail if this is not enabled because the GPU  is not built for
+# precision (as it seems)
 add_compile_definitions(USE_LOW_PRECISION)
+# ======================================================================================
 
 # Mark only one
 # add_compile_definitions(NONE)
