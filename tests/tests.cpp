@@ -372,6 +372,111 @@ UTEST(Matrix, Flip) {
     }
 }
 
+UTEST(Matrix, CSR_COO_Conversion) {
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 3, {
+            0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
+    }
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 3, {
+            0.5, 0.0, 0.5,
+            0.0, 0.5, 0.0,
+            0.5, 0.0, 0.5
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
+    }
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 3, {
+            -0.5, 0.0, 0.5,
+            0.0, 0.5, 0.0,
+            0.5, 0.0, 0.5
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+        
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
+    }
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 3, {
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+        
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
+    }
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(5, 5, {
+            0.5, 1.0, 0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5, 1.0, 0.5
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+        
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
+    }
+}
+
 UTEST(Matrix, SDDMM_op) {
     {
         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 4, {
