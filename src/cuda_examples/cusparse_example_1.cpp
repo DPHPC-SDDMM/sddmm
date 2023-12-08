@@ -77,17 +77,21 @@
 
 namespace SDDMM {
     namespace CUDA_EXAMPLES {
-        int cuSPARSE_example_1(void) {
+        bool cuSPARSE_example_1() {
             // Host problem definition
             int   A_num_rows   = 4;
             int   A_num_cols   = 4;
             int   B_num_rows   = A_num_cols;
             int   B_num_cols   = 3;
+            int   BT_num_rows  = A_num_cols;
+            int   BT_num_cols  = 3;
             int   C_nnz        = 9;
             int   lda          = A_num_cols;
             int   ldb          = B_num_cols;
+            int   ldbT         = BT_num_rows;
             int   A_size       = lda * A_num_rows;
             int   B_size       = ldb * B_num_rows;
+            int   BT_size      = ldbT * B_num_rows;
 
             float hA[]         = {  1.0f,   2.0f,  3.0f,  4.0f,
                                     5.0f,   6.0f,  7.0f,  8.0f,
@@ -99,9 +103,13 @@ namespace SDDMM {
                                     7.0f,  8.0f,  9.0f,
                                     10.0f, 11.0f, 12.0f };
 
+            float hBT[]         = { 1.0f, 4.0f, 7.0f, 10.0f,
+                                    2.0f, 5.0f, 8.0f, 11.0f,
+                                    3.0f, 6.0f, 9.0f, 12.0f };
+
             int   hC_offsets[] = { 0, 3, 4, 7, 9 };
             int   hC_columns[] = { 0, 1, 2, 1, 0, 1, 2, 0, 2 };
-            float hC_values[]  = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+            float hC_values[]  = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
             float hC_result[]  = { 70.0f, 80.0f, 90.0f, 184.0f, 246.0f, 288.0f, 330.0f, 334.0f, 450.0f };
             float alpha        = 1.0f;
             float beta         = 0.0f;
@@ -109,15 +117,17 @@ namespace SDDMM {
             //--------------------------------------------------------------------------
             // Device memory management
             int   *dC_offsets, *dC_columns;
-            float *dC_values, *dB, *dA;
+            float *dC_values, *dB, *dBT, *dA;
             CHECK_CUDA( cudaMalloc((void**) &dA, A_size * sizeof(float)) )
             CHECK_CUDA( cudaMalloc((void**) &dB, B_size * sizeof(float)) )
+            CHECK_CUDA( cudaMalloc((void**) &dBT, BT_size * sizeof(float)) )
             CHECK_CUDA( cudaMalloc((void**) &dC_offsets, (A_num_rows + 1) * sizeof(int)) )
             CHECK_CUDA( cudaMalloc((void**) &dC_columns, C_nnz * sizeof(int))   )
             CHECK_CUDA( cudaMalloc((void**) &dC_values,  C_nnz * sizeof(float)) )
 
             CHECK_CUDA( cudaMemcpy(dA, hA, A_size * sizeof(float), cudaMemcpyHostToDevice) )
             CHECK_CUDA( cudaMemcpy(dB, hB, B_size * sizeof(float), cudaMemcpyHostToDevice) )
+            CHECK_CUDA( cudaMemcpy(dBT, hBT, BT_size * sizeof(float), cudaMemcpyHostToDevice) )
             CHECK_CUDA( cudaMemcpy(dC_offsets, hC_offsets, (A_num_rows + 1) * sizeof(int), cudaMemcpyHostToDevice) )
             CHECK_CUDA( cudaMemcpy(dC_columns, hC_columns, C_nnz * sizeof(int), cudaMemcpyHostToDevice) )
             CHECK_CUDA( cudaMemcpy(dC_values, hC_values, C_nnz * sizeof(float), cudaMemcpyHostToDevice) )
@@ -132,7 +142,9 @@ namespace SDDMM {
             // Create dense matrix A
             CHECK_CUSPARSE( cusparseCreateDnMat(&matA, A_num_rows, A_num_cols, lda, dA, CUDA_R_32F, CUSPARSE_ORDER_ROW) )
             // Create dense matrix B
-            CHECK_CUSPARSE( cusparseCreateDnMat(&matB, A_num_cols, B_num_cols, ldb, dB, CUDA_R_32F, CUSPARSE_ORDER_ROW) )
+            // CHECK_CUSPARSE( cusparseCreateDnMat(&matB, A_num_cols, B_num_cols, ldb, dB, CUDA_R_32F, CUSPARSE_ORDER_ROW) )
+            // Create dense matrix BT
+            CHECK_CUSPARSE( cusparseCreateDnMat(&matB, BT_num_rows, BT_num_cols, ldbT, dBT, CUDA_R_32F, CUSPARSE_ORDER_COL) )
             // Create sparse matrix C in CSR format
             CHECK_CUSPARSE( cusparseCreateCsr(&matC, A_num_rows, B_num_cols, C_nnz,
                                         dC_offsets, dC_columns, dC_values,
@@ -175,10 +187,13 @@ namespace SDDMM {
                     break;
                 }
             }
-            if (correct)
-                printf("sddmm_csr_example test PASSED\n");
-            else
-                printf("sddmm_csr_example test FAILED: wrong result\n");
+            if (correct){
+                // printf("sddmm_csr_example test PASSED\n");
+            }
+            else{
+                // printf("sddmm_csr_example test FAILED: wrong result\n");
+                return false;
+            }
             //--------------------------------------------------------------------------
             // device memory deallocation
             CHECK_CUDA( cudaFree(dBuffer) )
@@ -187,7 +202,7 @@ namespace SDDMM {
             CHECK_CUDA( cudaFree(dC_offsets) )
             CHECK_CUDA( cudaFree(dC_columns) )
             CHECK_CUDA( cudaFree(dC_values) )
-            return EXIT_SUCCESS;
+            return true;
         }
     }
 }

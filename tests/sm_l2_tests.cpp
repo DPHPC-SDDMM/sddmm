@@ -190,9 +190,9 @@ UTEST(SM_L2, Init_test) {
     {
         // very sparse, very long
         float sparsity = 0.999;
-        SDDMM::Types::vec_size_t N = 128;
-        SDDMM::Types::vec_size_t M = 128;
-        SDDMM::Types::vec_size_t K = 32*1000;
+        SDDMM::Types::vec_size_t N = 10000;
+        SDDMM::Types::vec_size_t M = 10000;
+        SDDMM::Types::vec_size_t K = 128;
         SDDMM::Types::COO S = SDDMM::Types::Matrix::generate_row_major(N, M, sparsity).to_coo();
         SDDMM::Types::Matrix A = SDDMM::Types::Matrix::generate_row_major(N, K, 0);
         SDDMM::Types::Matrix B = SDDMM::Types::Matrix::generate_col_major(K, M, 0);

@@ -13,8 +13,33 @@
 #include <algorithm>
 #include <iomanip>
 #include <cassert>
+#include <cusparse.h>         // cusparseSpMM
 
 namespace SDDMM {
+
+    // "proper cuda error checking"
+    // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
+    #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+    inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+    {
+        if (code != cudaSuccess)
+        {
+            fprintf(stdout, "==================================================================\n");
+            fprintf(stdout,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+            fprintf(stdout, "==================================================================\n");
+            if (abort) exit(code);
+        }
+    }
+
+    #define sparse_gpuErrchk(func)                                                   \
+    {                                                                              \
+        cusparseStatus_t status = (func);                                          \
+        if (status != CUSPARSE_STATUS_SUCCESS) {                                   \
+            printf("CUSPARSE API failed at line %d with error: %s (%d)\n",         \
+                __LINE__, cusparseGetErrorString(status), status);              \
+            exit(status);                                                          \
+        }                                                                          \
+    }
 
     /**
      * All type declarations
@@ -24,6 +49,7 @@ namespace SDDMM {
          * This is the data type used for all experiments!
         */
         typedef float expmt_t;
+        constexpr auto cuda_expmt_t = cudaDataType_t::CUDA_R_32F;
 
         /**
          * These are all other data types that like to have aggregated names
@@ -31,6 +57,7 @@ namespace SDDMM {
         // cost for using 8 bytes vec_size_t: about +20%
         // typedef std::vector<expmt_t>::size_type vec_size_t;
         typedef uint32_t vec_size_t;
+        constexpr auto cuda_vec_size_t = cusparseIndexType_t::CUSPARSE_INDEX_32I;
 
         typedef std::chrono::microseconds time_measure_unit;
         typedef int64_t time_duration_unit;
