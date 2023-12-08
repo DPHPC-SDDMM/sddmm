@@ -13,9 +13,11 @@ namespace SDDMM {
             // reserve space and initialise row pointers
             mat.values.reserve(values.size());
             mat.col_idx.reserve(values.size());
-            mat.row_ptr.resize(n + 1, 0);
+            mat.row_ptr.reserve(n + 1);
 
-            int last_row = -1;
+            int last_row = 0;
+            int row_counter = 0;
+            mat.row_ptr.push_back(row_counter);
             // iterate over each triplet and insert components into the corresponding array
             auto s = values.size();
             for (auto i=0; i<s; ++i) {
@@ -24,15 +26,14 @@ namespace SDDMM {
                 mat.values.push_back(values[i]);
 
                 // row pointer
-                while (last_row < rows[i]) {
-                    mat.row_ptr[++last_row] = mat.values.size();
+                if (last_row != rows[i]) {
+                    mat.row_ptr.push_back(row_counter);
                 }
+                last_row = rows[i];
+                row_counter++;
             }
 
-            // leftover rows
-            while (last_row < n) {
-                mat.row_ptr[++last_row] = mat.values.size();
-            }
+            mat.row_ptr.push_back(mat.values.size());
 
             return mat;
         }
