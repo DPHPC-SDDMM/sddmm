@@ -2,6 +2,7 @@
 #include "../data_structures/csr/csr.h"
 #include "../algos/cuda_sddmm/cuda_sddmm.cpp"
 #include "../algos/sm-l2-sddmm/sm-l2-gpu.cuh"
+#include "../algos/cusparse_sddmm/cusparse_1.cpp"
 #include "../results.h"
 
 namespace SDDMM {
@@ -10,7 +11,7 @@ namespace SDDMM {
             public:
             enum class TestSubject {
                 Non_Tiled_Baseline,
-                Tiled_Baseline,
+                cuSPARSE,
                 Sm_L2
             };
 
@@ -20,6 +21,7 @@ namespace SDDMM {
                 int tot_exp,
                 Results::ExperimentInfo& info,
                 Types::COO& coo_mat, 
+                Types::CSR& csr_mat,
                 Types::Matrix& X, 
                 Types::Matrix& Y, 
                 Types::expmt_t& total
@@ -29,8 +31,8 @@ namespace SDDMM {
                     case TestSubject::Non_Tiled_Baseline:
                     data.label = "non_tiled Baseline";
                     break;
-                    case TestSubject::Tiled_Baseline:
-                    data.label = "tiled Baseline";
+                    case TestSubject::cuSPARSE:
+                    data.label = "cuSPARSE";
                     break;
                     case TestSubject::Sm_L2:
                     data.label = "sm_l2";
@@ -55,10 +57,10 @@ namespace SDDMM {
                         
                         switch(subject){
                             case TestSubject::Non_Tiled_Baseline:
-                            // total += SDDMM::Algo::parallel_sddmm_git(coo_mat, X, Y, info.n_cpu_threads, &data);
+                            total += SDDMM::Algo::cuda_sddmm(coo_mat, X, Y, &data).values[0];
                             break;
-                            case TestSubject::Tiled_Baseline:
-                            // total += SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, info.n_cpu_threads, &data).values[0];
+                            case TestSubject::cuSPARSE:
+                            total += SDDMM::Algo::cuSPARSE_SDDMM(csr_mat, X, Y, &data).values[0];
                             break;
                         }
                     }
@@ -79,6 +81,7 @@ namespace SDDMM {
 
             std::cout << TEXT::Cast::Cyan("Matrix to coo") << std::endl;
             auto coo_mat = sparse_mat.to_coo();
+            auto csr_mat = sparse_mat.to_csr();
 
             std::cout << TEXT::Cast::Cyan("Start measurements") << std::endl;
             // ===================================================================
@@ -94,7 +97,7 @@ namespace SDDMM {
             std::vector<Results::ExperimentData> results;
             int i=1;
             for(int i=0; i<subject.size(); ++i){
-                results.push_back(GPU_SDDMMBenchmarks::run(subject[i], i+1, subject.size(), info, coo_mat, X, Y, total[i]));
+                results.push_back(GPU_SDDMMBenchmarks::run(subject[i], i+1, subject.size(), info, coo_mat, csr_mat, X, Y, total[i]));
             }
 
             // ===================================================================
