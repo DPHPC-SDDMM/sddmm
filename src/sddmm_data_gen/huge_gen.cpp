@@ -1,6 +1,9 @@
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <chrono>
+#include "../defines.h"
 #include "../data_structures/matrix/matrix.h"
 #include "../data_structures/csr/csr.h"
 #include "../data_structures/coo/coo.h"
@@ -70,7 +73,7 @@ namespace SDDMM {
                 );
             }
 
-            std::vector<std::chrono::_V2::system_clock::time_point> ts;
+            std::vector<std::chrono::high_resolution_clock::time_point> ts;
             std::vector<std::string> ts_labels;
 
             ts.push_back(std::chrono::high_resolution_clock::now());

@@ -1,5 +1,7 @@
 /build/*
 /.vscode/*
+/.vs/*
+/out/*
 .cuda_arch
 *.pyc
 

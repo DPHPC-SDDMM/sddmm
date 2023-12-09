@@ -61,31 +61,35 @@ namespace SDDMM{
              * @returns Whether all elements of both matrices are equal within an error margin of `Defines::epsilon`.
             */
             bool operator==(const CSR& other){
-                if(values.size() != other.values.size())
+                return equals(other);
+            }
+
+            bool equals(const CSR& other) {
+                if (values.size() != other.values.size())
                     return false;
-                if(row_ptr.size() != other.row_ptr.size())
+                if (row_ptr.size() != other.row_ptr.size())
                     return false;
-                if(values.size() != other.col_idx.size())
+                if (values.size() != other.col_idx.size())
                     return false;
 
                 const Types::expmt_t epsilon = Defines::epsilon;
 
                 Types::vec_size_t s = values.size();
-                for(Types::vec_size_t i=0; i<s; ++i){
+                for (Types::vec_size_t i = 0; i < s; ++i) {
                     auto c = std::abs(values[i] - other.values[i]);
-                    if(c  > epsilon) return false;
+                    if (c > epsilon) return false;
                 }
 
                 s = row_ptr.size();
-                for(Types::vec_size_t i=0; i<s; ++i){
+                for (Types::vec_size_t i = 0; i < s; ++i) {
                     Types::vec_size_t c = std::fabs(row_ptr[i] - other.row_ptr[i]);
-                    if(c  > epsilon) return false;
+                    if (c > epsilon) return false;
                 }
 
                 s = col_idx.size();
-                for(Types::vec_size_t i=0; i<s; ++i){
+                for (Types::vec_size_t i = 0; i < s; ++i) {
                     Types::vec_size_t c = std::fabs(col_idx[i] - other.col_idx[i]);
-                    if(c  > epsilon) return false;
+                    if (c > epsilon) return false;
                 }
 
                 return true;
@@ -103,8 +107,6 @@ namespace SDDMM{
                 res.col_idx.reserve(col_idx.size());
                 res.row_ptr.reserve(row_ptr.size());
 
-                Types::vec_size_t o_col = 0;
-                Types::vec_size_t o_row = 0;
                 Types::vec_size_t s = row_ptr.size()-1;
                 Types::vec_size_t v_ind = 0;
                 

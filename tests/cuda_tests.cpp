@@ -63,7 +63,7 @@ UTEST(Cuda_SDDMM, Non_Tiled) {
         // std::cout << "=============" << std::endl;
         // std::cout << exp_result << std::endl;
 
-        ASSERT_TRUE(result == exp_result);
+        ASSERT_TRUE(result.equals(exp_result));
         // }
     }
 }
@@ -123,7 +123,7 @@ UTEST(Cuda_SDDMM, Tiled) {
         // std::cout << "=============" << std::endl;
         // std::cout << exp_result << std::endl;
 
-        ASSERT_TRUE(result == exp_result);
+        ASSERT_TRUE(result.equals(exp_result));
         // }
     }
 }
