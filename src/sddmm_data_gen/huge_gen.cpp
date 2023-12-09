@@ -25,11 +25,11 @@ namespace SDDMM {
             float S_sparsity
         ){
             if(target_folder.back() != Defines::path_separator){
-                throw std::runtime_error(
-                    std::string("target_folder path must end with a valid path-separator (") + 
-                    Defines::path_separator + 
-                    std::string(" on current OS)!")
-                );
+                std::string msg = std::string("target_folder path must end with a valid path-separator (") +
+                    Defines::path_separator +
+                    std::string(" on current OS)!");
+                TEXT::Gadgets::print_colored_text_line(msg, TEXT::RED);
+                throw std::runtime_error(msg);
             }
 
             Types::vec_size_t N = sizeof_X_in_byte / sizeof(Types::expmt_t) / K;
