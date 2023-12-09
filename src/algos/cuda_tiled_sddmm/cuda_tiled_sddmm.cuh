@@ -1,3 +1,5 @@
+#pragma once
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "../../data_structures/matrix/matrix.h"

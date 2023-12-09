@@ -1056,7 +1056,7 @@ namespace SDDMM {
 
                 return data;
             }
-
+#ifdef __AVX2__
             static Results::ExperimentData add_vectorized(
                 int cur_exp,
                 int tot_exp,
@@ -1146,6 +1146,7 @@ namespace SDDMM {
 
                 return data;
             }
+#endif
         };
         
         void unrolling_benchmark(Results::SerialExperimentInfo& info){
@@ -1187,8 +1188,10 @@ namespace SDDMM {
                 UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_2_sep_acc(12, tot, X, Y, res, info, total_12),
                 UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_4_sep_acc(13, tot, X, Y, res, info, total_13),
                 UnrollingExperiments::add_and_loc_acc_unrol_inner_loop_mult_loop_8_sep_acc(14, tot, X, Y, res, info, total_14),
-                UnrollingExperiments::add_and_loc_acc_prec_in_loop_unrol_inner_loop_mult_loop_8_sep_acc(15, tot, X, Y, res, info, total_15),
-                UnrollingExperiments::add_vectorized(16, tot, X, Y, res, info, total_16)
+                UnrollingExperiments::add_and_loc_acc_prec_in_loop_unrol_inner_loop_mult_loop_8_sep_acc(15, tot, X, Y, res, info, total_15)
+#ifdef __AVX2__
+                ,UnrollingExperiments::add_vectorized(16, tot, X, Y, res, info, total_16)
+#endif
             };
 
             std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;

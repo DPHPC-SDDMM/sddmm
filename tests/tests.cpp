@@ -172,12 +172,12 @@ UTEST(Matrix, Hadamard) {
         auto csr_mat = temp.to_csr();
         auto csr_exp_result = result_temp.to_csr();
         auto csr_result = csr_mat.hadamard(dense);
-        ASSERT_TRUE(csr_result == csr_exp_result);
+        ASSERT_TRUE(csr_result.equals(csr_exp_result));
 
         auto coo_mat = temp.to_coo();
         auto coo_exp_result = result_temp.to_coo();
         auto coo_result = coo_mat.hadamard(dense);
-        ASSERT_TRUE(coo_result == coo_exp_result);
+        ASSERT_TRUE(coo_result.equals(coo_exp_result));
     }
     {
         auto dense = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 4, {
@@ -202,12 +202,12 @@ UTEST(Matrix, Hadamard) {
         auto csr_mat = temp.to_csr();
         auto csr_exp_result = result_temp.to_csr();
         auto csr_result = csr_mat.hadamard(dense);
-        ASSERT_TRUE(csr_result == csr_exp_result);
+        ASSERT_TRUE(csr_result.equals(csr_exp_result));
 
         auto coo_mat = temp.to_coo();
         auto coo_exp_result = result_temp.to_coo();
         auto coo_result = coo_mat.hadamard(dense);
-        ASSERT_TRUE(coo_result == coo_exp_result);
+        ASSERT_TRUE(coo_result.equals(coo_exp_result));
     }
     {
         auto dense = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 4, {
@@ -232,12 +232,12 @@ UTEST(Matrix, Hadamard) {
         auto csr_mat = temp.to_csr();
         auto csr_exp_result = result_temp.to_csr();
         auto csr_result = csr_mat.hadamard(dense);
-        ASSERT_TRUE(csr_result == csr_exp_result);
+        ASSERT_TRUE(csr_result.equals(csr_exp_result));
 
         auto coo_mat = temp.to_coo();
         auto coo_exp_result = result_temp.to_coo();
         auto coo_result = coo_mat.hadamard(dense);
-        ASSERT_TRUE(coo_result == coo_exp_result);
+        ASSERT_TRUE(coo_result.equals(coo_exp_result));
     }
     {
         auto dense = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 4, {
@@ -262,12 +262,12 @@ UTEST(Matrix, Hadamard) {
         auto csr_mat = temp.to_csr();
         auto csr_exp_result = result_temp.to_csr();
         auto csr_result = csr_mat.hadamard(dense);
-        ASSERT_TRUE(csr_result == csr_exp_result);
+        ASSERT_TRUE(csr_result.equals(csr_exp_result));
 
         auto coo_mat = temp.to_coo();
         auto coo_exp_result = result_temp.to_coo();
         auto coo_result = coo_mat.hadamard(dense);
-        ASSERT_TRUE(coo_result == coo_exp_result);
+        ASSERT_TRUE(coo_result.equals(coo_exp_result));
     }
     {
         auto dense = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 4, {
@@ -292,12 +292,12 @@ UTEST(Matrix, Hadamard) {
         auto csr_mat = temp.to_csr();
         auto csr_exp_result = result_temp.to_csr();
         auto csr_result = csr_mat.hadamard(dense);
-        ASSERT_TRUE(csr_result == csr_exp_result);
+        ASSERT_TRUE(csr_result.equals(csr_exp_result));
 
         auto coo_mat = temp.to_coo();
         auto coo_exp_result = result_temp.to_coo();
         auto coo_result = coo_mat.hadamard(dense);
-        ASSERT_TRUE(coo_result == coo_exp_result);
+        ASSERT_TRUE(coo_result.equals(coo_exp_result));
     }
     {
         auto dense = SDDMM::Types::Matrix::deterministic_gen_row_major(1, 1, {
@@ -316,12 +316,12 @@ UTEST(Matrix, Hadamard) {
         auto csr_mat = temp.to_csr();
         auto csr_exp_result = result_temp.to_csr();
         auto csr_result = csr_mat.hadamard(dense);
-        ASSERT_TRUE(csr_result == csr_exp_result);
+        ASSERT_TRUE(csr_result.equals(csr_exp_result));
 
         auto coo_mat = temp.to_coo();
         auto coo_exp_result = result_temp.to_coo();
         auto coo_result = coo_mat.hadamard(dense);
-        ASSERT_TRUE(coo_result == coo_exp_result);
+        ASSERT_TRUE(coo_result.equals(coo_exp_result));
     }
     {
         auto dense = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 4, {
@@ -346,12 +346,12 @@ UTEST(Matrix, Hadamard) {
         auto csr_mat = temp.to_csr();
         auto csr_exp_result = result_temp.to_csr();
         auto csr_result = csr_mat.hadamard(dense);
-        ASSERT_TRUE(csr_result == csr_exp_result);
+        ASSERT_TRUE(csr_result.equals(csr_exp_result));
 
         auto coo_mat = temp.to_coo();
         auto coo_exp_result = result_temp.to_coo();
         auto coo_result = coo_mat.hadamard(dense);
-        ASSERT_TRUE(coo_result == coo_exp_result);
+        ASSERT_TRUE(coo_result.equals(coo_exp_result));
     }
 }
 
@@ -389,8 +389,8 @@ UTEST(Matrix, CSR_COO_Conversion) {
         auto coo_matrix_temp = coo_mat.to_matrix();
         auto csr_matrix_temp = csr_mat.to_matrix();
 
-        ASSERT_TRUE(csr_mat == csr_temp);
-        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(csr_mat.equals(csr_temp));
+        ASSERT_TRUE(coo_mat.equals(coo_temp));
         ASSERT_TRUE(temp == coo_matrix_temp);
         ASSERT_TRUE(temp == csr_matrix_temp);
     }
@@ -409,8 +409,8 @@ UTEST(Matrix, CSR_COO_Conversion) {
         auto coo_matrix_temp = coo_mat.to_matrix();
         auto csr_matrix_temp = csr_mat.to_matrix();
 
-        ASSERT_TRUE(csr_mat == csr_temp);
-        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(csr_mat.equals(csr_temp));
+        ASSERT_TRUE(coo_mat.equals(coo_temp));
         ASSERT_TRUE(temp == coo_matrix_temp);
         ASSERT_TRUE(temp == csr_matrix_temp);
     }
@@ -429,8 +429,8 @@ UTEST(Matrix, CSR_COO_Conversion) {
         auto coo_matrix_temp = coo_mat.to_matrix();
         auto csr_matrix_temp = csr_mat.to_matrix();
 
-        ASSERT_TRUE(csr_mat == csr_temp);
-        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(csr_mat.equals(csr_temp));
+        ASSERT_TRUE(coo_mat.equals(coo_temp));
         ASSERT_TRUE(temp == coo_matrix_temp);
         ASSERT_TRUE(temp == csr_matrix_temp);
     }
@@ -449,8 +449,8 @@ UTEST(Matrix, CSR_COO_Conversion) {
         auto coo_matrix_temp = coo_mat.to_matrix();
         auto csr_matrix_temp = csr_mat.to_matrix();
 
-        ASSERT_TRUE(csr_mat == csr_temp);
-        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(csr_mat.equals(csr_temp));
+        ASSERT_TRUE(coo_mat.equals(coo_temp));
         ASSERT_TRUE(temp == coo_matrix_temp);
         ASSERT_TRUE(temp == csr_matrix_temp);
     }
@@ -471,8 +471,8 @@ UTEST(Matrix, CSR_COO_Conversion) {
         auto coo_matrix_temp = coo_mat.to_matrix();
         auto csr_matrix_temp = csr_mat.to_matrix();
 
-        ASSERT_TRUE(csr_mat == csr_temp);
-        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(csr_mat.equals(csr_temp));
+        ASSERT_TRUE(coo_mat.equals(coo_temp));
         ASSERT_TRUE(temp == coo_matrix_temp);
         ASSERT_TRUE(temp == csr_matrix_temp);
     }
@@ -520,13 +520,13 @@ UTEST(Matrix, SDDMM_op) {
         auto exp_result = result_temp.to_csr();
         auto exp_result_coo = result_temp.to_coo();
         auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
-        ASSERT_TRUE(result1 == exp_result);
+        ASSERT_TRUE(result1.equals(exp_result));
         auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
-        ASSERT_TRUE(result2 == exp_result_coo);
+        ASSERT_TRUE(result2.equals(exp_result_coo));
         auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
-        ASSERT_TRUE(result3 == exp_result);
+        ASSERT_TRUE(result3.equals(exp_result));
         auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
-        ASSERT_TRUE(result4 == exp_result);
+        ASSERT_TRUE(result4.equals(exp_result));
     }
     {
         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 4, {
@@ -569,13 +569,13 @@ UTEST(Matrix, SDDMM_op) {
         auto exp_result = result_temp.to_csr();
         auto exp_result_coo = result_temp.to_coo();
         auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
-        ASSERT_TRUE(result1 == exp_result);
+        ASSERT_TRUE(result1.equals(exp_result));
         auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
-        ASSERT_TRUE(result2 == exp_result_coo);
+        ASSERT_TRUE(result2.equals(exp_result_coo));
         auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
-        ASSERT_TRUE(result3 == exp_result);
+        ASSERT_TRUE(result3.equals(exp_result));
         auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
-        ASSERT_TRUE(result4 == exp_result);
+        ASSERT_TRUE(result4.equals(exp_result));
     }
     {
         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 4, {
@@ -618,13 +618,13 @@ UTEST(Matrix, SDDMM_op) {
         auto exp_result = result_temp.to_csr();
         auto exp_result_coo = result_temp.to_coo();
         auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
-        ASSERT_TRUE(result1 == exp_result);
+        ASSERT_TRUE(result1.equals(exp_result));
         auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
-        ASSERT_TRUE(result2 == exp_result_coo);
+        ASSERT_TRUE(result2.equals(exp_result_coo));
         auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
-        ASSERT_TRUE(result3 == exp_result);
+        ASSERT_TRUE(result3.equals(exp_result));
         auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
-        ASSERT_TRUE(result4 == exp_result);
+        ASSERT_TRUE(result4.equals(exp_result));
     }
     {
         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 4, {
@@ -667,13 +667,13 @@ UTEST(Matrix, SDDMM_op) {
         auto exp_result = result_temp.to_csr();
         auto exp_result_coo = result_temp.to_coo();
         auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
-        ASSERT_TRUE(result1 == exp_result);
+        ASSERT_TRUE(result1.equals(exp_result));
         auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
-        ASSERT_TRUE(result2 == exp_result_coo);
+        ASSERT_TRUE(result2.equals(exp_result_coo));
         auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
-        ASSERT_TRUE(result3 == exp_result);
+        ASSERT_TRUE(result3.equals(exp_result));
         auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
-        ASSERT_TRUE(result4 == exp_result);
+        ASSERT_TRUE(result4.equals(exp_result));
     }
     {
         auto X = SDDMM::Types::Matrix::deterministic_gen_row_major(5, 4, {
@@ -725,13 +725,13 @@ UTEST(Matrix, SDDMM_op) {
         auto exp_result = result_temp.to_csr();
         auto exp_result_coo = result_temp.to_coo();
         auto result1 = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
-        ASSERT_TRUE(result1 == exp_result);
+        ASSERT_TRUE(result1.equals(exp_result));
         auto result2 = SDDMM::Algo::naive_sddmm(coo_mat, X, Y);
-        ASSERT_TRUE(result2 == exp_result_coo);
+        ASSERT_TRUE(result2.equals(exp_result_coo));
         auto result3 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
-        ASSERT_TRUE(result3 == exp_result);
+        ASSERT_TRUE(result3.equals(exp_result));
         auto result4 = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 128, 128, 128);
-        ASSERT_TRUE(result4 == exp_result);
+        ASSERT_TRUE(result4.equals(exp_result));
     }
 }
 
@@ -741,9 +741,9 @@ UTEST(Matrix, COO_equal){
     auto matrix3 = SDDMM::Types::Matrix::deterministic_gen_row_major(2, 3, {1,2,3,4,5,7});
 
     ASSERT_TRUE(matrix1 == matrix2);
-    ASSERT_TRUE(matrix1.to_coo() == matrix2.to_coo());
+    ASSERT_TRUE(matrix1.to_coo().equals(matrix2.to_coo()));
     ASSERT_FALSE(matrix1 == matrix3);
-    ASSERT_FALSE(matrix1.to_coo() == matrix3.to_coo());
+    ASSERT_FALSE(matrix1.to_coo().equals(matrix3.to_coo()));
 }
 
 UTEST(Matrix, SDDMM_parallel) {
@@ -797,11 +797,11 @@ UTEST(Matrix, SDDMM_parallel) {
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
             auto result1 = SDDMM::Algo::parallel_sddmm_cuda_simulation(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result1 == exp_result);
+            ASSERT_TRUE(result1.equals(exp_result));
             auto result2 = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result2 == exp_result);
+            ASSERT_TRUE(result2.equals(exp_result));
             auto result3 = SDDMM::Algo::parallel_sddmm_slow(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result3 == exp_result);
+            ASSERT_TRUE(result3.equals(exp_result));
         }
     }
     {
@@ -854,11 +854,11 @@ UTEST(Matrix, SDDMM_parallel) {
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
             auto result1 = SDDMM::Algo::parallel_sddmm_cuda_simulation(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result1 == exp_result);
+            ASSERT_TRUE(result1.equals(exp_result));
             auto result2 = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result2 == exp_result);
+            ASSERT_TRUE(result2.equals(exp_result));
             auto result3 = SDDMM::Algo::parallel_sddmm_slow(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result3 == exp_result);
+            ASSERT_TRUE(result3.equals(exp_result));
         }
 #endif
     }
@@ -892,11 +892,11 @@ UTEST(Matrix, SDDMM_parallel) {
             omp_set_num_threads(num_threads);
             auto exp_result = result_temp.to_coo();
             auto result1 = SDDMM::Algo::parallel_sddmm_cuda_simulation(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result1 == exp_result);
+            ASSERT_TRUE(result1.equals(exp_result));
             auto result2 = SDDMM::Algo::parallel_sddmm(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result2 == exp_result);
+            ASSERT_TRUE(result2.equals(exp_result));
             auto result3 = SDDMM::Algo::parallel_sddmm_slow(coo_mat, X, Y, num_threads);
-            ASSERT_TRUE(result3 == exp_result);
+            ASSERT_TRUE(result3.equals(exp_result));
         }
     }
 }
@@ -1047,7 +1047,7 @@ UTEST(Matrix, SDDMM_tiled_op) {
         auto exp_result = result_temp.to_csr();
         // auto result = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
         auto result = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
-        ASSERT_TRUE(result == exp_result);
+        ASSERT_TRUE(result.equals(exp_result));
     }
 }
 
@@ -1088,7 +1088,7 @@ UTEST(Matrix, Sparse_Mat_Gen) {
         auto dense = sparse_temp.to_matrix();
         auto coo = dense.to_coo();
 
-        ASSERT_TRUE(coo == sparse_temp);
+        ASSERT_TRUE(coo.equals(sparse_temp));
 
         uint64_t dense_nnz_counter = 0;
         for(int i=0; i<dense.data.size(); ++i){
@@ -1132,7 +1132,7 @@ UTEST(Matrix, Sparse_Mat_Cuda_Gen) {
         auto dense = sparse_temp.to_matrix();
         auto coo = dense.to_coo();
 
-        ASSERT_TRUE(coo == sparse_temp);
+        ASSERT_TRUE(coo.equals(sparse_temp));
 
         uint64_t dense_nnz_counter = 0;
         for(int i=0; i<dense.data.size(); ++i){

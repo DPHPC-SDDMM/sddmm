@@ -237,7 +237,7 @@ namespace SDDMM {
 
             // omp_set_num_threads(28);
             #pragma omp parallel for
-            for (Types::vec_size_t ind = 0; ind < nnz; ind++){
+            for (int64_t ind = 0; ind < nnz; ind++){
                 Types::vec_size_t row = A_sparse.rows[ind];
                 Types::vec_size_t col = A_sparse.cols[ind]; 
                 Types::expmt_t val = A_sparse.values[ind];
@@ -312,7 +312,7 @@ namespace SDDMM {
 
             // omp_set_num_threads(28);
             #pragma omp parallel for
-            for (Types::vec_size_t ind = 0; ind < nnz; ind++){
+            for (int64_t ind = 0; ind < nnz; ind++){
                 Types::vec_size_t row = A_sparse.rows[ind];
                 Types::vec_size_t col = A_sparse.cols[ind]; 
                 Types::expmt_t val = A_sparse.values[ind];

@@ -72,8 +72,7 @@ namespace SDDMM{
 
             inline static Types::vec_size_t scale_rand(const float r, const Types::vec_size_t m){
                 Types::vec_size_t res = static_cast<Types::vec_size_t>(std::ceil(r*m))-1;
-                if(res < 0) res = 0;
-                else if(res > m-1) res = m-1;
+                if(res > m-1) res = m-1;
                 return res;
             }
 
@@ -178,18 +177,22 @@ namespace SDDMM{
              * @returns Whether all elements of both matrices are equal within an error margin of `Defines::epsilon`.
             */
             bool operator==(const COO& other){
-                if(values.size() != other.values.size())
+                return equals(other);
+            }
+
+            bool equals(const COO& other) {
+                if (values.size() != other.values.size())
                     return false;
 
                 Types::vec_size_t s = values.size();
                 const Types::expmt_t epsilon = Defines::epsilon;
-                for(Types::vec_size_t i=0; i<s; ++i){
+                for (Types::vec_size_t i = 0; i < s; ++i) {
                     auto a = std::fabs(cols[i] - other.cols[i]);
-                    if(a > epsilon) return false;
+                    if (a > epsilon) return false;
                     auto b = std::fabs(rows[i] - other.rows[i]);
-                    if(b  > epsilon) return false;
+                    if (b > epsilon) return false;
                     auto c = std::abs(values[i] - other.values[i]);
-                    if(c  > epsilon) return false;
+                    if (c > epsilon) return false;
                 }
 
                 return true;
@@ -364,7 +367,6 @@ namespace SDDMM{
                 if(verbose) TEXT::Gadgets::print_colored_line(100, '#', TEXT::BRIGHT_YELLOW);
                 if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("Generate sparse row maj [") + std::to_string(n) + "x" + std::to_string(m) + "], sparsity: " + std::to_string(sparsity), TEXT::BRIGHT_RED);
                 if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Generate coords..."), TEXT::BRIGHT_BLUE);
-                uint64_t gave_up = 0;
                 while(nnz_locs.size() < total){
                     Types::vec_size_t r = r_dist(gen);
                     Types::vec_size_t c = c_dist(gen);

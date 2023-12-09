@@ -5,7 +5,6 @@
 #include "../src/data_structures/matrix/matrix.h"
 #include "../src/data_structures/csr/csr.h"
 #include "../src/data_structures/coo/coo.h"
-#include "../src/sddmm_data_gen/huge_gen.cpp"
 
 UTEST_MAIN();
 
@@ -38,8 +37,8 @@ UTEST(FileStorage, Generator_to_file){
             out_X, out_x_sparsity, 
             out_Y, out_y_sparsity);
 
-        ASSERT_TRUE(out_coo == coo_mat);
-        ASSERT_TRUE(out_csr == csr_mat);
+        ASSERT_TRUE(out_coo.equals(coo_mat));
+        ASSERT_TRUE(out_csr.equals(csr_mat));
         ASSERT_TRUE(X == out_X);
         ASSERT_TRUE(Y == out_Y);
 
@@ -94,8 +93,8 @@ UTEST(FileStorage, Tiny_Matrix_Write){
         out_X, out_x_sparsity, 
         out_Y, out_y_sparsity);
 
-    ASSERT_TRUE(out_coo == coo_mat);
-    ASSERT_TRUE(out_csr == csr_mat);
+    ASSERT_TRUE(out_coo.equals(coo_mat));
+    ASSERT_TRUE(out_csr.equals(csr_mat));
     ASSERT_TRUE(X == out_X);
     ASSERT_TRUE(Y == out_Y);
     ASSERT_TRUE(out_sparse_sparsity == sparsity);
@@ -109,7 +108,7 @@ UTEST(FileStorage, Giant_Matrix_Write){
     std::string target_folder = ".";
     target_folder += SDDMM::Defines::path_separator;
 
-    std::vector<std::chrono::_V2::system_clock::time_point> ts;
+    std::vector<std::chrono::high_resolution_clock::time_point> ts;
     std::vector<std::string> ts_labels;
 
     // max for N and M: 8388608
@@ -163,8 +162,8 @@ UTEST(FileStorage, Giant_Matrix_Write){
     ts.push_back(std::chrono::high_resolution_clock::now());
     ts_labels.push_back("from file");
 
-    ASSERT_TRUE(out_coo == coo_mat);
-    ASSERT_TRUE(out_csr == csr_mat);
+    ASSERT_TRUE(out_coo.equals(coo_mat));
+    ASSERT_TRUE(out_csr.equals(csr_mat));
     ASSERT_TRUE(X == out_X);
     ASSERT_TRUE(Y == out_Y);
     ASSERT_TRUE(out_sparse_sparsity == sparsity);
