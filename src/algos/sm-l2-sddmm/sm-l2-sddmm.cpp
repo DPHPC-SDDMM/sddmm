@@ -4,26 +4,13 @@
 #include <vector>
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include "../../defines.h"
 #include "sm-l2-gpu.cuh"
 #include "../../data_structures/coo/coo.h"
 #include "../../results.h"
 
 // use this one to get some output that disrupts the output of the unit tests
 // #define LOCAL_PRINT
-
-// "proper cuda error checking"
-// https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
-{
-    if (code != cudaSuccess)
-    {
-        fprintf(stdout, "==================================================================\n");
-        fprintf(stdout,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-        fprintf(stdout, "==================================================================\n");
-        if (abort) exit(code);
-    }
-}
 
 inline void local_print(const std::string& message){
 #ifdef LOCAL_PRINT

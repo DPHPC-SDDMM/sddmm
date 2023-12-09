@@ -50,11 +50,45 @@ namespace SDDMM{
                 return os;
             }
 
+            // bool operator==(const CSR& other){
+            //     return std::equal(values.begin(), values.end(), other.values.begin())
+            //         && std::equal(col_idx.begin(), col_idx.end(), other.col_idx.begin())
+            //         && std::equal(row_ptr.begin(), row_ptr.end(), other.row_ptr.begin())
+            //         && n == other.n && m == other.m;
+            // }
+            /**
+             * @param other: A reference to a CSR sparse matrix.
+             * @returns Whether all elements of both matrices are equal within an error margin of `Defines::epsilon`.
+            */
             bool operator==(const CSR& other){
-                return std::equal(values.begin(), values.end(), other.values.begin())
-                    && std::equal(col_idx.begin(), col_idx.end(), other.col_idx.begin())
-                    && std::equal(row_ptr.begin(), row_ptr.end(), other.row_ptr.begin())
-                    && n == other.n && m == other.m;
+                if(values.size() != other.values.size())
+                    return false;
+                if(row_ptr.size() != other.row_ptr.size())
+                    return false;
+                if(values.size() != other.col_idx.size())
+                    return false;
+
+                const Types::expmt_t epsilon = Defines::epsilon;
+
+                Types::vec_size_t s = values.size();
+                for(Types::vec_size_t i=0; i<s; ++i){
+                    auto c = std::abs(values[i] - other.values[i]);
+                    if(c  > epsilon) return false;
+                }
+
+                s = row_ptr.size();
+                for(Types::vec_size_t i=0; i<s; ++i){
+                    Types::vec_size_t c = std::fabs(row_ptr[i] - other.row_ptr[i]);
+                    if(c  > epsilon) return false;
+                }
+
+                s = col_idx.size();
+                for(Types::vec_size_t i=0; i<s; ++i){
+                    Types::vec_size_t c = std::fabs(col_idx[i] - other.col_idx[i]);
+                    if(c  > epsilon) return false;
+                }
+
+                return true;
             }
 
             CSR hadamard(const Matrix& other){

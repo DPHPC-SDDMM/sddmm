@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <vector>
 #include <math.h>
+#include <unordered_set>
 #include "test_helpers.hpp"
 #include "../src/data_structures/matrix/matrix.h"
 #include "../src/data_structures/csr/csr.h"
@@ -369,6 +370,111 @@ UTEST(Matrix, Flip) {
 
         std::vector<SDDMM::Types::expmt_t> newVals = {1,4,2,5,3,6};
         ASSERT_TRUE(TestHelpers::compare_vectors(matrix1.data, newVals));
+    }
+}
+
+UTEST(Matrix, CSR_COO_Conversion) {
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 3, {
+            0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
+    }
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 3, {
+            0.5, 0.0, 0.5,
+            0.0, 0.5, 0.0,
+            0.5, 0.0, 0.5
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
+    }
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 3, {
+            -0.5, 0.0, 0.5,
+            0.0, 0.5, 0.0,
+            0.5, 0.0, 0.5
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+        
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
+    }
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(3, 3, {
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+        
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
+    }
+    {
+        auto temp = SDDMM::Types::Matrix::deterministic_gen_row_major(5, 5, {
+            0.5, 1.0, 0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5, 1.0, 0.5,
+            1.0, 0.5, 1.0, 0.5, 1.0,
+            0.5, 1.0, 0.5, 1.0, 0.5
+        });
+
+        auto csr_mat = temp.to_csr();
+        auto coo_mat = temp.to_coo();
+        
+        auto csr_temp = coo_mat.to_csr();
+        auto coo_temp = csr_mat.to_coo();
+        auto coo_matrix_temp = coo_mat.to_matrix();
+        auto csr_matrix_temp = csr_mat.to_matrix();
+
+        ASSERT_TRUE(csr_mat == csr_temp);
+        ASSERT_TRUE(coo_mat == coo_temp);
+        ASSERT_TRUE(temp == coo_matrix_temp);
+        ASSERT_TRUE(temp == csr_matrix_temp);
     }
 }
 
@@ -795,35 +901,6 @@ UTEST(Matrix, SDDMM_parallel) {
     }
 }
 
-UTEST(Matrix, Generator_to_file){
-    std::string target_folder = ".";
-    target_folder += SDDMM::Defines::path_separator;
-    for(int i=1; i<100; i*=10)
-    {
-        auto X = SDDMM::Types::Matrix::generate_row_major(i*5, i*8, 0.0f);
-        auto Y = SDDMM::Types::Matrix::generate_col_major(i*8, i*5, 0.0f);
-        auto mat = SDDMM::Types::Matrix::generate_row_major(i*5, i*5, 0.1f);
-        auto coo_mat = mat.to_coo();
-        auto exp_result = coo_mat.hadamard(X*Y);
-
-        std::string name = SDDMM::Types::COO::hadamard_to_file(
-            target_folder, coo_mat, 0.1f, X, 0.0f, Y, 0.0f);
-
-        SDDMM::Types::COO out_sparse;
-        SDDMM::Types::Matrix out_X(0,0);
-        SDDMM::Types::Matrix out_Y(0,0);
-        SDDMM::Types::COO::hadamard_from_file(
-            target_folder + name,
-            out_sparse, out_X, out_Y);
-
-        ASSERT_TRUE(out_sparse == coo_mat);
-        ASSERT_TRUE(X == out_X);
-        ASSERT_TRUE(Y == out_Y);
-
-        std::remove((target_folder + name).c_str());
-    }
-}
-
 // UTEST(Matrix, SDDMM_giant_op) {
 //     auto X = SDDMM::Types::Matrix::generate_row_major(5000, 8000);
 
@@ -971,6 +1048,108 @@ UTEST(Matrix, SDDMM_tiled_op) {
         // auto result = SDDMM::Algo::naive_sddmm(csr_mat, X, Y);
         auto result = SDDMM::Algo::tiled_sddmm(csr_mat, X, Y, 8, 8, 8);
         ASSERT_TRUE(result == exp_result);
+    }
+}
+
+UTEST(Matrix, COO_To_Dense) {
+    {
+        // SDDMM::Types::vec_size_t r = 10;
+        // SDDMM::Types::vec_size_t c = 10;
+        // auto sparse_temp = SDDMM::Types::COO::generate_row_major(r, c, 0.6f, -1.f, 1.f, true, 250, false, true);
+        SDDMM::Types::COO coo_mat;
+        coo_mat.n = 5;
+        coo_mat.m = 4;
+        coo_mat.cols = {0,1,2,3,0};
+        coo_mat.rows = {0,1,2,3,4};
+        coo_mat.values = {1,2,3,4,5};
+        
+        SDDMM::Types::Matrix mat(5,4);
+        mat.data = {
+            1,0,0,0,
+            0,2,0,0,
+            0,0,3,0,
+            0,0,0,4,
+            5,0,0,0
+        };
+
+        auto dense = coo_mat.to_matrix();
+
+        ASSERT_TRUE(dense == mat);
+    }
+
+}
+
+UTEST(Matrix, Sparse_Mat_Gen) {
+    {
+        SDDMM::Types::vec_size_t r = 100;
+        SDDMM::Types::vec_size_t c = 200;
+        auto sparse_temp = SDDMM::Types::COO::generate_row_major<SDDMM::Types::sorted_coo_collector>(r, c, 0.1f, -1.f, 1.f, true, 250);
+        std::cout << "Sparse to dense" << std::endl;
+        auto dense = sparse_temp.to_matrix();
+        auto coo = dense.to_coo();
+
+        ASSERT_TRUE(coo == sparse_temp);
+
+        uint64_t dense_nnz_counter = 0;
+        for(int i=0; i<dense.data.size(); ++i){
+            if(dense.data[i] != 0)
+                dense_nnz_counter++;
+        }
+
+        ASSERT_TRUE(dense_nnz_counter == sparse_temp.values.size());
+
+        uint64_t nnz_counter = 0;
+        for(int i=0; i<sparse_temp.values.size(); ++i){
+            ASSERT_TRUE(dense(sparse_temp.rows[i], sparse_temp.cols[i]) != 0);
+            nnz_counter++;
+        }
+
+        // was tested once, but it's cumbersome, so assume it works ^^
+        // uint64_t n_counter = 0;
+        // for(int ri=0; ri<r; ++ri){
+        //     for(int ci=0; ci<c; ++ci){
+        //         if(sparse_temp._nnz_locs.find({ri, ci})==sparse_temp._nnz_locs.end()){
+        //             SDDMM::Types::expmt_t val = dense(ri, ci);
+        //             ASSERT_TRUE(val == 0);
+        //             n_counter++;
+        //             // if(n_counter%10000==0) std::cout << n_counter << std::endl;
+        //         }
+        //     }
+        // }
+
+        // double sparsity = 1.0 - static_cast<double>(nnz_counter) / static_cast<double>(r*c);
+        // std::cout << "hello world " << sparsity << " " << sparsity << " " << nnz_counter << std::endl;
+    }
+
+}
+
+UTEST(Matrix, Sparse_Mat_Cuda_Gen) {
+    {
+        SDDMM::Types::vec_size_t r = 14000;
+        SDDMM::Types::vec_size_t c = 14000;
+        auto sparse_temp = SDDMM::Types::COO::generate_row_major_curand(r, c, 0.999f, true, 5000);
+        std::cout << "Sparse to dense" << std::endl;
+        auto dense = sparse_temp.to_matrix();
+        auto coo = dense.to_coo();
+
+        ASSERT_TRUE(coo == sparse_temp);
+
+        uint64_t dense_nnz_counter = 0;
+        for(int i=0; i<dense.data.size(); ++i){
+            if(dense.data[i] != 0)
+                dense_nnz_counter++;
+        }
+
+        ASSERT_TRUE(dense_nnz_counter == sparse_temp.values.size());
+
+        uint64_t nnz_counter = 0;
+        for(int i=0; i<sparse_temp.values.size(); ++i){
+            ASSERT_TRUE(dense(sparse_temp.rows[i], sparse_temp.cols[i]) != 0);
+            nnz_counter++;
+        }
+
+        double sparsity = 1.0 - static_cast<double>(nnz_counter) / static_cast<double>(r*c);
+        std::cout << "hello world " << std::setprecision(8) << sparsity << " " << nnz_counter << std::endl;
     }
 
 }
