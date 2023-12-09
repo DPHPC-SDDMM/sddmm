@@ -8,6 +8,12 @@
 
 UTEST_MAIN();
 
+UTEST(FileStorage, Where_Do_Files_Go) {
+    std::ofstream output_file("__hello.txt", std::ios::out);
+    output_file << "lol";
+    output_file.close();
+}
+
 UTEST(FileStorage, Generator_to_file){
     std::string target_folder = ".";
     target_folder += SDDMM::Defines::path_separator;

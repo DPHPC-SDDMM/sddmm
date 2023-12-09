@@ -453,6 +453,7 @@ namespace SDDMM{
                 auto created_at_t = std::chrono::system_clock::to_time_t(created_at);
                 std::string time = std::string(std::ctime(&created_at_t));
                 std::replace(time.begin(), time.end(), ' ', '_');
+                std::replace(time.begin(), time.end(), ':', '-');
                 time = time.substr(0, time.size()-1);
 
                 std::stringstream name;

@@ -119,7 +119,7 @@ namespace SDDMM {
 
         // some generic way to distinguish operating systems
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    static const char path_separator = '\\';
+    static const char path_separator = '/';
    //define something for Windows (32-bit and 64-bit, this part is common)
    #ifdef _WIN64
       //define something for Windows (64-bit only)
