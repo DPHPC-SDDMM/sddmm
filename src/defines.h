@@ -15,7 +15,8 @@
 #include <cassert>
 #include <set>
 #include <unordered_set>
-#include <cusparse.h>         // cusparseSpMM
+#include <cusparse.h>
+#include <curand.h>
 
 namespace SDDMM {
 
@@ -39,6 +40,15 @@ namespace SDDMM {
         if (status != CUSPARSE_STATUS_SUCCESS) {                                   \
             printf("CUSPARSE API failed at line %d with error: %s (%d)\n",         \
                 __LINE__, cusparseGetErrorString(status), status);              \
+            exit(status);                                                          \
+        }                                                                          \
+    }
+
+    #define rand_gpuErrchk(func)                                                   \
+    {                                                                              \
+        curandStatus_t status = (func);                                          \
+        if (status != CURAND_STATUS_SUCCESS) {                                   \
+            printf("CURAND API failed at line %d (%d)\n", __LINE__, status); \
             exit(status);                                                          \
         }                                                                          \
     }

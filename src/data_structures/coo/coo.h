@@ -14,6 +14,8 @@
 #include <chrono>
 #include <unordered_set>
 #include <set>
+#include <cuda_runtime.h>
+#include <curand.h>
 
 #include "../../defines.h"
 #include "../matrix/matrix.h"
@@ -66,6 +68,13 @@ namespace SDDMM{
             inline static const char* _float_ptr_cast(const float* src){
                 const void* ptot = static_cast<const void*>(src);
                 return static_cast<const char*>(ptot);
+            }
+
+            inline static Types::vec_size_t scale_rand(const float r, const Types::vec_size_t m){
+                Types::vec_size_t res = static_cast<Types::vec_size_t>(std::ceil(r*m))-1;
+                if(res < 0) res = 0;
+                else if(res > m-1) res = m-1;
+                return res;
             }
 
         public:
@@ -184,6 +193,121 @@ namespace SDDMM{
                 }
 
                 return true;
+            }
+
+            private:
+            static bool _generate_row_major_curand(
+                Types::vec_size_t n, 
+                Types::vec_size_t m, 
+                int t,
+                int tries,
+                COO& result,
+                float sparsity,
+                bool verbose,
+                uint64_t report_sparsity
+            ){
+                result.cols.clear();
+                result.rows.clear();
+                result.values.clear();
+
+                uint64_t total = static_cast<uint64_t>(std::ceil(n*m*(1.0f - sparsity)));
+                uint64_t gen_total = static_cast<uint64_t>(1.2f*total);
+                curandGenerator_t gen;
+                std::vector<float> n_rows(gen_total);
+                std::vector<float> n_cols(gen_total);
+                float* n_rows_d;
+                float* n_cols_d;
+
+                gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&n_rows_d), gen_total*sizeof(float)));
+                gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&n_cols_d), gen_total*sizeof(float)));
+                rand_gpuErrchk(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
+                auto seed = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count());
+                rand_gpuErrchk(curandSetPseudoRandomGeneratorSeed(gen, seed));
+                rand_gpuErrchk(curandGenerateUniform(gen, n_rows_d, gen_total));
+                rand_gpuErrchk(curandGenerateUniform(gen, n_cols_d, gen_total));
+
+                gpuErrchk(cudaMemcpy(n_rows.data(), n_rows_d, gen_total*sizeof(float), cudaMemcpyDeviceToHost));
+                gpuErrchk(cudaMemcpy(n_cols.data(), n_cols_d, gen_total*sizeof(float), cudaMemcpyDeviceToHost));
+
+                rand_gpuErrchk(curandDestroyGenerator(gen));
+                gpuErrchk(cudaFree(n_cols_d));
+                gpuErrchk(cudaFree(n_rows_d));
+
+                result.n = n;
+                result.m = m;
+                result.cols.reserve(total);
+                result.rows.reserve(total);
+                result.values.resize(total);
+                memcpy(result.values.data(), n_rows.data(), total*sizeof(Types::expmt_t));
+
+                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
+                Types::sorted_coo_collector collector;
+                uint64_t i=0;
+                while(collector.size() < total && i <= gen_total) {
+                    if(i == gen_total){
+                        return false;
+                    }
+                    collector.insert({scale_rand(n_rows[i], n), scale_rand(n_cols[i], m)});
+                    i++;
+                    if(collector.size() % report_sparsity == 0){
+                        if(verbose) TEXT::Gadgets::print_progress_percent(collector.size(), static_cast<double>(total), report_sparsity);
+                    }
+                }
+
+                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Split coords..."), TEXT::BRIGHT_BLUE);
+                for(auto& p : collector){
+                    result.rows.push_back(p.first);
+                    result.cols.push_back(p.second);
+                    if(result.rows.size() % report_sparsity == 0){
+                        if(verbose) TEXT::Gadgets::print_progress_percent(result.rows.size(), static_cast<double>(total), report_sparsity);
+                    }
+                }
+
+                result.values.shrink_to_fit();
+                result.cols.shrink_to_fit();
+                result.rows.shrink_to_fit();
+
+                if(verbose){
+                    TEXT::Gadgets::print_colored_text_line(
+                        std::string("Summary: generated ") + 
+                        std::to_string(gen_total) + 
+                        std::string(" random pairs, out of which at least ") +
+                        std::to_string(total) +
+                        std::string(" were distinct using ") +
+                        std::to_string(t) + std::string("/") + std::to_string(tries) +
+                        std::string(" tries"),
+                        TEXT::BRIGHT_GREEN
+                    );
+                }
+
+                return true;
+            }
+
+            public:
+
+            static COO generate_row_major_curand(
+                Types::vec_size_t n, 
+                Types::vec_size_t m, 
+                float sparsity = 1.0,
+                bool verbose = true,
+                uint64_t report_sparsity = 10000
+            ){
+                if(verbose) TEXT::Gadgets::print_colored_line(100, '#', TEXT::BRIGHT_YELLOW);
+                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("Generate sparse col maj [") + std::to_string(n) + "x" + std::to_string(m) + "], sparsity: " + std::to_string(sparsity), TEXT::BRIGHT_RED);
+
+                COO result;
+                int tries = 100;
+                auto start = std::chrono::high_resolution_clock::now();
+                for(int t=1; t<=tries; ++t){
+                    if(_generate_row_major_curand(n, m, t, tries, result, sparsity, verbose, report_sparsity)){
+                        auto stop = std::chrono::high_resolution_clock::now();
+                        if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("..Finished in [") + std::to_string(std::chrono::duration_cast<SDDMM::Types::time_measure_unit>(stop - start).count()/1000.0) + std::string("ms"), TEXT::BRIGHT_RED);
+                        return result;
+                    }
+
+                    throw std::runtime_error("Not enough distinct coordinate pairs generated");
+                }
+                return COO();
             }
 
             static COO generate_row_major_sorted(

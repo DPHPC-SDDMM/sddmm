@@ -1081,9 +1081,9 @@ UTEST(Matrix, COO_To_Dense) {
 
 UTEST(Matrix, Sparse_Mat_Gen) {
     {
-        SDDMM::Types::vec_size_t r = 10000;
-        SDDMM::Types::vec_size_t c = 20000;
-        auto sparse_temp = SDDMM::Types::COO::generate_row_major<SDDMM::Types::sorted_coo_collector>(r, c, 0.1f, -1.f, 1.f, true, 30000);
+        SDDMM::Types::vec_size_t r = 100;
+        SDDMM::Types::vec_size_t c = 200;
+        auto sparse_temp = SDDMM::Types::COO::generate_row_major<SDDMM::Types::sorted_coo_collector>(r, c, 0.1f, -1.f, 1.f, true, 250);
         std::cout << "Sparse to dense" << std::endl;
         auto dense = sparse_temp.to_matrix();
         auto coo = dense.to_coo();
@@ -1117,8 +1117,39 @@ UTEST(Matrix, Sparse_Mat_Gen) {
         //     }
         // }
 
+        // double sparsity = 1.0 - static_cast<double>(nnz_counter) / static_cast<double>(r*c);
+        // std::cout << "hello world " << sparsity << " " << sparsity << " " << nnz_counter << std::endl;
+    }
+
+}
+
+UTEST(Matrix, Sparse_Mat_Cuda_Gen) {
+    {
+        SDDMM::Types::vec_size_t r = 14000;
+        SDDMM::Types::vec_size_t c = 14000;
+        auto sparse_temp = SDDMM::Types::COO::generate_row_major_curand(r, c, 0.999f, true, 5000);
+        std::cout << "Sparse to dense" << std::endl;
+        auto dense = sparse_temp.to_matrix();
+        auto coo = dense.to_coo();
+
+        ASSERT_TRUE(coo == sparse_temp);
+
+        uint64_t dense_nnz_counter = 0;
+        for(int i=0; i<dense.data.size(); ++i){
+            if(dense.data[i] != 0)
+                dense_nnz_counter++;
+        }
+
+        ASSERT_TRUE(dense_nnz_counter == sparse_temp.values.size());
+
+        uint64_t nnz_counter = 0;
+        for(int i=0; i<sparse_temp.values.size(); ++i){
+            ASSERT_TRUE(dense(sparse_temp.rows[i], sparse_temp.cols[i]) != 0);
+            nnz_counter++;
+        }
+
         double sparsity = 1.0 - static_cast<double>(nnz_counter) / static_cast<double>(r*c);
-        std::cout << "hello world " << sparsity << " " << sparsity << " " << nnz_counter << std::endl;
+        std::cout << "hello world " << std::setprecision(8) << sparsity << " " << nnz_counter << std::endl;
     }
 
 }

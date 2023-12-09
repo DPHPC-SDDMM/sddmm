@@ -75,38 +75,29 @@ namespace SDDMM {
 
             ts.push_back(std::chrono::high_resolution_clock::now());
             ts_labels.push_back("start");
-            auto X = SDDMM::Types::Matrix::generate_row_major(N, K, X_sparsity, -1.f, 1.f, true, 10000);
+            auto X = SDDMM::Types::Matrix::generate_row_major(N, K, X_sparsity, -1.f, 1.f, true, 40000);
             ts.push_back(std::chrono::high_resolution_clock::now());
             ts_labels.push_back("generate X");
 
-            auto Y = SDDMM::Types::Matrix::generate_col_major(K, M, Y_sparsity, -1.f, 1.f, true, 10000);
+            auto Y = SDDMM::Types::Matrix::generate_col_major(K, M, Y_sparsity, -1.f, 1.f, true, 40000);
             ts.push_back(std::chrono::high_resolution_clock::now());
             ts_labels.push_back("generate Y");
 
-            auto coo_mat = SDDMM::Types::COO::generate_row_major_unsorted(N, M, S_sparsity, -1.f, 1.f, true, 10000);
+            auto coo_mat = SDDMM::Types::COO::generate_row_major_curand(N, M, S_sparsity, true, 40000);
             ts.push_back(std::chrono::high_resolution_clock::now());
-            ts_labels.push_back("generate COO S mat");
+            ts_labels.push_back("generate S mat");
 
-            std::cout << "1" << std::endl;
-            auto csr_mat = coo_mat.to_csr();
-            std::cout << "2" << std::endl;
-            ts.push_back(std::chrono::high_resolution_clock::now());
-            ts_labels.push_back("to csr_mat");
-
-            std::cout << "3" << std::endl;
+            TEXT::Gadgets::print_colored_text_line("Write to file:", TEXT::BRIGHT_CYAN);
             std::string name = SDDMM::Types::COO::hadamard_to_bin_file(
                 target_folder, coo_mat, S_sparsity, X, X_sparsity, Y, Y_sparsity);
             ts.push_back(std::chrono::high_resolution_clock::now());
             ts_labels.push_back("to file");
-            std::cout << "4" << std::endl;
 
             TEXT::Gadgets::print_colored_text_line("Time results:", TEXT::BRIGHT_CYAN);
-            std::cout << "5" << std::endl;
             for(int i=1; i<ts.size(); ++i){
                 auto duration = std::chrono::duration_cast<SDDMM::Types::time_measure_unit>(ts[i]-ts[i-1]).count();
                 TEXT::Gadgets::print_colored_text_line(ts_labels[i] + ":\t" + std::to_string(static_cast<double>(duration) / 1000.0) + std::string("ms"), TEXT::BRIGHT_BLUE);
             }
-            std::cout << "6" << std::endl;
 
             return name;
 
