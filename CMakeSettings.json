@@ -30,6 +30,11 @@
           "name": "CMAKE_CXX_FLAGS_RELWITHDEBINFO",
           "value": "/Zi /O2 /Ob1 /DNDEBUG /std:c++20",
           "type": "STRING"
+        },
+        {
+          "name": "CMAKE_CUDA_ARCHITECTURES",
+          "value": "86",
+          "type": "STRING"
         }
       ]
     },
@@ -62,6 +67,11 @@
         {
           "name": "CMAKE_CXX_FLAGS_RELWITHDEBINFO",
           "value": "/Zi /O2 /Ob1 /DNDEBUG /std:c++20",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_CUDA_ARCHITECTURES",
+          "value": "86",
           "type": "STRING"
         }
       ]
