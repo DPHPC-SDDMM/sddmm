@@ -222,6 +222,7 @@ namespace SDDMM{
                 bool verbose = false,
                 uint64_t report_sparsity = 10000
             ) {
+                // https://stackoverflow.com/questions/18501081/generating-random-number-within-cuda-kernel-in-a-varying-range
                 std::random_device rd;
                 std::mt19937 gen(rd());
                 std::uniform_real_distribution<> value_dist(min, max);
@@ -240,55 +241,19 @@ namespace SDDMM{
                 if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("Generate sparse row maj [") + std::to_string(n) + "x" + std::to_string(m) + "], sparsity: " + std::to_string(sparsity), TEXT::BRIGHT_RED);
                 if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Generate coords..."), TEXT::BRIGHT_BLUE);
                 uint64_t gave_up = 0;
-                while(counter < total){
+                while(nnz_locs.size() < total){
                     Types::vec_size_t r = r_dist(gen);
                     Types::vec_size_t c = c_dist(gen);
-                    int tries = 0;
-                    // try 100 times otherwise just give up...
-                    while(tries < 100 && nnz_locs.find({r, c}) != nnz_locs.end()){
-                        r = r_dist(gen);
-                        c = c_dist(gen);
-                        tries++;
-                    }
+                    nnz_locs.insert({r, c});
 
-                    if(tries < 100) nnz_locs.insert({r, c});
-                    else gave_up++;
-                    counter++;
-
-                    if(counter%report_sparsity == 0){
-                        if(verbose) TEXT::Gadgets::print_progress_percent(counter, static_cast<double>(total), report_sparsity);
+                    if(nnz_locs.size()%report_sparsity == 0){
+                        if(verbose) TEXT::Gadgets::print_progress_percent(nnz_locs.size(), static_cast<double>(total), report_sparsity);
                     }
                 }
 
-                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("... => Gave up count: ") + std::to_string(gave_up), TEXT::BRIGHT_CYAN);
+                // if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("... => Gave up count: ") + std::to_string(gave_up), TEXT::BRIGHT_CYAN);
                 total = nnz_locs.size();
 
-                // if(sort_coords){
-                //     if(verbose) TEXT::Gadgets::print_colored_text_line("...Sort coord pairs...", TEXT::BRIGHT_BLUE);
-                //     counter = 0;
-                //     typedef std::pair<Types::vec_size_t, Types::vec_size_t> pairs_t;
-                //     std::vector<pairs_t> pairs;
-                //     for(auto& p : nnz_locs){
-                //         pairs.insert(std::lower_bound(pairs.begin(), pairs.end(), p, 
-                //             [](pairs_t lhs, pairs_t rhs) -> bool { return lhs.first < rhs.first && lhs.second < rhs.second; }), p);
-                //         counter++;
-                //         if(counter%report_sparsity == 0){
-                //             if(verbose) TEXT::Gadgets::print_progress_percent(counter, static_cast<double>(total), report_sparsity);
-                //         }
-                //     }
-                //     if(verbose) TEXT::Gadgets::print_colored_text_line("Split sorted pairs...", TEXT::BRIGHT_BLUE);
-                //     counter = 0;
-                //     for(auto& p : pairs){
-                //         output.rows.push_back(p.first);
-                //         output.cols.push_back(p.second);
-                //         output.values.push_back(value_dist(gen));
-                //         counter++;
-                //         if(counter%report_sparsity == 0){
-                //             if(verbose) TEXT::Gadgets::print_progress_percent(counter, static_cast<double>(total), report_sparsity);
-                //         }
-                //     }
-                // }
-                // else{
                 counter = 0;
                 for(auto& p : nnz_locs){
                     output.rows.push_back(p.first);
@@ -299,25 +264,6 @@ namespace SDDMM{
                         if(verbose) TEXT::Gadgets::print_progress_percent(counter, static_cast<double>(total), report_sparsity);
                     }
                 }
-                // }
-
-                
-
-                // for (Types::vec_size_t i = 0; i < n; i++) {
-                //     for (Types::vec_size_t j = 0; j < m; j++) {
-                //         if (sparsity_dist(gen) < sparsity) {
-                //             // do nothing, we are sparse now :-D
-                //         } else {
-                //             output.values.push_back(value_dist(gen));
-                //             output.rows.push_back(i);
-                //             output.cols.push_back(j);
-                //         }
-                //         counter++;
-                //         if(counter%report_sparsity == 0){
-                //             if(verbose) TEXT::Gadgets::print_progress_percent(counter, total, report_sparsity);
-                //         }
-                //     }
-                // }
 
                 output.values.shrink_to_fit();
                 output.cols.shrink_to_fit();

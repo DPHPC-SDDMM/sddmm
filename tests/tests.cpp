@@ -1083,7 +1083,7 @@ UTEST(Matrix, Sparse_Mat_Gen) {
     {
         SDDMM::Types::vec_size_t r = 10000;
         SDDMM::Types::vec_size_t c = 20000;
-        auto sparse_temp = SDDMM::Types::COO::generate_row_major<SDDMM::Types::sorted_coo_collector>(r, c, 0.1f, -1.f, 1.f, true, 10000);
+        auto sparse_temp = SDDMM::Types::COO::generate_row_major<SDDMM::Types::sorted_coo_collector>(r, c, 0.1f, -1.f, 1.f, true, 30000);
         std::cout << "Sparse to dense" << std::endl;
         auto dense = sparse_temp.to_matrix();
         auto coo = dense.to_coo();
