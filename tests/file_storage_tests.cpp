@@ -5,6 +5,7 @@
 #include "../src/data_structures/matrix/matrix.h"
 #include "../src/data_structures/csr/csr.h"
 #include "../src/data_structures/coo/coo.h"
+#include "../src/sddmm_data_gen/huge_gen.cpp"
 
 UTEST_MAIN();
 
@@ -177,5 +178,5 @@ UTEST(FileStorage, Giant_Matrix_Write){
         std::cout << ts_labels[i] << ":\t" << static_cast<double>(duration) / 1000.0 << "ms" << std::endl;
     }
 
-    // std::remove((target_folder + name).c_str());
+    std::remove((target_folder + name).c_str());
 }

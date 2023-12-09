@@ -12,6 +12,8 @@
 #include <algorithm> // std::sort
 #include <cassert>
 #include <chrono>
+#include <unordered_set>
+#include <set>
 
 #include "../../defines.h"
 #include "../matrix/matrix.h"
@@ -184,6 +186,146 @@ namespace SDDMM{
                 return true;
             }
 
+            static COO generate_row_major_sorted(
+                Types::vec_size_t n, 
+                Types::vec_size_t m, 
+                float sparsity = 1.0, 
+                SDDMM::Types::expmt_t min = -1.0, 
+                SDDMM::Types::expmt_t max = 1.0,
+                bool verbose = false,
+                uint64_t report_sparsity = 10000
+            ){
+                return generate_row_major<Types::sorted_coo_collector>(n, m, sparsity, min, max, verbose, report_sparsity);
+            }
+
+            static COO generate_row_major_unsorted(
+                Types::vec_size_t n, 
+                Types::vec_size_t m, 
+                float sparsity = 1.0, 
+                SDDMM::Types::expmt_t min = -1.0, 
+                SDDMM::Types::expmt_t max = 1.0,
+                bool verbose = false,
+                uint64_t report_sparsity = 10000
+            ){
+                return generate_row_major<Types::unsorted_coo_collector>(n, m, sparsity, min, max, verbose, report_sparsity);
+            }
+
+            // generates an NxM Matrix with elements in range [min,max] and desired sparsity (sparsity 0.7 means that
+            // the matrix will be 70% empty)
+            template<typename set_type>
+            static COO generate_row_major(
+                Types::vec_size_t n, 
+                Types::vec_size_t m, 
+                float sparsity = 1.0, 
+                SDDMM::Types::expmt_t min = -1.0, 
+                SDDMM::Types::expmt_t max = 1.0,
+                bool verbose = false,
+                uint64_t report_sparsity = 10000
+            ) {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_real_distribution<> value_dist(min, max);
+                // std::uniform_real_distribution<> sparsity_dist(0, 1.0);
+                std::uniform_int_distribution<> r_dist(0, n-1);
+                std::uniform_int_distribution<> c_dist(0, m-1);
+
+                set_type nnz_locs;
+
+                uint64_t total = static_cast<uint64_t>(std::ceil(n*m*(1.0f - sparsity)));
+                uint64_t counter = 0;
+                COO output;
+                output.n = n;
+                output.m = m;
+                if(verbose) TEXT::Gadgets::print_colored_line(100, '#', TEXT::BRIGHT_YELLOW);
+                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("Generate sparse row maj [") + std::to_string(n) + "x" + std::to_string(m) + "], sparsity: " + std::to_string(sparsity), TEXT::BRIGHT_RED);
+                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Generate coords..."), TEXT::BRIGHT_BLUE);
+                uint64_t gave_up = 0;
+                while(counter < total){
+                    Types::vec_size_t r = r_dist(gen);
+                    Types::vec_size_t c = c_dist(gen);
+                    int tries = 0;
+                    // try 100 times otherwise just give up...
+                    while(tries < 100 && nnz_locs.find({r, c}) != nnz_locs.end()){
+                        r = r_dist(gen);
+                        c = c_dist(gen);
+                        tries++;
+                    }
+
+                    if(tries < 100) nnz_locs.insert({r, c});
+                    else gave_up++;
+                    counter++;
+
+                    if(counter%report_sparsity == 0){
+                        if(verbose) TEXT::Gadgets::print_progress_percent(counter, static_cast<double>(total), report_sparsity);
+                    }
+                }
+
+                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("... => Gave up count: ") + std::to_string(gave_up), TEXT::BRIGHT_CYAN);
+                total = nnz_locs.size();
+
+                // if(sort_coords){
+                //     if(verbose) TEXT::Gadgets::print_colored_text_line("...Sort coord pairs...", TEXT::BRIGHT_BLUE);
+                //     counter = 0;
+                //     typedef std::pair<Types::vec_size_t, Types::vec_size_t> pairs_t;
+                //     std::vector<pairs_t> pairs;
+                //     for(auto& p : nnz_locs){
+                //         pairs.insert(std::lower_bound(pairs.begin(), pairs.end(), p, 
+                //             [](pairs_t lhs, pairs_t rhs) -> bool { return lhs.first < rhs.first && lhs.second < rhs.second; }), p);
+                //         counter++;
+                //         if(counter%report_sparsity == 0){
+                //             if(verbose) TEXT::Gadgets::print_progress_percent(counter, static_cast<double>(total), report_sparsity);
+                //         }
+                //     }
+                //     if(verbose) TEXT::Gadgets::print_colored_text_line("Split sorted pairs...", TEXT::BRIGHT_BLUE);
+                //     counter = 0;
+                //     for(auto& p : pairs){
+                //         output.rows.push_back(p.first);
+                //         output.cols.push_back(p.second);
+                //         output.values.push_back(value_dist(gen));
+                //         counter++;
+                //         if(counter%report_sparsity == 0){
+                //             if(verbose) TEXT::Gadgets::print_progress_percent(counter, static_cast<double>(total), report_sparsity);
+                //         }
+                //     }
+                // }
+                // else{
+                counter = 0;
+                for(auto& p : nnz_locs){
+                    output.rows.push_back(p.first);
+                    output.cols.push_back(p.second);
+                    output.values.push_back(value_dist(gen));
+                    counter++;
+                    if(counter%report_sparsity == 0){
+                        if(verbose) TEXT::Gadgets::print_progress_percent(counter, static_cast<double>(total), report_sparsity);
+                    }
+                }
+                // }
+
+                
+
+                // for (Types::vec_size_t i = 0; i < n; i++) {
+                //     for (Types::vec_size_t j = 0; j < m; j++) {
+                //         if (sparsity_dist(gen) < sparsity) {
+                //             // do nothing, we are sparse now :-D
+                //         } else {
+                //             output.values.push_back(value_dist(gen));
+                //             output.rows.push_back(i);
+                //             output.cols.push_back(j);
+                //         }
+                //         counter++;
+                //         if(counter%report_sparsity == 0){
+                //             if(verbose) TEXT::Gadgets::print_progress_percent(counter, total, report_sparsity);
+                //         }
+                //     }
+                // }
+
+                output.values.shrink_to_fit();
+                output.cols.shrink_to_fit();
+                output.rows.shrink_to_fit();
+
+                return output;
+            }
+
             /**
              * @param other: A reference to a dense matrix.
              * @returns The per-element product of the input dense matrix with this one.
@@ -346,15 +488,15 @@ namespace SDDMM{
                 Types::vec_size_t m1; memcpy(&m1, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
                 out_coo.n = n1;
                 out_coo.m = m1;
-                out_coo.values.resize(s1); memcpy(out_coo.values.data(), &buffer[f_index], s1*sizeof(Types::expmt_t)); f_index += s1*sizeof(Types::expmt_t);
-                out_coo.rows.resize(s1);   memcpy(out_coo.rows.data(),   &buffer[f_index], s1*sizeof(Types::expmt_t)); f_index += s1*sizeof(Types::vec_size_t);
-                out_coo.cols.resize(s1);   memcpy(out_coo.cols.data(),   &buffer[f_index], s1*sizeof(Types::expmt_t)); f_index += s1*sizeof(Types::vec_size_t);
+                out_coo.values.resize(s1); memcpy(out_coo.values.data(), &buffer[f_index], s1*sizeof(Types::expmt_t));    f_index += s1*sizeof(Types::expmt_t);
+                out_coo.rows.resize(s1);   memcpy(out_coo.rows.data(),   &buffer[f_index], s1*sizeof(Types::vec_size_t)); f_index += s1*sizeof(Types::vec_size_t);
+                out_coo.cols.resize(s1);   memcpy(out_coo.cols.data(),   &buffer[f_index], s1*sizeof(Types::vec_size_t)); f_index += s1*sizeof(Types::vec_size_t);
 
                                       memcpy(&out_x_sparsity, &buffer[f_index], sizeof(float)); f_index += sizeof(float);
                 Types::vec_size_t s2; memcpy(&s2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
                 Types::vec_size_t n2; memcpy(&n2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
                 Types::vec_size_t m2; memcpy(&m2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
-                uint32_t          t2; memcpy(&t2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(uint32_t);
+                uint32_t          t2; memcpy(&t2, &buffer[f_index], sizeof(uint32_t));          f_index += sizeof(uint32_t);
                 out_X.n = n2;
                 out_X.m = m2;
                 out_X.set_matrix_format(t2 == Constants::col_storage ? Types::MatrixFormat::ColMajor : Types::MatrixFormat::RowMajor);
@@ -365,7 +507,7 @@ namespace SDDMM{
                 Types::vec_size_t s3; memcpy(&s3, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
                 Types::vec_size_t n3; memcpy(&n3, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
                 Types::vec_size_t m3; memcpy(&m3, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
-                uint32_t          t3; memcpy(&t3, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(uint32_t);
+                uint32_t          t3; memcpy(&t3, &buffer[f_index], sizeof(uint32_t));          f_index += sizeof(uint32_t);
                 out_Y.n = n3;
                 out_Y.m = m3;
                 out_Y.set_matrix_format(t3 == Constants::col_storage ? Types::MatrixFormat::ColMajor : Types::MatrixFormat::RowMajor);

@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <iomanip>
 #include <cassert>
+#include <set>
+#include <unordered_set>
 #include <cusparse.h>         // cusparseSpMM
 
 namespace SDDMM {
@@ -47,6 +49,10 @@ namespace SDDMM {
     namespace Types {
         /**
          * This is the data type used for all experiments!
+         * DO NOT CHANGE THIS!!
+         * There are some vectorization tests that don't work with doubles
+         * Also, it's not necessary to have 8 byte numbers here. 
+         * We want big matrices, not precise ones!
         */
         typedef float expmt_t;
         constexpr auto cuda_expmt_t = cudaDataType_t::CUDA_R_32F;
@@ -56,11 +62,17 @@ namespace SDDMM {
         */
         // cost for using 8 bytes vec_size_t: about +20%
         // typedef std::vector<expmt_t>::size_type vec_size_t;
-        typedef uint32_t vec_size_t;
-        constexpr auto cuda_vec_size_t = cusparseIndexType_t::CUSPARSE_INDEX_32I;
+        typedef uint64_t vec_size_t;
+        constexpr auto cuda_vec_size_t = cusparseIndexType_t::CUSPARSE_INDEX_64I;
 
         typedef std::chrono::microseconds time_measure_unit;
         typedef int64_t time_duration_unit;
+
+        /**
+         * Choose one of these for the COO generation to get sorted or unsorted coords
+        */
+        typedef std::set<std::pair<Types::vec_size_t, Types::vec_size_t>> sorted_coo_collector;
+        typedef std::unordered_set<std::pair<Types::vec_size_t, Types::vec_size_t>> unsorted_coo_collector;
     }
 
     namespace Constants {
@@ -220,6 +232,18 @@ namespace SDDMM {
 
         class Gadgets {
             public:
+            static void print_progress_percent(uint64_t counter, double total, uint64_t progress_interval){
+                if(total - counter >= progress_interval){
+                    double p = std::floor(static_cast<double>(counter)/total*10000)/100.0;
+                    std::cout << "\r" << GREEN << "[" << std::fixed << std::setprecision(2) << std::setw(5) << p << "%" << "]     " << END;
+                    std::cout << std::flush;
+                } 
+                else {
+                    std::cout << "\r" << GREEN << "[" << 100 << "%" << "]     " << END;
+                    std::cout << std::endl;
+                }
+            }
+
             /**
              * 1 <= current <= total
             */
@@ -234,6 +258,12 @@ namespace SDDMM {
                 for(int i=0; i<length; ++i){
                     std::cout << c;
                 }
+                std::cout << END << std::endl;
+            }
+
+            static void print_colored_text_line(std::string text, std::string color){
+                std::cout << color;
+                std::cout << text;
                 std::cout << END << std::endl;
             }
 
@@ -254,4 +284,14 @@ namespace SDDMM {
             }
         };
     }
+}
+
+namespace std {
+    template <> 
+    struct hash<pair<SDDMM::Types::vec_size_t, SDDMM::Types::vec_size_t>> {
+        inline size_t operator()(const std::pair<SDDMM::Types::vec_size_t, SDDMM::Types::vec_size_t> &v) const {
+            hash<SDDMM::Types::vec_size_t> int_hasher;
+            return int_hasher(v.first) ^ int_hasher(v.second);
+        }
+    };
 }

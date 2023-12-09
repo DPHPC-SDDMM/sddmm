@@ -102,38 +102,68 @@ namespace SDDMM {
 
             // generates an NxM Matrix with elements in range [min,max] and desired sparsity (sparsity 0.7 means that
             // the matrix will be 70% empty)
-            static Matrix generate_row_major(Types::vec_size_t n, Types::vec_size_t m, float sparsity = 1.0, SDDMM::Types::expmt_t min = -1.0, SDDMM::Types::expmt_t max = 1.0) {
+            static Matrix generate_row_major(
+                Types::vec_size_t n, 
+                Types::vec_size_t m, 
+                float sparsity = 1.0, 
+                SDDMM::Types::expmt_t min = -1.0, 
+                SDDMM::Types::expmt_t max = 1.0,
+                bool verbose = false,
+                uint64_t report_sparsity = 10000
+            ) {
                 std::random_device rd;
                 std::mt19937 gen(rd());
                 std::uniform_real_distribution<> value_dist(min, max);
                 std::uniform_real_distribution<> sparsity_dist(0.0, 1.0);
 
+                double total = n*m;
+                uint64_t counter = 0;
                 Matrix output(n, m);
+                if(verbose) TEXT::Gadgets::print_colored_line(100, '#', TEXT::BRIGHT_YELLOW);
+                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("Generate row maj [") + std::to_string(n) + "x" + std::to_string(m) + "], sparsity: " + std::to_string(sparsity), TEXT::BRIGHT_RED);
                 for (Types::vec_size_t i = 0; i < n; i++) {
                     for (Types::vec_size_t j = 0; j < m; j++) {
                         if (sparsity_dist(gen) < sparsity) {
                             output(i, j) = 0.0;
                         } else {
                             output(i, j) = value_dist(gen);
+                        }
+                        counter++;
+                        if(counter%report_sparsity == 0){
+                            if(verbose) TEXT::Gadgets::print_progress_percent(counter, total, report_sparsity);
                         }
                     }
                 }
 
                 output.set_matrix_format(MatrixFormat::RowMajor);
 
+                output.data.shrink_to_fit();
+
                 return output;
             }
 
             // generates an NxM Matrix with elements in range [min,max] and desired sparsity (sparsity 0.7 means that
             // the matrix will be 70% empty)
-            static Matrix generate_col_major(Types::vec_size_t n, Types::vec_size_t m, float sparsity = 1.0, SDDMM::Types::expmt_t min = -1.0, SDDMM::Types::expmt_t max = 1.0) {
+            static Matrix generate_col_major(
+                Types::vec_size_t n, 
+                Types::vec_size_t m, 
+                float sparsity = 1.0, 
+                SDDMM::Types::expmt_t min = -1.0, 
+                SDDMM::Types::expmt_t max = 1.0,
+                bool verbose = false,
+                uint64_t report_sparsity = 10000
+            ) {
                 std::random_device rd;
                 std::mt19937 gen(rd());
                 std::uniform_real_distribution<> value_dist(min, max);
                 std::uniform_real_distribution<> sparsity_dist(0.0, 1.0);
 
+                double total = n*m;
+                uint64_t counter = 0;
                 Matrix output(n, m);
                 output.set_matrix_format(MatrixFormat::ColMajor);
+                if(verbose) TEXT::Gadgets::print_colored_line(100, '#', TEXT::BRIGHT_YELLOW);
+                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("Generate col maj [") + std::to_string(n) + "x" + std::to_string(m) + "], sparsity: " + std::to_string(sparsity), TEXT::BRIGHT_RED);
                 for (Types::vec_size_t i = 0; i < n; i++) {
                     for (Types::vec_size_t j = 0; j < m; j++) {
                         if (sparsity_dist(gen) < sparsity) {
@@ -141,8 +171,14 @@ namespace SDDMM {
                         } else {
                             output(i, j) = value_dist(gen);
                         }
+                        counter++;
+                        if(counter%report_sparsity == 0){
+                            if(verbose) TEXT::Gadgets::print_progress_percent(counter, total, report_sparsity);
+                        }
                     }
                 }
+
+                output.data.shrink_to_fit();
 
                 return output;
             }
