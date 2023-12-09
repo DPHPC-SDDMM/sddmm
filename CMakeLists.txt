@@ -67,7 +67,7 @@ add_subdirectory(src/sddmm_data_gen)
 
 # ======================================================================================
 # NOTE: you MUST enable SDDMM_PARALLEL_CPU_ZERO_FILTER for all the tests to work!!!
-add_compile_definitions(SDDMM_PARALLEL_CPU_ZERO_FILTER)
+#add_compile_definitions(SDDMM_PARALLEL_CPU_ZERO_FILTER)
 # ======================================================================================
 # low precision requirements for floating point operations
 # GPU tests will likely fail if this is not enabled because the GPU  is not built for

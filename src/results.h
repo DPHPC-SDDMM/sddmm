@@ -290,7 +290,8 @@ namespace SDDMM{
             const std::string experiment_name,
             const std::string desc_string, 
             const std::string info_string, 
-            const std::vector<ExperimentData>& data){
+            const std::vector<ExperimentData>& data,
+            const std::string folder = "../../results/") {
             for(auto d : data){
                 assert(d.durations.size() > 0 && "All ExperimentData structs must contain result data");
             }
@@ -303,7 +304,7 @@ namespace SDDMM{
             time = time.substr(0, time.size()-1);
 
             std::stringstream name;
-            name << "../../results/" << experiment_name << "__vs" 
+            name << folder << experiment_name << "__vs" 
                  << std::to_string(sizeof(Types::vec_size_t)) + "-es" 
                  << std::to_string(sizeof(Types::expmt_t)) + "__"
                  << desc_string

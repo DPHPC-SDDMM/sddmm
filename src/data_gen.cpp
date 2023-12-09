@@ -36,7 +36,11 @@ int main(int argc, char** argv) {
     float S_sparsity = std::atof(argv[5]);
 
     if (K % 32 != 0) {
+        std::cout << std::endl;
+        TEXT::Gadgets::print_colored_line(100, '>', TEXT::HIGHLIGHT_YELLOW);
         TEXT::Gadgets::print_colored_text_line("WARNING: K should be a multiple of 32 but isn't!", TEXT::RED);
+        TEXT::Gadgets::print_colored_line(100, '<', TEXT::HIGHLIGHT_YELLOW);
+        std::cout << std::endl;
     }
 
     std::string name = DataGenerator::huge_generator(path, K, sizeof_X_in_byte, sizeof_Y_in_byte, S_sparsity);
