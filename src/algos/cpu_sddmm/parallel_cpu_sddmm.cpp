@@ -286,7 +286,6 @@ namespace SDDMM {
             Results::ExperimentData* measurements = nullptr
         ){  
             assert(X_dense.is_row_major() && Y_dense.is_col_major() && "X_dense must be row major, Y_dense must be col major!");
-            auto start = std::chrono::high_resolution_clock::now();
 
             Types::vec_size_t xk = X_dense.m;
             Types::vec_size_t yk = Y_dense.m;
@@ -309,6 +308,8 @@ namespace SDDMM {
             std::copy(A_sparse.cols.begin(), A_sparse.cols.end(), res.cols.begin());
             std::copy(A_sparse.rows.begin(), A_sparse.rows.end(), res.rows.begin());
 #endif
+
+            auto start = std::chrono::high_resolution_clock::now();
 
             // omp_set_num_threads(28);
             #pragma omp parallel for
@@ -340,10 +341,9 @@ namespace SDDMM {
                 }
             }
 #endif
-
             auto end = std::chrono::high_resolution_clock::now();
 
-            if(measurements != nullptr){
+            if (measurements != nullptr) {
                 Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
                 measurements->durations.push_back(duration);
             }
