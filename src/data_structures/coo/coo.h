@@ -207,7 +207,8 @@ namespace SDDMM{
                 COO& result,
                 float sparsity,
                 bool verbose,
-                uint64_t report_sparsity
+                uint64_t report_sparsity,
+                bool eliminate_doubles
             ){
                 result.cols.clear();
                 result.rows.clear();
@@ -215,6 +216,8 @@ namespace SDDMM{
 
                 uint64_t total = static_cast<uint64_t>(std::ceil(n*m*(1.0f - sparsity)));
                 uint64_t gen_total = static_cast<uint64_t>(1.2f*total);
+                if (!eliminate_doubles)
+                    uint64_t gen_total = static_cast<uint64_t>(total);
                 curandGenerator_t gen;
                 std::vector<float> n_rows(gen_total);
                 std::vector<float> n_cols(gen_total);
@@ -243,27 +246,32 @@ namespace SDDMM{
                 result.values.resize(total);
                 memcpy(result.values.data(), n_rows.data(), total*sizeof(Types::expmt_t));
 
-                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
-                Types::sorted_coo_collector collector;
-                uint64_t i=0;
-                while(collector.size() < total && i <= gen_total) {
-                    if(i == gen_total){
-                        return false;
+                if (eliminate_doubles) {
+                    if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
+                    Types::sorted_coo_collector collector;
+                    uint64_t i = 0;
+                    while (collector.size() < total && i <= gen_total) {
+                        if (i == gen_total) {
+                            return false;
+                        }
+                        collector.insert({ scale_rand(n_rows[i], n), scale_rand(n_cols[i], m) });
+                        i++;
+                        if (collector.size() % report_sparsity == 0) {
+                            if (verbose) TEXT::Gadgets::print_progress_percent(collector.size(), static_cast<double>(total), report_sparsity);
+                        }
                     }
-                    collector.insert({scale_rand(n_rows[i], n), scale_rand(n_cols[i], m)});
-                    i++;
-                    if(collector.size() % report_sparsity == 0){
-                        if(verbose) TEXT::Gadgets::print_progress_percent(collector.size(), static_cast<double>(total), report_sparsity);
+
+                    if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Split coords..."), TEXT::BRIGHT_BLUE);
+                    for (auto& p : collector) {
+                        result.rows.push_back(p.first);
+                        result.cols.push_back(p.second);
+                        if (result.rows.size() % report_sparsity == 0) {
+                            if (verbose) TEXT::Gadgets::print_progress_percent(result.rows.size(), static_cast<double>(total), report_sparsity);
+                        }
                     }
                 }
-
-                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Split coords..."), TEXT::BRIGHT_BLUE);
-                for(auto& p : collector){
-                    result.rows.push_back(p.first);
-                    result.cols.push_back(p.second);
-                    if(result.rows.size() % report_sparsity == 0){
-                        if(verbose) TEXT::Gadgets::print_progress_percent(result.rows.size(), static_cast<double>(total), report_sparsity);
-                    }
+                else {
+                    if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Skip filtering and sorting!!! (should only be if filtering is infeasible)..."), TEXT::BRIGHT_BLUE);
                 }
 
                 result.values.shrink_to_fit();
@@ -293,7 +301,8 @@ namespace SDDMM{
                 Types::vec_size_t m, 
                 float sparsity = 1.0,
                 bool verbose = true,
-                uint64_t report_sparsity = 10000
+                uint64_t report_sparsity = 10000,
+                bool eliminate_doubles=true
             ){
                 if(verbose) TEXT::Gadgets::print_colored_line(100, '#', TEXT::BRIGHT_YELLOW);
                 if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("Generate sparse col maj [") + std::to_string(n) + "x" + std::to_string(m) + "], sparsity: " + std::to_string(sparsity), TEXT::BRIGHT_RED);
@@ -302,7 +311,7 @@ namespace SDDMM{
                 int tries = 100;
                 auto start = std::chrono::high_resolution_clock::now();
                 for(int t=1; t<=tries; ++t){
-                    if(_generate_row_major_curand(n, m, t, tries, result, sparsity, verbose, report_sparsity)){
+                    if(_generate_row_major_curand(n, m, t, tries, result, sparsity, verbose, report_sparsity, eliminate_doubles)){
                         auto stop = std::chrono::high_resolution_clock::now();
                         if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("..Finished in [") + std::to_string(std::chrono::duration_cast<SDDMM::Types::time_measure_unit>(stop - start).count()/1000.0) + std::string("ms"), TEXT::BRIGHT_RED);
                         return result;
