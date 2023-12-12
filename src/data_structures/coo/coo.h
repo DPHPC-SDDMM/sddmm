@@ -502,11 +502,11 @@ namespace SDDMM{
 
                 output_file.close();
 
-                return name.str();
+                return path + name.str();
             }
 
             static void hadamard_from_bin_file(
-                std::string file_name, 
+                std::string path, 
                 SDDMM::Types::COO& out_coo,
                 SDDMM::Types::CSR& out_csr,
                 float& out_sparse_sparsity,
@@ -515,7 +515,7 @@ namespace SDDMM{
                 SDDMM::Types::Matrix& out_Y,
                 float& out_y_sparsity)
             {
-                std::ifstream input_file(file_name, std::ios::in | std::ios::binary);
+                std::ifstream input_file(path, std::ios::in | std::ios::binary);
                 input_file.seekg (0, input_file.end);
                 uint64_t length = input_file.tellg();
                 input_file.seekg (0, input_file.beg);
@@ -533,7 +533,7 @@ namespace SDDMM{
                 if(sizeof(Types::vec_size_t) != s_t_vec_size){
                     throw std::runtime_error(
                         std::string("Impossible to import file ") + 
-                        file_name + 
+                        path + 
                         std::string("\n...required sizeof vec_size_t is ") + 
                         std::to_string(s_t_vec_size) + 
                         std::string(" but program sizeof vec_size_t is ") + 
@@ -545,7 +545,7 @@ namespace SDDMM{
                 if(sizeof(Types::expmt_t) != s_t_expmt_size){
                     throw std::runtime_error(
                         std::string("Impossible to import file ") + 
-                        file_name + 
+                        path +
                         std::string("\n...required sizeof expmt_t is ") + 
                         std::to_string(s_t_vec_size) + 
                         std::string(" but program sizeof expmt_t is ") + 

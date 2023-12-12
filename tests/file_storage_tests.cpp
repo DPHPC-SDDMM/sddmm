@@ -38,7 +38,7 @@ UTEST(FileStorage, Generator_to_file){
         float out_x_sparsity;
         float out_y_sparsity;
         SDDMM::Types::COO::hadamard_from_bin_file(
-            target_folder + name,
+            name,
             out_coo, out_csr, out_sparse_sparsity, 
             out_X, out_x_sparsity, 
             out_Y, out_y_sparsity);
@@ -48,7 +48,7 @@ UTEST(FileStorage, Generator_to_file){
         ASSERT_TRUE(X == out_X);
         ASSERT_TRUE(Y == out_Y);
 
-        std::remove((target_folder + name).c_str());
+        std::remove((name).c_str());
     }
 }
 
@@ -94,7 +94,7 @@ UTEST(FileStorage, Tiny_Matrix_Write){
     float out_x_sparsity;
     float out_y_sparsity;
     SDDMM::Types::COO::hadamard_from_bin_file(
-        target_folder + name,
+        name,
         out_coo, out_csr, out_sparse_sparsity, 
         out_X, out_x_sparsity, 
         out_Y, out_y_sparsity);
@@ -107,7 +107,7 @@ UTEST(FileStorage, Tiny_Matrix_Write){
     ASSERT_TRUE(out_x_sparsity == X_sparsity);
     ASSERT_TRUE(out_y_sparsity == Y_sparsity);
 
-    std::remove((target_folder + name).c_str());
+    std::remove((name).c_str());
 }
 
 UTEST(FileStorage, Giant_Matrix_Write){
@@ -161,7 +161,7 @@ UTEST(FileStorage, Giant_Matrix_Write){
     float out_x_sparsity;
     float out_y_sparsity;
     SDDMM::Types::COO::hadamard_from_bin_file(
-        target_folder + name,
+        name,
         out_coo, out_csr, out_sparse_sparsity, 
         out_X, out_x_sparsity, 
         out_Y, out_y_sparsity);

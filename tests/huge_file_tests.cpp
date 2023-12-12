@@ -11,8 +11,8 @@ UTEST_MAIN();
 
 UTEST(HugeFile, Huge_Generator){
     std::string name = SDDMM::DataGenerator::huge_generator(
-        std::string(".") + SDDMM::Defines::path_separator,
-        512, 3000000000, 3000000000, 0.99999f
+        std::string("C://sddmm_data") + SDDMM::Defines::path_separator,
+        512, 30000000, 30000000, 0.999f
     );
 
     std::cout << "Finish create and store" << std::endl;

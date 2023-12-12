@@ -25,8 +25,6 @@ namespace SDDMM {
             assert(A_sparse.n==X_dense.n && A_sparse.m==Y_dense.m && "Sparse and dense matrices dimensions must match!");
             assert(X_dense.is_row_major() && Y_dense.is_col_major() && "X_dense must be row major, Y_dense must be col major!");
 
-            auto start = std::chrono::high_resolution_clock::now();
-
             Types::vec_size_t inner_dense_dimension = X_dense.m;
 
             // get sparse data length and produce one in bytes
@@ -66,6 +64,8 @@ namespace SDDMM {
             auto err12 = cudaMemcpy(X_dense_d, X_dense.data.data(), x_dense_len_values_d, cudaMemcpyHostToDevice);
             auto err13 = cudaMemcpy(Y_dense_d, Y_dense.data.data(), y_dense_len_values_d, cudaMemcpyHostToDevice);
 
+            auto start = std::chrono::high_resolution_clock::now();
+
             CUDA_SDDMM::CudaSDDMM(
                 A_sparse_values_d, 
                 A_sparse_rows_d, 
@@ -79,6 +79,13 @@ namespace SDDMM {
                 out_row_d, 
                 out_col_d
             );
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            if (measurements != nullptr) {
+                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
+                measurements->durations.push_back(duration);
+            }
 
             Types::expmt_t* out_values = new Types::expmt_t[sparse_len];
             Types::vec_size_t* out_rows = new Types::vec_size_t[sparse_len];
@@ -109,13 +116,6 @@ namespace SDDMM {
                     out_sparse.rows.push_back(out_rows[i]);
                     out_sparse.cols.push_back(out_cols[i]);
                 }
-            }
-
-            auto end = std::chrono::high_resolution_clock::now();
-
-            if(measurements != nullptr){
-                Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
-                measurements->durations.push_back(duration);
             }
 
             out_sparse.values.shrink_to_fit(); // SDDMM may have less entries than A_sparse, due to zero inner products forming.

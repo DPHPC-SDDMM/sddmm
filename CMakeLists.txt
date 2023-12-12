@@ -67,7 +67,7 @@ add_subdirectory(src/sddmm_data_gen)
 
 # ======================================================================================
 # NOTE: you MUST enable SDDMM_PARALLEL_CPU_ZERO_FILTER for all the tests to work!!!
-add_compile_definitions(SDDMM_PARALLEL_CPU_ZERO_FILTER)
+#add_compile_definitions(SDDMM_PARALLEL_CPU_ZERO_FILTER)
 # ======================================================================================
 # low precision requirements for floating point operations
 # GPU tests will likely fail if this is not enabled because the GPU  is not built for
@@ -80,7 +80,7 @@ add_compile_definitions(USE_LOW_PRECISION)
 # add_compile_definitions(SAMPLE_ALGO)
 # add_compile_definitions(CSR_COO)CUDA_cusparse_LIBRARY
 # add_compile_definitions(USE_LOW_PRECISION)
-# add_compile_definitions(GPU_CACHE_BENCHMARK)
+add_compile_definitions(GPU_CACHE_BENCHMARK)
 
 # add_compile_definitions(USE_LOW_PRECISION)
 # add_compile_definitions(UNROLLING_BENCHMARK)
@@ -204,3 +204,28 @@ target_link_libraries(huge_file_tests ${CUDA_cusparse_LIBRARY})
 target_link_libraries(huge_file_tests ${CUDA_curand_LIBRARY})
 set_property(TARGET huge_file_tests PROPERTY CUDA_ARCHITECTURES ${CUDA_ARCH})
 set_property(TARGET huge_file_tests PROPERTY CXX_STANDARD 20)
+
+add_executable(data_gen src/data_gen.cpp)
+target_link_libraries(data_gen OpenMP::OpenMP_CXX)
+target_link_libraries(data_gen CUDA::cudart)
+target_link_libraries(data_gen CUDA::cuda_driver)
+target_link_libraries(data_gen DataStructuresLib)
+target_link_libraries(data_gen AlgoLib)
+target_link_libraries(data_gen GenLib)
+target_link_libraries(data_gen ${CUDA_cusparse_LIBRARY})
+target_link_libraries(data_gen ${CUDA_curand_LIBRARY})
+set_property(TARGET data_gen PROPERTY CUDA_ARCHITECTURES ${CUDA_ARCH})
+set_property(TARGET data_gen PROPERTY CXX_STANDARD 20)   
+
+add_executable(statistics_test_data src/statistics_test_data.cpp)
+target_link_libraries(statistics_test_data OpenMP::OpenMP_CXX)
+#target_link_libraries(statistics_test_data CUDA::cudart)
+#target_link_libraries(statistics_test_data CUDA::cuda_driver)
+target_link_libraries(statistics_test_data CudaLib)
+target_link_libraries(statistics_test_data DataStructuresLib)
+target_link_libraries(statistics_test_data AlgoLib)
+target_link_libraries(statistics_test_data GenLib)
+target_link_libraries(statistics_test_data ${CUDA_cusparse_LIBRARY})
+target_link_libraries(statistics_test_data ${CUDA_curand_LIBRARY})
+set_property(TARGET statistics_test_data PROPERTY CUDA_ARCHITECTURES ${CUDA_ARCH})
+set_property(TARGET statistics_test_data PROPERTY CXX_STANDARD 20)
