@@ -24,7 +24,7 @@ namespace SDDMM {
             Types::vec_size_t sizeof_Y_in_byte,
             float S_sparsity,
             Types::vec_size_t K_row,
-            bool eliminate_doubles=true
+            uint64_t& out_size_written
         ){
             if(target_folder.back() != Defines::path_separator){
                 std::string msg = std::string("target_folder path must end with a valid path-separator (") +
@@ -40,13 +40,14 @@ namespace SDDMM {
             double x_mb = static_cast<double>(N)*static_cast<double>(K)/1024.0/1024*sizeof(Types::expmt_t);
             double y_mb = static_cast<double>(M)*static_cast<double>(K)/1024.0/1024*sizeof(Types::expmt_t);
             double s_mb = nnz/1024.0/1024*(sizeof(Types::expmt_t)+2*sizeof(Types::vec_size_t));
+
             TEXT::Gadgets::print_colored_text_line(
                 std::string("Generating\n") +
                 std::string("...dense X:  [") + std::to_string(N) + std::string(" x ") + std::to_string(K) + std::string("], ") + std::to_string(x_mb) + std::string("MB\n") +
                 std::string("...dense Y:  [") + std::to_string(K) + std::string(" x ") + std::to_string(M) + std::string("], ") + std::to_string(y_mb) + std::string("MB\n") +
                 std::string("...sparse S: [") + std::to_string(N) + std::string(" x ") + std::to_string(M) + std::string("] with sparsity ") 
                         + std::to_string(S_sparsity) + std::string(", approx ") + std::to_string(nnz) + std::string(" nnz values, ") + std::to_string(s_mb) + std::string("MB\n") +
-                std::string("total required size: ") + std::to_string(x_mb + y_mb + s_mb) + std::string("MB") +
+                std::string("total required size: ") + std::to_string(x_mb + y_mb + s_mb) + std::string("MB\n") +
                 std::string("using K_row: ") + std::to_string(K_row),
                 TEXT::BRIGHT_MAGENTA
             );
@@ -59,15 +60,15 @@ namespace SDDMM {
                 return "";
             }
             
-            return huge_generator(
-                target_folder, N, M, K, S_sparsity, 0.0f, 0.0f, eliminate_doubles
+            return huge_generator_gen(
+                target_folder, N, M, K, S_sparsity, 0.0f, 0.0f, out_size_written
             );
         }
 
-        static std::string huge_generator(
+        static std::string huge_generator_gen(
             std::string target_folder, 
             Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K,
-            float S_sparsity, float X_sparsity, float Y_sparsity, bool eliminate_doubles
+            float S_sparsity, float X_sparsity, float Y_sparsity, uint64_t& out_size_written
         ){
             if(target_folder.back() != Defines::path_separator){
                 throw std::runtime_error(
@@ -90,13 +91,13 @@ namespace SDDMM {
             ts.push_back(std::chrono::high_resolution_clock::now());
             ts_labels.push_back("generate Y");
 
-            auto coo_mat = SDDMM::Types::COO::generate_row_major_curand(N, M, S_sparsity, true, 40000, eliminate_doubles);
+            auto coo_mat = SDDMM::Types::COO::generate_row_major_curand(N, M, S_sparsity, true, 40000);
             ts.push_back(std::chrono::high_resolution_clock::now());
             ts_labels.push_back("generate S mat");
 
             TEXT::Gadgets::print_colored_text_line("Write to file:", TEXT::BRIGHT_CYAN);
             std::string name = SDDMM::Types::COO::hadamard_to_bin_file(
-                target_folder, coo_mat, S_sparsity, X, X_sparsity, Y, Y_sparsity);
+                target_folder, coo_mat, S_sparsity, X, X_sparsity, Y, Y_sparsity, out_size_written);
             ts.push_back(std::chrono::high_resolution_clock::now());
             ts_labels.push_back("to file");
 

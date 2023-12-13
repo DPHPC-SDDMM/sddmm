@@ -161,11 +161,13 @@ namespace SDDMM {
                     float sparse_sparsity;
                     float X_sparsity;
                     float Y_sparsity;
+                    uint64_t out_size_read;
                     SDDMM::Types::COO::hadamard_from_bin_file(
                         name,
                         coo_mat, csr_mat, sparse_sparsity,
                         X, X_sparsity,
-                        Y, Y_sparsity);
+                        Y, Y_sparsity,
+                        out_size_read);
 
                     Types::vec_size_t N = X.n;
                     Types::vec_size_t M = Y.m;

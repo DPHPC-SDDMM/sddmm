@@ -10,7 +10,7 @@ using namespace SDDMM;
 
 int main(int argc, char** argv) {
 
-    if (argc < 6 || argc > 8) {
+    if (argc < 6 || argc > 7) {
         TEXT::Gadgets::print_colored_line(100, '=', TEXT::GREEN);
         std::cout << std::endl;
 
@@ -21,7 +21,6 @@ int main(int argc, char** argv) {
         TEXT::Gadgets::print_colored_text_line("Param 4: sizeof dense B in byte", TEXT::BLUE);
         TEXT::Gadgets::print_colored_text_line("Param 5: sparsity of S (0.999 is 99.9% of entries are zero, 0.1 is 90% of entries are NOT zero)", TEXT::BLUE);
         TEXT::Gadgets::print_colored_text_line("Param 6: sizeof row-determining K (if not given, param 2 is used)", TEXT::BLUE);
-        TEXT::Gadgets::print_colored_text_line("Param 7: [1/0] disable index filtering for sparse matrix (if filtering is infeasible)", TEXT::BLUE);
 
         std::cout << std::endl;
         TEXT::Gadgets::print_colored_text_line("Param 6 can be set in order to produce matrices with the same N,M as matrices with larger K.", TEXT::BLUE);
@@ -34,22 +33,40 @@ int main(int argc, char** argv) {
 
         std::cout << std::endl;
         TEXT::Gadgets::print_colored_line(100, '=', TEXT::GREEN);
-    }
 
+        return 0;
+    }
+    std::cout << "lol" << std::endl;
     std::string path = std::string(argv[1]);
     Types::vec_size_t K = std::atoi(argv[2]);
     Types::vec_size_t sizeof_X_in_byte = std::atoi(argv[3]);
     Types::vec_size_t sizeof_Y_in_byte = std::atoi(argv[4]);
     float S_sparsity = std::atof(argv[5]);
+
+    if (S_sparsity < 0.99f || S_sparsity >= 1.0f) {
+        std::cout << std::endl;
+        TEXT::Gadgets::print_colored_line(100, '>', TEXT::HIGHLIGHT_YELLOW);
+        TEXT::Gadgets::print_colored_text_line("ERROR: sparsity must be in [0.99, 1.0)!", TEXT::RED);
+        TEXT::Gadgets::print_colored_line(100, '<', TEXT::HIGHLIGHT_YELLOW);
+        std::cout << std::endl;
+        return 0;
+    }
+
     Types::vec_size_t K_row = K;
     bool eliminate_doubles = true;
-    if (argc >= 7) {
+    if (argc == 7) {
         K_row = std::atoi(argv[6]);
     }
-    if (argc >= 8) {
-        int b = std::atoi(argv[7]);
-        if (b == 1) eliminate_doubles = false;
-    }
+
+    std::cout << path << " " << K << " " << sizeof_X_in_byte
+        << " " << sizeof_Y_in_byte << " " << S_sparsity
+        << " " << K_row
+        << std::endl;
+
+    //if (argc >= 8) {
+    //    int b = std::atoi(argv[7]);
+    //    if (b == 1) eliminate_doubles = false;
+    //}
 
     if (K % 32 != 0) {
         std::cout << std::endl;
@@ -59,8 +76,10 @@ int main(int argc, char** argv) {
         std::cout << std::endl;
     }
 
-    std::string name = DataGenerator::huge_generator(path, K, sizeof_X_in_byte, sizeof_Y_in_byte, S_sparsity, K_row, eliminate_doubles);
+    uint64_t out_size_written;
+    std::string name = DataGenerator::huge_generator(path, K, sizeof_X_in_byte, sizeof_Y_in_byte, S_sparsity, K_row, out_size_written);
 
+    TEXT::Gadgets::print_colored_text_line(std::to_string(out_size_written) + std::string(" bytes written..."), TEXT::BLUE);
     TEXT::Gadgets::print_colored_text_line(std::string("File [") + name + std::string("] saved!"), TEXT::BLUE);
     std::cout << std::endl;
     TEXT::Gadgets::print_colored_line(100, '=', TEXT::GREEN);

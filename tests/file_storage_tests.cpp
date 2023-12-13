@@ -26,8 +26,9 @@ UTEST(FileStorage, Generator_to_file){
         auto csr_mat = mat.to_csr();
         auto exp_result = coo_mat.hadamard(X*Y);
 
+        uint64_t out_size_written;
         std::string name = SDDMM::Types::COO::hadamard_to_bin_file(
-            target_folder, coo_mat, 0.1f, X, 0.0f, Y, 0.0f);
+            target_folder, coo_mat, 0.1f, X, 0.0f, Y, 0.0f, out_size_written);
 
         SDDMM::Types::COO out_coo;
         SDDMM::Types::CSR out_csr;
@@ -37,12 +38,15 @@ UTEST(FileStorage, Generator_to_file){
         float out_sparse_sparsity;
         float out_x_sparsity;
         float out_y_sparsity;
+        uint64_t out_size_read;
         SDDMM::Types::COO::hadamard_from_bin_file(
             name,
             out_coo, out_csr, out_sparse_sparsity, 
             out_X, out_x_sparsity, 
-            out_Y, out_y_sparsity);
+            out_Y, out_y_sparsity,
+            out_size_read);
 
+        ASSERT_TRUE(out_size_written == out_size_read);
         ASSERT_TRUE(out_coo.equals(coo_mat));
         ASSERT_TRUE(out_csr.equals(csr_mat));
         ASSERT_TRUE(X == out_X);
@@ -82,8 +86,9 @@ UTEST(FileStorage, Tiny_Matrix_Write){
     float Y_sparsity = 0.0f;
     float sparsity = 0.1f;
 
+    uint64_t out_size_written;
     std::string name = SDDMM::Types::COO::hadamard_to_bin_file(
-        target_folder, coo_mat, sparsity, X, X_sparsity, Y, Y_sparsity);
+        target_folder, coo_mat, sparsity, X, X_sparsity, Y, Y_sparsity, out_size_written);
 
     SDDMM::Types::COO out_coo;
     SDDMM::Types::CSR out_csr;
@@ -93,12 +98,15 @@ UTEST(FileStorage, Tiny_Matrix_Write){
     float out_sparse_sparsity;
     float out_x_sparsity;
     float out_y_sparsity;
+    uint64_t out_size_read;
     SDDMM::Types::COO::hadamard_from_bin_file(
         name,
         out_coo, out_csr, out_sparse_sparsity, 
         out_X, out_x_sparsity, 
-        out_Y, out_y_sparsity);
+        out_Y, out_y_sparsity,
+        out_size_read);
 
+    ASSERT_TRUE(out_size_written == out_size_read);
     ASSERT_TRUE(out_coo.equals(coo_mat));
     ASSERT_TRUE(out_csr.equals(csr_mat));
     ASSERT_TRUE(X == out_X);
@@ -147,8 +155,9 @@ UTEST(FileStorage, Giant_Matrix_Write){
     ts.push_back(std::chrono::high_resolution_clock::now());
     ts_labels.push_back("to csr_mat");
 
+    uint64_t out_size_written;
     std::string name = SDDMM::Types::COO::hadamard_to_bin_file(
-        target_folder, coo_mat, sparsity, X, X_sparsity, Y, Y_sparsity);
+        target_folder, coo_mat, sparsity, X, X_sparsity, Y, Y_sparsity, out_size_written);
     ts.push_back(std::chrono::high_resolution_clock::now());
     ts_labels.push_back("to file");
 
@@ -160,14 +169,17 @@ UTEST(FileStorage, Giant_Matrix_Write){
     float out_sparse_sparsity;
     float out_x_sparsity;
     float out_y_sparsity;
+    uint64_t out_size_read;
     SDDMM::Types::COO::hadamard_from_bin_file(
         name,
         out_coo, out_csr, out_sparse_sparsity, 
         out_X, out_x_sparsity, 
-        out_Y, out_y_sparsity);
+        out_Y, out_y_sparsity, 
+        out_size_read);
     ts.push_back(std::chrono::high_resolution_clock::now());
     ts_labels.push_back("from file");
 
+    ASSERT_TRUE(out_size_written == out_size_read);
     ASSERT_TRUE(out_coo.equals(coo_mat));
     ASSERT_TRUE(out_csr.equals(csr_mat));
     ASSERT_TRUE(X == out_X);
@@ -183,5 +195,81 @@ UTEST(FileStorage, Giant_Matrix_Write){
         std::cout << ts_labels[i] << ":\t" << static_cast<double>(duration) / 1000.0 << "ms" << std::endl;
     }
 
-    std::remove((target_folder + name).c_str());
+    std::remove((name).c_str());
+}
+
+UTEST(FileStorage, Giant_Matrix_Write_2) {
+    std::string target_folder = ".";
+    target_folder += SDDMM::Defines::path_separator;
+
+    std::vector<std::chrono::high_resolution_clock::time_point> ts;
+    std::vector<std::string> ts_labels;
+
+    // max for N and M: 8388608
+    SDDMM::Types::vec_size_t N = 320 * 32; //==10240
+    SDDMM::Types::vec_size_t M = 400 * 32; //==12800
+    SDDMM::Types::vec_size_t K = 512;
+
+    ts.push_back(std::chrono::high_resolution_clock::now());
+    ts_labels.push_back("start");
+    float X_sparsity = 0.11145f;
+    auto X = SDDMM::Types::Matrix::generate_row_major(N, K, X_sparsity);
+    ts.push_back(std::chrono::high_resolution_clock::now());
+    ts_labels.push_back("generate X");
+
+    float Y_sparsity = 0.2f;
+    auto Y = SDDMM::Types::Matrix::generate_col_major(K, M, Y_sparsity);
+    ts.push_back(std::chrono::high_resolution_clock::now());
+    ts_labels.push_back("generate Y");
+
+    float sparsity = 0.7f;
+    auto coo_mat = SDDMM::Types::COO::generate_row_major_curand(N, M, sparsity, true, 40000);
+    ts.push_back(std::chrono::high_resolution_clock::now());
+    ts_labels.push_back("generate S mat");
+
+    auto csr_mat = coo_mat.to_csr();
+    ts.push_back(std::chrono::high_resolution_clock::now());
+    ts_labels.push_back("to csr_mat");
+
+    uint64_t out_size_written;
+    std::string name = SDDMM::Types::COO::hadamard_to_bin_file(
+        target_folder, coo_mat, sparsity, X, X_sparsity, Y, Y_sparsity, out_size_written);
+    ts.push_back(std::chrono::high_resolution_clock::now());
+    ts_labels.push_back("to file");
+
+    SDDMM::Types::COO out_coo;
+    SDDMM::Types::CSR out_csr;
+    SDDMM::Types::Matrix out_X(0, 0);
+    SDDMM::Types::Matrix out_Y(0, 0);
+
+    float out_sparse_sparsity;
+    float out_x_sparsity;
+    float out_y_sparsity;
+    uint64_t out_size_read;
+    SDDMM::Types::COO::hadamard_from_bin_file(
+        name,
+        out_coo, out_csr, out_sparse_sparsity,
+        out_X, out_x_sparsity,
+        out_Y, out_y_sparsity,
+        out_size_read);
+    ts.push_back(std::chrono::high_resolution_clock::now());
+    ts_labels.push_back("from file");
+
+    ASSERT_TRUE(out_size_written == out_size_read);
+    ASSERT_TRUE(out_coo.equals(coo_mat));
+    ASSERT_TRUE(out_csr.equals(csr_mat));
+    ASSERT_TRUE(X == out_X);
+    ASSERT_TRUE(Y == out_Y);
+    ASSERT_TRUE(out_sparse_sparsity == sparsity);
+    ASSERT_TRUE(out_x_sparsity == X_sparsity);
+    ASSERT_TRUE(out_y_sparsity == Y_sparsity);
+    ts.push_back(std::chrono::high_resolution_clock::now());
+    ts_labels.push_back("compare");
+
+    for (int i = 1; i < ts.size(); ++i) {
+        auto duration = std::chrono::duration_cast<SDDMM::Types::time_measure_unit>(ts[i] - ts[i - 1]).count();
+        std::cout << ts_labels[i] << ":\t" << static_cast<double>(duration) / 1000.0 << "ms" << std::endl;
+    }
+
+    std::remove((name).c_str());
 }

@@ -16,6 +16,17 @@
 
 UTEST_MAIN();
 
+UTEST(Random, Insert_Sorted) {
+    std::vector<std::pair<int, int>> source = { {3, 16}, {2, 16}, {3, 2}, {9, 16}, {9, 0},{9, 5}, {9, 1}, {8, 5}, {6, 3}, {9, 2}, {5, 0}, {8, 3}, {9, 7}, {8, 3} };
+    std::vector<std::pair<int, int>> target;
+
+    for (auto& e : source) {
+        target.insert(std::upper_bound(target.begin(), target.end(),  e), e);
+    }
+
+    int x = 5;
+}
+
 UTEST(Random, Row_To_Col_Major) {
     // generate data
     using namespace SDDMM;
