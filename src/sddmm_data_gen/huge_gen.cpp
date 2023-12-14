@@ -58,6 +58,7 @@ namespace SDDMM {
                 TEXT::Gadgets::print_colored_text_line("WARNING: infeasible to filter coordinates of sparse matrix!", TEXT::RED);
                 TEXT::Gadgets::print_colored_line(100, '<', TEXT::HIGHLIGHT_YELLOW);
                 std::cout << std::endl;
+                return "";
             }
 
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);

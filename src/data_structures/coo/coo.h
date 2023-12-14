@@ -282,12 +282,12 @@ namespace SDDMM{
                     }
                 }
                 else {
-                    // copy values
-                    if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Infeasible to filter, just copy values and hope for the best..."), TEXT::HIGHLIGHT_CYAN);
-                    result.cols.resize(total);
-                    result.rows.resize(total);
-                    memcpy(result.cols.data(), n_cols.data(), total * sizeof(Types::vec_size_t));
-                    memcpy(result.rows.data(), n_rows.data(), total * sizeof(Types::vec_size_t));
+                    //// copy values
+                    //if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Infeasible to filter, just copy values and hope for the best..."), TEXT::HIGHLIGHT_CYAN);
+                    //result.cols.resize(total);
+                    //result.rows.resize(total);
+                    //memcpy(result.cols.data(), n_cols.data(), total * sizeof(Types::vec_size_t));
+                    //memcpy(result.rows.data(), n_rows.data(), total * sizeof(Types::vec_size_t));
                 }
 
                 //if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
