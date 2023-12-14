@@ -96,6 +96,10 @@ namespace SDDMM{
                 // std::sort(data.begin(), data.end());
             }
 
+            static bool no_filter_condition(float sparsity, Types::vec_size_t N, Types::vec_size_t M) {
+                return sparsity < 0.989f && N > 90000 && M > 90000;
+            }
+
             /**
              * Generate a random Matrix represented in the COO format.
              * For details about the COO format, you may read
@@ -243,8 +247,6 @@ namespace SDDMM{
 
                 result.n = n;
                 result.m = m;
-                result.cols.reserve(total);
-                result.rows.reserve(total);
                 result.values.resize(total);
                 // doesn't matter which values we use here as long as we have enough of them
                 // => no filtering etc... necessary, just copy
@@ -252,31 +254,40 @@ namespace SDDMM{
 
                 // try to multithreaded sort the stuff
 
-                if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
-                Types::sorted_coo_collector collector;
-                uint64_t i = 0;
-                while (collector.size() < total && i <= gen_total) {
-                    if (i == gen_total) {
-                        return false;
+                if (!no_filter_condition(sparsity, n, m)) {
+                    result.cols.reserve(total);
+                    result.rows.reserve(total);
+                    if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
+                    Types::sorted_coo_collector collector;
+                    uint64_t i = 0;
+                    while (collector.size() < total && i <= gen_total) {
+                        if (i == gen_total) {
+                            return false;
+                        }
+                        collector.insert({ scale_rand(n_rows[i], n), scale_rand(n_cols[i], m) });
+                        i++;
+                        if (collector.size() % report_sparsity == 0) {
+                            if (verbose) TEXT::Gadgets::print_progress_percent(collector.size(), static_cast<double>(total), report_sparsity);
+                        }
                     }
-                    collector.insert({ scale_rand(n_rows[i], n), scale_rand(n_cols[i], m) });
-                    i++;
-                    if (collector.size() % report_sparsity == 0) {
-                        if (verbose) TEXT::Gadgets::print_progress_percent(collector.size(), static_cast<double>(total), report_sparsity);
+
+                    if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Split coords..."), TEXT::BRIGHT_BLUE);
+
+                    for (auto& p : collector) {
+                        result.rows.push_back(p.first);
+                        result.cols.push_back(p.second);
+                        if (result.rows.size() % report_sparsity == 0) {
+                            if (verbose) TEXT::Gadgets::print_progress_percent(result.rows.size(), static_cast<double>(total), report_sparsity);
+                        }
                     }
                 }
-
-                if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Split coords..."), TEXT::BRIGHT_BLUE);
-
-                while(collector.size() > 0){
-                    auto p = *collector.begin();
-                //for (auto& p : collector) {
-                    result.rows.push_back(p.first);
-                    result.cols.push_back(p.second);
-                    if (result.rows.size() % report_sparsity == 0) {
-                        if (verbose) TEXT::Gadgets::print_progress_percent(result.rows.size(), static_cast<double>(total), report_sparsity);
-                    }
-                    collector.erase(p);
+                else {
+                    // copy values
+                    if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Infeasible to filter, just copy values and hope for the best..."), TEXT::HIGHLIGHT_CYAN);
+                    result.cols.resize(total);
+                    result.rows.resize(total);
+                    memcpy(result.cols.data(), n_cols.data(), total * sizeof(Types::vec_size_t));
+                    memcpy(result.rows.data(), n_rows.data(), total * sizeof(Types::vec_size_t));
                 }
 
                 //if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);

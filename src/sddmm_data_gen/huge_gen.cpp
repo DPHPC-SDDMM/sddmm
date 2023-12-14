@@ -52,13 +52,21 @@ namespace SDDMM {
                 TEXT::BRIGHT_MAGENTA
             );
 
+            if (Types::COO::no_filter_condition(S_sparsity, N, M)) {
+                std::cout << std::endl;
+                TEXT::Gadgets::print_colored_line(100, '>', TEXT::HIGHLIGHT_YELLOW);
+                TEXT::Gadgets::print_colored_text_line("WARNING: infeasible to filter coordinates of sparse matrix!", TEXT::RED);
+                TEXT::Gadgets::print_colored_line(100, '<', TEXT::HIGHLIGHT_YELLOW);
+                std::cout << std::endl;
+            }
+
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
             TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
-            char ans = 'n';
-            std::cin >> ans;
-            if(!(ans == 'y')){
-                return "";
-            }
+            //char ans = 'n';
+            //std::cin >> ans;
+            //if(!(ans == 'y')){
+            //    return "";
+            //}
             
             return huge_generator_gen(
                 target_folder, N, M, K, S_sparsity, 0.0f, 0.0f, out_size_written

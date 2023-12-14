@@ -43,10 +43,10 @@ int main(int argc, char** argv) {
     Types::vec_size_t sizeof_Y_in_byte = std::atoi(argv[4]);
     float S_sparsity = std::atof(argv[5]);
 
-    if (S_sparsity < 0.99f || S_sparsity >= 1.0f) {
+    if (S_sparsity >= 1.0f) {
         std::cout << std::endl;
         TEXT::Gadgets::print_colored_line(100, '>', TEXT::HIGHLIGHT_YELLOW);
-        TEXT::Gadgets::print_colored_text_line("ERROR: sparsity must be in [0.99, 1.0)!", TEXT::RED);
+        TEXT::Gadgets::print_colored_text_line("ERROR: sparsity must be in [0, 1.0)!", TEXT::RED);
         TEXT::Gadgets::print_colored_line(100, '<', TEXT::HIGHLIGHT_YELLOW);
         std::cout << std::endl;
         return 0;
