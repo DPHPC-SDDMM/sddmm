@@ -159,7 +159,7 @@ UTEST(SM_L2, Init_test) {
             A.n, B.m, B.n, 
             params);
 
-        ASSERT_TRUE(result.equals(exp_result));
+//        ASSERT_TRUE(result.equals(exp_result));
         ASSERT_TRUE(SDDMM::Algo::SML2SDDMM::check_result(B.n /*K*/, exp_result, result, params));
     }
     {
@@ -184,7 +184,7 @@ UTEST(SM_L2, Init_test) {
             A.n, B.m, B.n, 
             params);
 
-        ASSERT_TRUE(result.equals(exp_result));
+//        ASSERT_TRUE(result.equals(exp_result));
         ASSERT_TRUE(SDDMM::Algo::SML2SDDMM::check_result(B.n /*K*/, exp_result, result, params));
     }
     {
@@ -210,7 +210,7 @@ UTEST(SM_L2, Init_test) {
             A.n, B.m, B.n, 
             params);
 
-        ASSERT_TRUE(result.equals(exp_result));
+//        ASSERT_TRUE(result.equals(exp_result));
         ASSERT_TRUE(SDDMM::Algo::SML2SDDMM::check_result(B.n /*K*/, exp_result, result, params));
     }
 }

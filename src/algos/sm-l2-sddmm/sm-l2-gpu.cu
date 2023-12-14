@@ -98,9 +98,6 @@ namespace SDDMM {
             //            unsigned mask = 0xffffffff;
 
                         // __shfl_xor is deprecated in cuda >=  9.0
-                        /**
-                         * Remove these two because of suspected driver bug...
-                        */
                         sum1 += __shfl_xor_sync(mask, sum1, vws);
                         sum2 += __shfl_xor_sync(mask, sum2, vws);
                         // ===================================================
