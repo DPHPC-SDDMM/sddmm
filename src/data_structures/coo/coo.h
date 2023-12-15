@@ -507,7 +507,7 @@ namespace SDDMM{
             )
             {
                 auto last = path[path.size()-1];
-                assert(last == SDDMM::Defines::path_separator && "path must end with a path separator / or \\");
+                assert((last == '/' || last == '\\') && "path must end with a path separator / or \\");
 
                 auto created_at = std::chrono::system_clock::now();
                 auto created_at_t = std::chrono::system_clock::to_time_t(created_at);
@@ -720,8 +720,18 @@ namespace SDDMM{
 
             static COO read_matrix_market_file(const char* filepath, uint64_t& out_size_read, bool verbose=false)
             {
+                // convert to whatever os we are on...
+                std::string temp = filepath;
+                if (Defines::path_separator == '/') {
+                    std::replace(temp.begin(), temp.end(), '\\', '/');
+                }
+                else {
+                    std::replace(temp.begin(), temp.end(), '/', '\\');
+                }
+                filepath = temp.c_str();
+
                 // Output variable
-                Types::COO output;;
+                Types::COO output;
 
                 Types::vec_size_t nr_nonzeroes;
 
@@ -764,12 +774,8 @@ namespace SDDMM{
 
                 // Read number of rows, columns and number of non-zero elements of the sparse matrix.
                 in >> output.n >> output.m >> nr_nonzeroes;
-
-                // Allocate memory for data.
-                // output.data.resize(nr_nonzeroes);
-                output.values.resize(nr_nonzeroes);
-                output.cols.resize(nr_nonzeroes);
-                output.rows.resize(nr_nonzeroes);
+                std::vector<triplet> triplets;
+                triplets.reserve(nr_nonzeroes);
 
                 Types::vec_size_t index = 0;
                 // The second check is made in case
@@ -782,13 +788,40 @@ namespace SDDMM{
                     else { in >> r_in >> c_in >> v; }
 
                     // adjust from 1-based to 0-based
-                    output.values[index++] = v;
-                    output.cols[index++] = c_in-1;
-                    output.rows[index++] = r_in-1;
+                    triplets.push_back({
+                        r_in-1,
+                        c_in-1, 
+                        v 
+                    });
+                    index++;
                     // output.data[index++] = {r_in-1, c_in-1, v};
                 }
 
                 in.close(); // Don't forget to close the file!
+
+                std::sort(triplets.begin(), triplets.end(), [](auto& e1, auto& e2) {
+                    //return e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y);
+                    return e1 < e2;
+                });
+
+                // Allocate memory for data.
+                // output.data.resize(nr_nonzeroes);
+                output.values.reserve(nr_nonzeroes);
+                output.cols.reserve(nr_nonzeroes);
+                output.rows.reserve(nr_nonzeroes);
+
+                for (auto& t : triplets) {
+                    output.rows.push_back(t.row);
+                    output.cols.push_back(t.col);
+                    output.values.push_back(t.value);
+                }
+
+                //std::vector<std::pair<int, int>> source = { {3, 16}, {2, 16}, {3, 2}, {9, 16}, {9, 0},{9, 5}, {9, 1}, {8, 5}, {6, 3}, {9, 2}, {5, 0}, {8, 3}, {9, 7}, {8, 3} };
+                //std::vector<std::pair<int, int>> target;
+
+                //for (auto& e : source) {
+                //    target.insert(std::upper_bound(target.begin(), target.end(), e), e);
+                //}
 
                 return output;
             }

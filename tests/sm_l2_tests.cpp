@@ -185,7 +185,8 @@ UTEST(SM_L2, Init_test) {
             params);
 
 //        ASSERT_TRUE(result.equals(exp_result));
-        ASSERT_TRUE(SDDMM::Algo::SML2SDDMM::check_result(B.n /*K*/, exp_result, result, params));
+        bool c = SDDMM::Algo::SML2SDDMM::check_result(B.n /*K*/, exp_result, result, params);
+        ASSERT_TRUE(c);
     }
     {
         // very sparse, very long

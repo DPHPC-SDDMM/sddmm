@@ -62,74 +62,75 @@ namespace SDDMM {
                     Types::vec_size_t Tj, Types::vec_size_t num_J_tiles
                     ) {
 
-                local_print("Starting autotuning...");
+                return 32;
+                //local_print("Starting autotuning...");
 
-                auto* measurements = new Results::ExperimentData;
+                //auto* measurements = new Results::ExperimentData;
 
-                Types::vec_size_t best_Tk = 32;
-                Types::time_duration_unit best_measurement = std::numeric_limits<Types::time_duration_unit>::max();
-                for (Types::vec_size_t Tk = 32; Tk <= K; Tk += 32) {
-                    // compute the tiling params that depend on Tk
-                    Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
-                    Types::vec_size_t Ti = std::min(static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
+                //Types::vec_size_t best_Tk = 32;
+                //Types::time_duration_unit best_measurement = std::numeric_limits<Types::time_duration_unit>::max();
+                //for (Types::vec_size_t Tk = 32; Tk <= K; Tk += 32) {
+                //    // compute the tiling params that depend on Tk
+                //    Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
+                //    Types::vec_size_t Ti = std::min(static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
 
-                    local_print("Trying Tk=" + std::to_string(Tk));
-                    local_print("count: " + std::to_string(num_K_tiles));
-                    local_print("Dimension Ti:");
-                    local_print("size: " + std::to_string(Ti));
-                    local_print("");
+                //    local_print("Trying Tk=" + std::to_string(Tk));
+                //    local_print("count: " + std::to_string(num_K_tiles));
+                //    local_print("Dimension Ti:");
+                //    local_print("size: " + std::to_string(Ti));
+                //    local_print("");
 
-                    TilingParams tiling_params {
-                            Ti,
-                            Tj,
-                            Tk,
-                            num_J_tiles,
-                            num_K_tiles
-                    };
+                //    TilingParams tiling_params {
+                //            Ti,
+                //            Tj,
+                //            Tk,
+                //            num_J_tiles,
+                //            num_K_tiles
+                //    };
 
-                    // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
-                    auto sparse_params = prepare_sparse(
-                            S,
-                            tiling_params.Tj,
-                            tiling_params.Ti,
-                            tiling_params.num_J_tiles
-                    );
+                //    // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
+                //    auto sparse_params = prepare_sparse(
+                //            S,
+                //            tiling_params.Tj,
+                //            tiling_params.Ti,
+                //            tiling_params.num_J_tiles
+                //    );
 
-                    Params params {
-                            .tiling_params=tiling_params,
-                            .sparse_params=sparse_params
-                    };
+                //    Params params {
+                //            .tiling_params=tiling_params,
+                //            .sparse_params=sparse_params
+                //    };
 
-                    uint32_t repetitions = 3;
-                    Types::time_duration_unit total_runtime = 0;
-                    for (int i = 0; i < repetitions; i++) {
-                        auto result = SDDMM::Algo::SML2SDDMM::run_sm_l2(
-                                S, sparsity,
-                                A, B,
-                                // N, M, K
-                                A.n, B.m, B.n,
-                                params,
-                                measurements
-                        );
+                //    uint32_t repetitions = 3;
+                //    Types::time_duration_unit total_runtime = 0;
+                //    for (int i = 0; i < repetitions; i++) {
+                //        auto result = SDDMM::Algo::SML2SDDMM::run_sm_l2(
+                //                S, sparsity,
+                //                A, B,
+                //                // N, M, K
+                //                A.n, B.m, B.n,
+                //                params,
+                //                measurements
+                //        );
 
-                        auto last_measurement = measurements->durations.back();
-                        total_runtime += last_measurement;
-                    }
+                //        auto last_measurement = measurements->durations.back();
+                //        total_runtime += last_measurement;
+                //    }
 
-                    // check runtime
-                    auto avg_runtime = total_runtime / repetitions;
-                    local_print(std::to_string(avg_runtime));
+                //    // check runtime
+                //    auto avg_runtime = total_runtime / repetitions;
+                //    local_print(std::to_string(avg_runtime));
 
-                    if (best_measurement > avg_runtime) {
-                        best_measurement = avg_runtime;
-                        best_Tk = Tk;
-                    }
-                }
+                //    if (best_measurement > avg_runtime) {
+                //        best_measurement = avg_runtime;
+                //        best_Tk = Tk;
+                //    }
+                //}
 
-                local_print("Autotuning completed. Best Tk=" + std::to_string(best_Tk));
+                //local_print("Autotuning completed. Best Tk=" + std::to_string(best_Tk));
 
-                // return the best value of Tk
-                return best_Tk;
+                //// return the best value of Tk
+                //return best_Tk;
             }
 
             static Params preparations(

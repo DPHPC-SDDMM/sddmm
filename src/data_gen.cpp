@@ -41,6 +41,8 @@ int main(int argc, char** argv) {
     Types::vec_size_t K = std::atoi(argv[2]);
     Types::vec_size_t sizeof_X_in_byte = std::atoi(argv[3]);
     Types::vec_size_t sizeof_Y_in_byte = std::atoi(argv[4]);
+    //Types::vec_size_t sizeof_X_in_byte = 6400000000;
+    //Types::vec_size_t sizeof_Y_in_byte = 6400000000;
     float S_sparsity = std::atof(argv[5]);
 
     if (S_sparsity >= 1.0f) {

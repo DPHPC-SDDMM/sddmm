@@ -27,6 +27,31 @@ UTEST(Random, Insert_Sorted) {
     int x = 5;
 }
 
+struct elem {
+    SDDMM::Types::vec_size_t x;
+    SDDMM::Types::vec_size_t y;
+    SDDMM::Types::expmt_t val;
+};
+
+UTEST(Random, Insert_Sorted_2) {
+    std::vector<elem> source = { 
+        {3, 16, 0.5}, {2, 16, 1.8}, {3, 2, 4.3}, {9, 16, 0.05}, {9, 0, 8.6},{9, 5, 7.88}, {9, 1, 0.001}, 
+        {8, 5, 9.36}, {6, 3, 4.5}, {9, 2, 9.8}, {5, 0, 1.22}, {8, 3, 7.895}, {9, 7, 0.0069}, {8, 3, 6.4} };
+    //std::vector<elem> target;
+
+    //for (auto& e : source) {
+    //    target.insert(std::lower_bound(target.begin(), target.end(), e, [](auto& e1, auto& e2) {
+    //        return e1.x < e2.x && e1.y < e2.y;
+    //    }), e);
+    //}
+
+    std::sort(source.begin(), source.end(), [](auto& e1, auto& e2) {
+        return e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y);
+    });
+
+    int x = 5;
+}
+
 UTEST(Random, Row_To_Col_Major) {
     // generate data
     using namespace SDDMM;
