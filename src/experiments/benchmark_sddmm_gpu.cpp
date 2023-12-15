@@ -19,6 +19,20 @@ namespace SDDMM {
                 Sm_L2
             };
 
+            enum class ExperimentVariable {
+                Sparsity,
+                K
+            };
+
+            static std::string experiment_variable_to_string(ExperimentVariable var) {
+                switch (var) {
+                case ExperimentVariable::Sparsity:
+                    return "sparsity";
+                case ExperimentVariable::K:
+                    return "K";
+                }
+            }
+
             static Results::ExperimentData run(
                 TestSubject subject,
                 int cur_exp, 
@@ -34,7 +48,7 @@ namespace SDDMM {
                 Results::ExperimentData data;
                 switch(subject){
                     case TestSubject::Non_Tiled_Baseline:
-                    data.label = "non_tiled Baseline";
+                    data.label = "Baseline";
                     break;
                     case TestSubject::cuSPARSE:
                     data.label = "cuSPARSE";
@@ -49,8 +63,9 @@ namespace SDDMM {
                 std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
                 TEXT::Gadgets::print_progress(0, n_experiment_iterations);
 
+                Types::vec_size_t n_warmup = 10;
                 if(subject == TestSubject::Sm_L2){
-                    Types::vec_size_t n_max = n_experiment_iterations+1;
+                    Types::vec_size_t n_max = n_experiment_iterations+n_warmup;
 
                     auto params = SDDMM::Algo::SML2SDDMM::preparations(
                         coo_mat, sparsity,
@@ -60,12 +75,23 @@ namespace SDDMM {
 
                     for(Types::vec_size_t n=0; n<n_max; ++n){
                         TEXT::Gadgets::print_progress(n, n_experiment_iterations);
-                        total += SDDMM::Algo::SML2SDDMM::run_sm_l2(
-                            coo_mat, sparsity, 
-                            X, Y,
-                            // N, M, K
-                            X.n, Y.m, Y.n, 
-                            params, &data).values[0];
+                        if (n < n_warmup) {
+                            // don't record data if we are warming up...
+                            total += SDDMM::Algo::SML2SDDMM::run_sm_l2(
+                                coo_mat, sparsity,
+                                X, Y,
+                                // N, M, K
+                                X.n, Y.m, Y.n,
+                                params, nullptr).values[0];
+                        }
+                        else {
+                            total += SDDMM::Algo::SML2SDDMM::run_sm_l2(
+                                coo_mat, sparsity,
+                                X, Y,
+                                // N, M, K
+                                X.n, Y.m, Y.n,
+                                params, &data).values[0];
+                        }
                     }
                 }
                 else{
@@ -75,10 +101,22 @@ namespace SDDMM {
                         
                         switch(subject){
                             case TestSubject::Non_Tiled_Baseline:
-                            total += SDDMM::Algo::cuda_sddmm(coo_mat, X, Y, &data).values[0];
+                                // don't record data if we are warming up...
+                                if (n < n_warmup) {
+                                    total += SDDMM::Algo::cuda_sddmm(coo_mat, X, Y, nullptr).values[0];
+                                }
+                                else {
+                                    total += SDDMM::Algo::cuda_sddmm(coo_mat, X, Y, &data).values[0];
+                                }
                             break;
                             case TestSubject::cuSPARSE:
-                            total += SDDMM::Algo::cuSPARSE_SDDMM(csr_mat, X, Y, &data).values[0];
+                                // don't record data if we are warming up...
+                                if (n < n_warmup) {
+                                    total += SDDMM::Algo::cuSPARSE_SDDMM(csr_mat, X, Y, nullptr).values[0];
+                                }
+                                else {
+                                    total += SDDMM::Algo::cuSPARSE_SDDMM(csr_mat, X, Y, &data).values[0];
+                                }
                             break;
                         }
                     }
@@ -120,7 +158,7 @@ namespace SDDMM {
                 return (compareNat(anew, bnew));
             }
 
-            static void benchmark_static(std::string experiment_name, std::string experiment_variable, int n_experiment_iterations, std::string folder_location) {
+            static void benchmark_static(std::string experiment_name, ExperimentVariable experiment_variable, int n_experiment_iterations, std::string folder_location) {
 
                 std::vector<std::string> mat_files;
                 for (const auto& entry : std::filesystem::directory_iterator(folder_location)) {
@@ -182,19 +220,21 @@ namespace SDDMM {
 
                     std::cout << TEXT::Cast::Cyan("...run experiment iterations...") << std::endl;
                     for (int i = 0; i < subject.size(); ++i) {
-                        results.push_back(run(
-                            subject[i], i + 1, subject.size(), 
-                            n_experiment_iterations, 
-                            coo_mat, csr_mat, sparse_sparsity, 
-                            X, Y,
-                            total[i])
+                        results.push_back(
+                            run(
+                                subject[i], i + 1, subject.size(), 
+                                n_experiment_iterations, 
+                                coo_mat, csr_mat, sparse_sparsity, 
+                                X, Y,
+                                total[i]
+                            )
                         );
                     }
 
                     std::stringstream info;
                     info << "[INFO]\n"
                         << "experiment_name " << experiment_name << "\n"
-                        << "variable " << experiment_variable << "\n"
+                        << "variable " << experiment_variable_to_string(experiment_variable) << "\n"
                         << "N " << N << "\n"
                         << "M " << M << "\n"
                         << "K " << K << "\n"
@@ -202,7 +242,7 @@ namespace SDDMM {
                     info << "[/INFO]";
 
                     std::stringstream str;
-                    str << "iters-" << n_experiment_iterations << "_var-" << experiment_variable;
+                    str << "iters-" << n_experiment_iterations << "_var-" << experiment_variable_to_string(experiment_variable);
 
                     // ===================================================================
                     std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
