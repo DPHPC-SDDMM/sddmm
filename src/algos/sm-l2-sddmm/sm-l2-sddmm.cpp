@@ -465,7 +465,10 @@ namespace SDDMM {
 //
 //                gpuErrchk(cudaEventRecord(start_c));
 
-                for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
+                //for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
+                // some rounding error? => don't have time for that
+                auto num_J_tiles = sparse_params.active_rows_sizes.size();
+                for (int tile_j_id = 0; tile_j_id < num_J_tiles; tile_j_id++) {
                     local_print("Tile J id: " + std::to_string(tile_j_id) + "\n");
 
                     local_print("Calculating the number of threadblocks...");
