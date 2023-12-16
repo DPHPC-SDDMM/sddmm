@@ -184,8 +184,8 @@ namespace SDDMM {
                 // ===================================================================
 
                 std::vector<GPU_SDDMMBenchmarks::TestSubject> subject = {
-                    //TestSubject::Non_Tiled_Baseline,
-                    //TestSubject::cuSPARSE,
+                    TestSubject::Non_Tiled_Baseline,
+                    TestSubject::cuSPARSE,
                     TestSubject::Sm_L2
                 };
 

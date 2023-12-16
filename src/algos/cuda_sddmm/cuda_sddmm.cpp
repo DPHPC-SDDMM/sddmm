@@ -80,6 +80,8 @@ namespace SDDMM {
                 out_col_d
             );
 
+            gpuErrchk(cudaDeviceSynchronize());
+
             auto end = std::chrono::high_resolution_clock::now();
 
             if (measurements != nullptr) {
