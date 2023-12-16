@@ -62,10 +62,14 @@ namespace SDDMM {
                     Types::vec_size_t Tj, Types::vec_size_t num_J_tiles
                     ) {
 
+                if (K == 32) {
+                    return K;
+                }
+
                 local_print("Starting autotuning...");
 
                 auto* measurements = new Results::ExperimentData;
-                uint32_t repetitions = 5;
+                uint32_t repetitions = 3;
 
                 Types::vec_size_t best_Tk = 32;
                 Types::time_duration_unit best_measurement = std::numeric_limits<Types::time_duration_unit>::max();
@@ -133,11 +137,6 @@ namespace SDDMM {
 
                 // return the best value of Tk
                 return best_Tk;
-//                if (best_Tk < 4432) {
-//                    return 32;
-//                } else {
-//                    return 333344;
-//                }
             }
 
             static Params preparations(
