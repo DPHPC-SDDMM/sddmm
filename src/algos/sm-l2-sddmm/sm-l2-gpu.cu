@@ -130,10 +130,12 @@ namespace SDDMM {
                             SDDMM::Types::vec_size_t Ti,
                             SDDMM::Types::vec_size_t tile_k_id,
                             SDDMM::Types::vec_size_t num_k_tiles,
-                            SDDMM::Types::vec_size_t K) {
+                            SDDMM::Types::vec_size_t K,
+                            cudaStream_t stream
+                ) {
 
                 int sm_size = Ti * Tk * sizeof(float);
-                SM_L2_GPU <<<num_threadblocks, 512, sm_size>>> (S_tile_rows, S_tile_cols, S_tile_values,
+                SM_L2_GPU <<<num_threadblocks, 512, sm_size, stream>>> (S_tile_rows, S_tile_cols, S_tile_values,
                                                                 P_tile_values,
                                                                 S_tile_starts,
                                                                 active_rows, active_rows_size,

@@ -23,7 +23,9 @@ namespace SDDMM {
                 SDDMM::Types::vec_size_t Ti,
                 SDDMM::Types::vec_size_t tile_k_id,
                 SDDMM::Types::vec_size_t num_k_tiles,
-                SDDMM::Types::vec_size_t K);
+                SDDMM::Types::vec_size_t K,
+                cudaStream_t stream
+            );
         }
     }
 }

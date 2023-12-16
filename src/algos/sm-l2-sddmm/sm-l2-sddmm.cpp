@@ -172,9 +172,13 @@ namespace SDDMM {
             static TilingParams determine_tiling_params(Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B, const Types::COO& S) {
                 // GPU and format params
 //                Types::vec_size_t l2_cache_capacity = 6291456;  // 6MB 3080Ti
-//                Types::vec_size_t shared_mem_size = 101376;  // 99KB 3080Ti
-                unsigned int l2_cache_capacity = 2097152;  // 2MB for testing
-                unsigned int shared_mem_size = 49152;  // 48KB for testing
+                //Types::vec_size_t shared_mem_size = 101376;  // 99KB 3080Ti (and with no Ti)
+
+                unsigned int l2_cache_capacity = 6291456;  // 6MB 3080Ti (and with no Ti)
+                unsigned int shared_mem_size = 49152;  // 48KB for testing with a Ti and real life for no Ti
+
+                //unsigned int l2_cache_capacity = 2097152;  // 2MB for testing
+                //unsigned int shared_mem_size = 49152;  // 48KB for testing
                 double c = 3.; // 3 for COO
 
                 assert(l2_cache_capacity % 32 == 0 && shared_mem_size % 32 == 0 && "L2 cache capacity and shared memory size must be multiples of 32!");
@@ -397,15 +401,33 @@ namespace SDDMM {
                 auto S_ind_size = S_size * sizeof(SDDMM::Types::vec_size_t);
                 auto S_values_size = S_size * sizeof(float);
 
+                // need to allocate some pinned buffers...
+                //const std::vector<Types::vec_size_t> rows;
+                //const std::vector<Types::vec_size_t> rows_local;
+                //const std::vector<Types::vec_size_t> cols;
+                //const std::vector<float> values;
+                Types::vec_size_t* rows_h_pinned;
+                Types::vec_size_t* rows_local_h_pinned;
+                Types::vec_size_t* cols_h_pinned;
+                float* values_h_pinned;
+                cudaMallocHost((void**)&rows_h_pinned, S_ind_size);
+                cudaMallocHost((void**)&rows_local_h_pinned, S_ind_size);
+                cudaMallocHost((void**)&cols_h_pinned, S_ind_size);
+                cudaMallocHost((void**)&values_h_pinned, S_values_size);
+                memcpy(rows_h_pinned, sparse_params.rows.data(), S_ind_size);
+                memcpy(rows_local_h_pinned, sparse_params.rows_local.data(), S_ind_size);
+                memcpy(cols_h_pinned, sparse_params.cols.data(), S_ind_size);
+                memcpy(values_h_pinned, sparse_params.values.data(), S_values_size);
+
                 gpuErrchk(cudaMalloc((void**)& rows_d, S_ind_size));
                 gpuErrchk(cudaMalloc((void**)& rows_local_d, S_ind_size));
                 gpuErrchk(cudaMalloc((void**)& cols_d, S_ind_size));
                 gpuErrchk(cudaMalloc((void**)& values_d, S_values_size));
 
-                gpuErrchk(cudaMemcpy(rows_d, sparse_params.rows.data(), S_ind_size, cudaMemcpyHostToDevice));
-                gpuErrchk(cudaMemcpy(rows_local_d, sparse_params.rows_local.data(), S_ind_size, cudaMemcpyHostToDevice));
-                gpuErrchk(cudaMemcpy(cols_d, sparse_params.cols.data(), S_ind_size, cudaMemcpyHostToDevice));
-                gpuErrchk(cudaMemcpy(values_d, sparse_params.values.data(), S_values_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(rows_d, rows_h_pinned, S_ind_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(rows_local_d, rows_local_h_pinned, S_ind_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(cols_d, cols_h_pinned, S_ind_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(values_d, values_h_pinned, S_values_size, cudaMemcpyHostToDevice));
 
                 // P result
                 float* result_values_d;
@@ -414,28 +436,41 @@ namespace SDDMM {
 
                 // tile starts
                 SDDMM::Types::vec_size_t* starts_d;
+                Types::vec_size_t* starts_d_h_pinned;
                 auto starts_size = sparse_params.S_tile_starts.size() * sizeof(SDDMM::Types::vec_size_t);
+                cudaMallocHost((void**)&starts_d_h_pinned, starts_size);
+                memcpy(starts_d_h_pinned, sparse_params.S_tile_starts.data(), starts_size);
                 gpuErrchk(cudaMalloc((void**)&starts_d, starts_size));
-                gpuErrchk(cudaMemcpy(starts_d, sparse_params.S_tile_starts.data(), starts_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(starts_d, starts_d_h_pinned, starts_size, cudaMemcpyHostToDevice));
 
                 // active_rows
                 SDDMM::Types::vec_size_t* active_rows_d;
+                SDDMM::Types::vec_size_t* active_rows_h_pinned;
                 auto active_rows_size = sparse_params.active_rows.size() * sizeof(SDDMM::Types::vec_size_t);
+                cudaMallocHost((void**)&active_rows_h_pinned, active_rows_size);
+                memcpy(active_rows_h_pinned, sparse_params.active_rows.data(), starts_size);
                 gpuErrchk(cudaMalloc((void**)&active_rows_d, active_rows_size));
-                gpuErrchk(cudaMemcpy(active_rows_d, sparse_params.active_rows.data(), active_rows_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(active_rows_d, active_rows_h_pinned, active_rows_size, cudaMemcpyHostToDevice));
 
                 // A & B
                 float* A_d;
+                float* A_h_pinned;
                 float* B_d;
+                float* B_h_pinned;
 
                 auto A_size = N * K * sizeof(float);
                 auto B_size = M * K * sizeof(float);
 
+                cudaMallocHost((void**)&A_h_pinned, A_size);
+                cudaMallocHost((void**)&B_h_pinned, B_size);
+                memcpy(A_h_pinned, A.data.data(), A_size);
+                memcpy(B_h_pinned, B.data.data(), B_size);
+
                 gpuErrchk(cudaMalloc((void**)&A_d, A_size));
                 gpuErrchk(cudaMalloc((void**)&B_d, B_size));
 
-                gpuErrchk(cudaMemcpy(A_d, A.data.data(), A_size, cudaMemcpyHostToDevice));
-                gpuErrchk(cudaMemcpy(B_d, B.data.data(), B_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(A_d, A_h_pinned, A_size, cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(B_d, B_h_pinned, B_size, cudaMemcpyHostToDevice));
 
                 local_print("\nStarting processing...\n");
 
@@ -443,46 +478,65 @@ namespace SDDMM {
                 Types::vec_size_t tile_starts_start_ind = 0;
                 Types::vec_size_t active_rows_start_ind = 0;
 
-                auto start = std::chrono::high_resolution_clock::now();
 //                auto start_time = std::chrono::high_resolution_clock::now();
 
-                for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
-                    local_print("Tile J id: " + std::to_string(tile_j_id) + "\n");
+                std::vector<Types::time_duration_unit> overhead;
+                overhead.reserve(1000);
+                std::cout << "Num Kernels: " << (tiling_params.num_K_tiles * tiling_params.num_J_tiles) << std::endl;
+                
+                std::vector<cudaStream_t> streams;
+                int n_streams = static_cast<int>(tiling_params.num_K_tiles * tiling_params.num_J_tiles);
+                streams.reserve(n_streams);
+                for (int s = 0; s < n_streams; ++s) {
+                    cudaStream_t stream;
+                    cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking);
+                    streams.push_back(stream);
+                }
 
-                    local_print("Calculating the number of threadblocks...");
+                int stream_ind = 0;
+                auto start = std::chrono::high_resolution_clock::now();
+                for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
+                    //local_print("Tile J id: " + std::to_string(tile_j_id) + "\n");
+
+                    //local_print("Calculating the number of threadblocks...");
                     int num_threadblocks = (sparse_params.active_rows_sizes.at(tile_j_id) + tiling_params.Ti - 1) / tiling_params.Ti;
-                    local_print("size: " + std::to_string(num_threadblocks));
-                    local_print("\n");
+                    //local_print("size: " + std::to_string(num_threadblocks));
+                    //local_print("\n");
 
                     // iterate over Tk tiles and launch a kernel for each Tk tile
                     for (int tile_k_id = 0; tile_k_id < tiling_params.num_K_tiles; tile_k_id++) {
                         // the innermost loop, streaming is done along dimension i (assuming that i is the smaller dimension, i.e. N < M)
-                        local_print("Tile K id: " + std::to_string(tile_k_id));
+                        //local_print("Tile K id: " + std::to_string(tile_k_id));
 
+                        auto startx = std::chrono::high_resolution_clock::now();
                         // launch num_threadblocks with 512 threads in each
                         SML2SDDMM_Kernel::run_kernel(
-                                num_threadblocks,
-                                // S
-                                &rows_local_d[slice_start_ind],
-                                &cols_d[slice_start_ind],
-                                &values_d[slice_start_ind],
-                                // P
-                                &result_values_d[slice_start_ind],
-                                // starts
-                                &starts_d[tile_starts_start_ind],
-                                // active rows
-                                &active_rows_d[active_rows_start_ind], 
-                                sparse_params.active_rows_sizes.at(tile_j_id),
-                                // A & B
-                                A_d, 
-                                B_d,
-                                // tiles
-                                tiling_params.Tk, 
-                                tiling_params.Ti,
-                                tile_k_id,
-                                tiling_params.num_K_tiles,
-                                K
+                            num_threadblocks,
+                            // S
+                            &rows_local_d[slice_start_ind],
+                            &cols_d[slice_start_ind],
+                            &values_d[slice_start_ind],
+                            // P
+                            &result_values_d[slice_start_ind],
+                            // starts
+                            &starts_d[tile_starts_start_ind],
+                            // active rows
+                            &active_rows_d[active_rows_start_ind],
+                            sparse_params.active_rows_sizes.at(tile_j_id),
+                            // A & B
+                            A_d,
+                            B_d,
+                            // tiles
+                            tiling_params.Tk,
+                            tiling_params.Ti,
+                            tile_k_id,
+                            tiling_params.num_K_tiles,
+                            K,
+                            streams[stream_ind]
                         );
+                        auto endx = std::chrono::high_resolution_clock::now();
+                        overhead.push_back(std::chrono::duration_cast<Types::time_measure_unit>(endx - startx).count());
+                        stream_ind++;
                     }
 
                     // prepare the next slice
@@ -491,18 +545,42 @@ namespace SDDMM {
                     active_rows_start_ind += sparse_params.active_rows_sizes.at(tile_j_id);
                 }
 
+                auto end = std::chrono::high_resolution_clock::now();
+
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
 
-                auto end = std::chrono::high_resolution_clock::now();
+                
                 if(measurements != nullptr){
                     Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
-                    measurements->durations.push_back(duration);
+                    //if (overhead.size() > 1) {
+                    //    // count second run twice and remove first one
+                    //    measurements->durations.push_back(duration - overhead[0] + overhead[1]);
+                    //}
+                    //else {
+                        // small data problem
+                        measurements->durations.push_back(duration);
+                        std::cout << duration << std::endl;
+                    //}
+                }
+
+                for (int s = 0; s < n_streams; ++s) {
+                    cudaStreamDestroy(streams[s]);
                 }
 
                 // read the result from device
                 std::vector<float> P_values = std::vector<float>(S_size);
                 gpuErrchk(cudaMemcpy(P_values.data(), result_values_d, S_values_size, cudaMemcpyDeviceToHost));
+
+                // deallocate host memory
+                cudaFreeHost(rows_h_pinned);
+                cudaFreeHost(rows_local_h_pinned);
+                cudaFreeHost(cols_h_pinned);
+                cudaFreeHost(values_h_pinned);
+                cudaFreeHost(starts_d_h_pinned);
+                cudaFreeHost(active_rows_h_pinned);
+                cudaFreeHost(A_h_pinned);
+                cudaFreeHost(B_h_pinned);
 
                 // deallocate cuda memory
                 gpuErrchk(cudaFree(rows_d));
