@@ -40,7 +40,7 @@ namespace SDDMM {
             double x_mb = static_cast<double>(N) * static_cast<double>(K) / 1024.0 / 1024 * sizeof(Types::expmt_t);
             double y_mb = static_cast<double>(M) * static_cast<double>(K) / 1024.0 / 1024 * sizeof(Types::expmt_t);
             double s_mb = nnz / 1024.0 / 1024 * (sizeof(Types::expmt_t) + 2 * sizeof(Types::vec_size_t));
-            double S_sparsity = 100.0 / (N * M) * nnz;
+            double S_sparsity = 1.0 - 1.0 / (N * M) * nnz;
 
             TEXT::Gadgets::print_colored_text_line(
                 std::string("Generating\n") +
@@ -54,11 +54,11 @@ namespace SDDMM {
 
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
             TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
-            //char ans = 'n';
-            //std::cin >> ans;
-            //if (!(ans == 'y')) {
-            //    return "";
-            //}
+            char ans = 'n';
+            std::cin >> ans;
+            if (!(ans == 'y')) {
+                return "";
+            }
 
             return huge_generator_dense_gen(
                 target_folder, mm_matrix, N, M, K, S_sparsity, 0.0f, 0.0f, out_size_written
@@ -129,7 +129,7 @@ namespace SDDMM {
             Types::vec_size_t K_row,
             uint64_t& out_size_written
         ){
-            if(target_folder.back() != Defines::path_separator){
+            if(!(target_folder.back() == '/' || target_folder.back() == '\\')){
                 std::string msg = std::string("target_folder path must end with a valid path-separator (") +
                     Defines::path_separator +
                     std::string(" on current OS)!");
@@ -166,12 +166,65 @@ namespace SDDMM {
 
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
             TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
-            char ans = 'n';
-            std::cin >> ans;
-            if(!(ans == 'y')){
+            //char ans = 'n';
+            //std::cin >> ans;
+            //if(!(ans == 'y')){
+            //    return "";
+            //}
+            
+            return huge_generator_gen(
+                target_folder, N, M, K, S_sparsity, 0.0f, 0.0f, out_size_written
+            );
+        }
+
+        static std::string huge_generator_companion(
+            std::string target_folder,
+            Types::vec_size_t K,
+            Types::vec_size_t N,
+            Types::vec_size_t M,
+            float S_sparsity,
+            uint64_t& out_size_written
+        ) {
+            if (!(target_folder.back() == '/' || target_folder.back() == '\\')) {
+                std::string msg = std::string("target_folder path must end with a valid path-separator (") +
+                    Defines::path_separator +
+                    std::string(" on current OS)!");
+                TEXT::Gadgets::print_colored_text_line(msg, TEXT::RED);
+                throw std::runtime_error(msg);
+            }
+
+            double nnz = static_cast<double>(N) * static_cast<double>(M) * (1.0 - S_sparsity);
+            double x_mb = static_cast<double>(N) * static_cast<double>(K) / 1024.0 / 1024 * sizeof(Types::expmt_t);
+            double y_mb = static_cast<double>(M) * static_cast<double>(K) / 1024.0 / 1024 * sizeof(Types::expmt_t);
+            double s_mb = nnz / 1024.0 / 1024 * (sizeof(Types::expmt_t) + 2 * sizeof(Types::vec_size_t));
+
+            TEXT::Gadgets::print_colored_text_line(
+                std::string("Generating\n") +
+                std::string("...dense X:  [") + std::to_string(N) + std::string(" x ") + std::to_string(K) + std::string("], ") + std::to_string(x_mb) + std::string("MB\n") +
+                std::string("...dense Y:  [") + std::to_string(K) + std::string(" x ") + std::to_string(M) + std::string("], ") + std::to_string(y_mb) + std::string("MB\n") +
+                std::string("...sparse S: [") + std::to_string(N) + std::string(" x ") + std::to_string(M) + std::string("] with sparsity ")
+                + std::to_string(S_sparsity) + std::string(", approx ") + std::to_string(nnz) + std::string(" nnz values, ") + std::to_string(s_mb) + std::string("MB\n") +
+                std::string("total required size: ") + std::to_string(x_mb + y_mb + s_mb) + std::string("MB\n"),
+                TEXT::BRIGHT_MAGENTA
+            );
+
+            if (Types::COO::no_filter_condition(S_sparsity, N, M)) {
+                std::cout << std::endl;
+                TEXT::Gadgets::print_colored_line(100, '>', TEXT::HIGHLIGHT_YELLOW);
+                TEXT::Gadgets::print_colored_text_line("WARNING: infeasible to filter coordinates of sparse matrix!", TEXT::RED);
+                TEXT::Gadgets::print_colored_line(100, '<', TEXT::HIGHLIGHT_YELLOW);
+                std::cout << std::endl;
                 return "";
             }
-            
+
+            TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
+            TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
+            char ans = 'n';
+            std::cin >> ans;
+            if (!(ans == 'y')) {
+                return "";
+            }
+
             return huge_generator_gen(
                 target_folder, N, M, K, S_sparsity, 0.0f, 0.0f, out_size_written
             );
@@ -182,7 +235,7 @@ namespace SDDMM {
             Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K,
             float S_sparsity, float X_sparsity, float Y_sparsity, uint64_t& out_size_written
         ){
-            if(target_folder.back() != Defines::path_separator){
+            if(!(target_folder.back() == '/' || target_folder.back() == '\\')){
                 throw std::runtime_error(
                     std::string("target_folder path must end with a valid path-separator (") + 
                     Defines::path_separator + 

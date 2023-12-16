@@ -38,6 +38,7 @@ namespace SDDMM {
                 int cur_exp, 
                 int tot_exp,
                 int n_experiment_iterations,
+                int n_warmup_iterations,
                 Types::COO& coo_mat, 
                 Types::CSR& csr_mat,
                 float sparsity,
@@ -58,24 +59,23 @@ namespace SDDMM {
                     break;
                 }
                 
-                TEXT::Gadgets::print_colored_text_line(std::string("Experiment ") + data.label, TEXT::BRIGHT_RED);
-                std::cout << TEXT::Cast::Green("...preparations...") << std::endl;
-                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << data.label << std::endl;
-                TEXT::Gadgets::print_progress(0, n_experiment_iterations);
+                TEXT::Gadgets::print_colored_text_line(std::string("Experiment: ") + data.label, TEXT::BRIGHT_RED);
+                std::cout << TEXT::Cast::Cyan(TEXT::Gadgets::get_cur(cur_exp, tot_exp)) << std::endl;
 
-                Types::vec_size_t n_warmup = 10;
                 if(subject == TestSubject::Sm_L2){
-                    Types::vec_size_t n_max = n_experiment_iterations+n_warmup;
+                    Types::vec_size_t n_max = n_experiment_iterations + n_warmup_iterations;
 
+                    std::cout << TEXT::Cast::Green("...preparations...") << std::endl;
                     auto params = SDDMM::Algo::SML2SDDMM::preparations(
                         coo_mat, sparsity,
                         // N, M, K
                         X.n, Y.m, Y.n,
                         X, Y);
+                    std::cout << TEXT::Cast::Green("   ...finished") << std::endl;
 
                     for(Types::vec_size_t n=0; n<n_max; ++n){
-                        TEXT::Gadgets::print_progress(n, n_experiment_iterations);
-                        if (n < n_warmup) {
+                        TEXT::Gadgets::print_progress(n+1, n_max);
+                        if (n < n_warmup_iterations) {
                             // don't record data if we are warming up...
                             total += SDDMM::Algo::SML2SDDMM::run_sm_l2(
                                 coo_mat, sparsity,
@@ -95,14 +95,14 @@ namespace SDDMM {
                     }
                 }
                 else{
-                    Types::vec_size_t n_max = n_experiment_iterations+1;
+                    Types::vec_size_t n_max = n_experiment_iterations + n_warmup_iterations;
                     for(Types::vec_size_t n=0; n<n_max; ++n){
-                        TEXT::Gadgets::print_progress(n, n_experiment_iterations);
+                        TEXT::Gadgets::print_progress(n+1, n_max);
                         
                         switch(subject){
                             case TestSubject::Non_Tiled_Baseline:
                                 // don't record data if we are warming up...
-                                if (n < n_warmup) {
+                                if (n < n_warmup_iterations) {
                                     total += SDDMM::Algo::cuda_sddmm(coo_mat, X, Y, nullptr).values[0];
                                 }
                                 else {
@@ -111,7 +111,7 @@ namespace SDDMM {
                             break;
                             case TestSubject::cuSPARSE:
                                 // don't record data if we are warming up...
-                                if (n < n_warmup) {
+                                if (n < n_warmup_iterations) {
                                     total += SDDMM::Algo::cuSPARSE_SDDMM(csr_mat, X, Y, nullptr).values[0];
                                 }
                                 else {
@@ -158,7 +158,14 @@ namespace SDDMM {
                 return (compareNat(anew, bnew));
             }
 
-            static void benchmark_static(std::string experiment_name, ExperimentVariable experiment_variable, int n_experiment_iterations, std::string folder_location) {
+            static void benchmark_static(
+                std::string experiment_name, 
+                ExperimentVariable experiment_variable, 
+                int n_experiment_iterations, 
+                int n_warmup_iterations, 
+                std::string folder_location,
+                std::string description
+            ) {
 
                 std::vector<std::string> mat_files;
                 for (const auto& entry : std::filesystem::directory_iterator(folder_location)) {
@@ -173,19 +180,20 @@ namespace SDDMM {
 
                 TEXT::Gadgets::print_colored_line(100, '=', TEXT::BRIGHT_RED);
 
-                std::cout << TEXT::Cast::Cyan("Start measurements") << std::endl;
+                std::cout << TEXT::Cast::Cyan("Start measurements ") << experiment_name << ": " << description << std::endl;
                 // ===================================================================
 
                 std::vector<GPU_SDDMMBenchmarks::TestSubject> subject = {
-                    GPU_SDDMMBenchmarks::TestSubject::Non_Tiled_Baseline,
-                    GPU_SDDMMBenchmarks::TestSubject::cuSPARSE,
-                    GPU_SDDMMBenchmarks::TestSubject::Sm_L2
+                    //TestSubject::Non_Tiled_Baseline,
+                    //TestSubject::cuSPARSE,
+                    TestSubject::Sm_L2
                 };
 
                 // run all tests
                 std::vector<Types::expmt_t> total(subject.size(), 0.0);
                 std::vector<Results::ExperimentData> results;
 
+                int sequence_number = 1;
                 for (auto& name : mat_files) {
                     std::vector<Types::expmt_t> total(subject.size(), 0.0);
                     std::vector<Results::ExperimentData> results;
@@ -212,24 +220,28 @@ namespace SDDMM {
                     Types::vec_size_t K = X.m;
                     
                     std::cout << TEXT::Cast::Cyan(
-                        std::string("...stats:\n ") +
+                        std::string("...stats:\n") +
                         std::string("......N:        ") + std::to_string(N) + std::string("\n") +
                         std::string("......M:        ") + std::to_string(M) + std::string("\n") +
                         std::string("......K:        ") + std::to_string(K) + std::string("\n") +
                         std::string("......sparsity: ") + std::to_string(sparse_sparsity)) << std::endl;
 
                     std::cout << TEXT::Cast::Cyan("...run experiment iterations...") << std::endl;
+                    auto start = std::chrono::high_resolution_clock::now();
                     for (int i = 0; i < subject.size(); ++i) {
                         results.push_back(
                             run(
                                 subject[i], i + 1, subject.size(), 
-                                n_experiment_iterations, 
+                                n_experiment_iterations,
+                                n_warmup_iterations,
                                 coo_mat, csr_mat, sparse_sparsity, 
                                 X, Y,
                                 total[i]
                             )
                         );
                     }
+                    auto end = std::chrono::high_resolution_clock::now();
+                    auto experiment_duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
 
                     std::stringstream info;
                     info << "[INFO]\n"
@@ -238,7 +250,11 @@ namespace SDDMM {
                         << "N " << N << "\n"
                         << "M " << M << "\n"
                         << "K " << K << "\n"
-                        << "sparsity " << sparse_sparsity << "\n";
+                        << "sparsity " << sparse_sparsity << "\n"
+                        << "description " << description << "\n"
+                        << "runtime " << experiment_duration << "\n"
+                        << "n_warmup_iterations " << n_warmup_iterations << "\n"
+                        << "sequence_number " << sequence_number << "\n";
                     info << "[/INFO]";
 
                     std::stringstream str;
@@ -247,6 +263,7 @@ namespace SDDMM {
                     // ===================================================================
                     std::cout << TEXT::Cast::Cyan("Saving experiment data") << std::endl;
                     Results::to_file(experiment_name, str.str(), info.str(), results, folder_location);
+                    sequence_number++;
                     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 }
             }

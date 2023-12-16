@@ -10,36 +10,25 @@ using namespace SDDMM;
 
 int main(int argc, char** argv) {
 
-    if (argc != 4) {
-        TEXT::Gadgets::print_colored_line(100, '=', TEXT::GREEN);
-        std::cout << std::endl;
-
-        TEXT::Gadgets::print_colored_text_line("Usage:", TEXT::BLUE);
-        TEXT::Gadgets::print_colored_text_line("Param 1: experiment name (in quotes if it contains spaces)", TEXT::BLUE);
-        TEXT::Gadgets::print_colored_text_line("Param 2: experiment variable (N,M,K,sparsity)", TEXT::BLUE);
-        TEXT::Gadgets::print_colored_text_line("Param 3: path to storage (in quotes if it contains spaces)", TEXT::BLUE);
-        TEXT::Gadgets::print_colored_text_line("Param 4: number of iterations per experiment (like ~100)", TEXT::BLUE);
-    }
-
-    std::string experiment_name = argv[1];
-    std::string experiment_var = argv[2];
-    std::string folder_location = argv[3];
-    int n_experiment_iterations = std::atoi(argv[4]);
-
-    if (!(experiment_var.compare("N") == 0) ||
-        experiment_var.compare("M") == 0) ||
-        experiment_var.compare("K") == 0) ||
-        experiment_var.compare("sparsity") == 0)
-    ){
-        std::cout << std::endl;
-        TEXT::Gadgets::print_colored_line(100, '>', TEXT::HIGHLIGHT_YELLOW);
-        TEXT::Gadgets::print_colored_text_line("Error: Param 2 must be in [N,M,K,sparsity]!", TEXT::RED);
-        TEXT::Gadgets::print_colored_line(100, '<', TEXT::HIGHLIGHT_YELLOW);
-        std::cout << std::endl;
-    }
-
+    int n_experiment_iterations = 2;
+    int n_warmup_iterations = 3;
     Experiments::GPU_SDDMMBenchmarks::benchmark_static(
-        experiment_name, experiment_var, n_experiment_iterations, folder_location);
+        "sparsity_K32",
+        Experiments::GPU_SDDMMBenchmarks::ExperimentVariable::Sparsity,
+        n_experiment_iterations, 
+        n_warmup_iterations,
+        "C:/sddmm_data/sparsity_large_2/K32/",
+        "Compare matrices with K=32 for varying sparsity"
+    );
+
+    //Experiments::GPU_SDDMMBenchmarks::benchmark_static(
+    //    "sparsity_K512",
+    //    Experiments::GPU_SDDMMBenchmarks::ExperimentVariable::Sparsity,
+    //    n_experiment_iterations,
+    //    n_warmup_iterations,
+    //    "C:/sddmm_data/sparsity_large_2/K512/",
+    //    "Compare matrices with K=512 for varying sparsity"
+    //);
 
     return 0;
 }

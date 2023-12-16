@@ -16,8 +16,8 @@ UTEST(HugeFile, Huge_Generator){
 
     uint64_t out_size_written;
     std::string name = SDDMM::DataGenerator::huge_generator_matrix_market(
-        std::string("C:/sddmm_data/data_sets/patents/"), 
-        "C:/sddmm_data/data_sets/patents/mm_market/patents.mtx",
+        std::string("C:/sddmm_data/"), 
+        "C:/sddmm_data/data_sets/imdb/mm_market/imdb.mtx",
         //"C:\\sddmm_data\\data_sets\\patents_main\\mm_market\\patents_main.mtx",
         K, out_size_written
     );
