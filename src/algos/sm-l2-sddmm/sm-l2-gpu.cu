@@ -3,7 +3,7 @@
 #include "cstdio"
 
 #define WARP_SIZE 32
-#define V_WARP_SIZE 4
+#define V_WARP_SIZE 2
 
 namespace SDDMM {
     namespace Algo {
@@ -133,7 +133,7 @@ namespace SDDMM {
                             SDDMM::Types::vec_size_t K) {
 
                 int sm_size = Ti * Tk * sizeof(float);
-                SM_L2_GPU <<<num_threadblocks, 512, sm_size>>> (S_tile_rows, S_tile_cols, S_tile_values,
+                SM_L2_GPU <<<num_threadblocks, 1024, sm_size>>> (S_tile_rows, S_tile_cols, S_tile_values,
                                                                 P_tile_values,
                                                                 S_tile_starts,
                                                                 active_rows, active_rows_size,

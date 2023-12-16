@@ -65,64 +65,67 @@ namespace SDDMM {
                 local_print("Starting autotuning...");
 
                 auto* measurements = new Results::ExperimentData;
+                uint32_t repetitions = 5;
 
                 Types::vec_size_t best_Tk = 32;
                 Types::time_duration_unit best_measurement = std::numeric_limits<Types::time_duration_unit>::max();
                 for (Types::vec_size_t Tk = 32; Tk <= K; Tk += 32) {
-                    // compute the tiling params that depend on Tk
-                    Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
-                    Types::vec_size_t Ti = std::min(static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
+                    if (K % Tk == 0) {
+                        // compute the tiling params that depend on Tk
+                        Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
+                        Types::vec_size_t Ti = std::min(
+                                static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
 
-                    local_print("Trying Tk=" + std::to_string(Tk));
-                    local_print("count: " + std::to_string(num_K_tiles));
-                    local_print("Dimension Ti:");
-                    local_print("size: " + std::to_string(Ti));
-                    local_print("");
+                        local_print("Trying Tk=" + std::to_string(Tk));
+                        local_print("count: " + std::to_string(num_K_tiles));
+                        local_print("Dimension Ti:");
+                        local_print("size: " + std::to_string(Ti));
+                        local_print("");
 
-                    TilingParams tiling_params {
-                            Ti,
-                            Tj,
-                            Tk,
-                            num_J_tiles,
-                            num_K_tiles
-                    };
+                        TilingParams tiling_params{
+                                Ti,
+                                Tj,
+                                Tk,
+                                num_J_tiles,
+                                num_K_tiles
+                        };
 
-                    // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
-                    auto sparse_params = prepare_sparse(
-                            S,
-                            tiling_params.Tj,
-                            tiling_params.Ti,
-                            tiling_params.num_J_tiles
-                    );
-
-                    Params params {
-                            .tiling_params=tiling_params,
-                            .sparse_params=sparse_params
-                    };
-
-                    uint32_t repetitions = 3;
-                    Types::time_duration_unit total_runtime = 0;
-                    for (int i = 0; i < repetitions; i++) {
-                        auto result = SDDMM::Algo::SML2SDDMM::run_sm_l2(
-                                S, sparsity,
-                                A, B,
-                                // N, M, K
-                                A.n, B.m, B.n,
-                                params,
-                                measurements
+                        // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
+                        auto sparse_params = prepare_sparse(
+                                S,
+                                tiling_params.Tj,
+                                tiling_params.Ti,
+                                tiling_params.num_J_tiles
                         );
 
-                        auto last_measurement = measurements->durations.back();
-                        total_runtime += last_measurement;
-                    }
+                        Params params{
+                                .tiling_params=tiling_params,
+                                .sparse_params=sparse_params
+                        };
 
-                    // check runtime
-                    auto avg_runtime = total_runtime / repetitions;
-                    local_print(std::to_string(avg_runtime));
+                        Types::time_duration_unit total_runtime = 0;
+                        for (int i = 0; i < repetitions; i++) {
+                            auto result = SDDMM::Algo::SML2SDDMM::run_sm_l2(
+                                    S, sparsity,
+                                    A, B,
+                                    // N, M, K
+                                    A.n, B.m, B.n,
+                                    params,
+                                    measurements
+                            );
 
-                    if (best_measurement > avg_runtime) {
-                        best_measurement = avg_runtime;
-                        best_Tk = Tk;
+                            auto last_measurement = measurements->durations.back();
+                            total_runtime += last_measurement;
+                        }
+
+                        // check runtime
+                        auto avg_runtime = total_runtime / repetitions;
+                        local_print(std::to_string(avg_runtime));
+
+                        if (best_measurement > avg_runtime) {
+                            best_measurement = avg_runtime;
+                            best_Tk = Tk;
+                        }
                     }
                 }
 
@@ -130,6 +133,11 @@ namespace SDDMM {
 
                 // return the best value of Tk
                 return best_Tk;
+//                if (best_Tk < 4432) {
+//                    return 32;
+//                } else {
+//                    return 333344;
+//                }
             }
 
             static Params preparations(
