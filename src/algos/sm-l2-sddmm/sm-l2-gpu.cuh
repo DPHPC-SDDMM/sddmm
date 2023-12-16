@@ -10,6 +10,7 @@ namespace SDDMM {
     namespace Algo {
         namespace SML2SDDMM_Kernel {
             extern "C" void run_kernel(int num_threadblocks,
+                cudaStream_t stream,
                 const SDDMM::Types::vec_size_t* __restrict__ S_tile_rows, 
                 const SDDMM::Types::vec_size_t* __restrict__ S_tile_cols, 
                 const float* __restrict__ S_tile_values,

@@ -117,6 +117,7 @@ namespace SDDMM {
             }
 
             void run_kernel(int num_threadblocks,
+                            cudaStream_t stream,
                             const SDDMM::Types::vec_size_t* __restrict__ S_tile_rows, 
                             const SDDMM::Types::vec_size_t* __restrict__ S_tile_cols, 
                             const float* __restrict__ S_tile_values,
@@ -133,7 +134,7 @@ namespace SDDMM {
                             SDDMM::Types::vec_size_t K) {
 
                 int sm_size = Ti * Tk * sizeof(float);
-                SM_L2_GPU <<<num_threadblocks, 1024, sm_size>>> (S_tile_rows, S_tile_cols, S_tile_values,
+                SM_L2_GPU <<<num_threadblocks, 1024, sm_size, stream>>> (S_tile_rows, S_tile_cols, S_tile_values,
                                                                 P_tile_values,
                                                                 S_tile_starts,
                                                                 active_rows, active_rows_size,

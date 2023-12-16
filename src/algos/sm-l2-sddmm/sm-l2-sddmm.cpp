@@ -449,8 +449,21 @@ namespace SDDMM {
                 Types::vec_size_t tile_starts_start_ind = 0;
                 Types::vec_size_t active_rows_start_ind = 0;
 
+                // create streams for parallel execution
+                auto stream_n = tiling_params.num_J_tiles * tiling_params.num_K_tiles;
+                std::vector<cudaStream_t> streams(stream_n);
+                for (int i = 0; i < stream_n; i++) {
+                    gpuErrchk(cudaStreamCreate(&streams[i]));
+                }
+
                 auto start = std::chrono::high_resolution_clock::now();
-//                auto start_time = std::chrono::high_resolution_clock::now();
+
+                // measure execution time
+//                cudaEvent_t start_c, stop_c;
+//                gpuErrchk(cudaEventCreate(&start_c));
+//                gpuErrchk(cudaEventCreate(&stop_c));
+//
+//                gpuErrchk(cudaEventRecord(start_c));
 
                 for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
                     local_print("Tile J id: " + std::to_string(tile_j_id) + "\n");
@@ -468,6 +481,10 @@ namespace SDDMM {
                         // launch num_threadblocks with 512 threads in each
                         SML2SDDMM_Kernel::run_kernel(
                                 num_threadblocks,
+                                // execute each kernel in own stream
+//                                streams.at(tile_j_id * tiling_params.num_K_tiles + tile_k_id),
+                                // execute everything in a single stream
+                                streams.at(0),
                                 // S
                                 &rows_local_d[slice_start_ind],
                                 &cols_d[slice_start_ind],
@@ -497,6 +514,13 @@ namespace SDDMM {
                     active_rows_start_ind += sparse_params.active_rows_sizes.at(tile_j_id);
                 }
 
+
+//                gpuErrchk(cudaEventRecord(stop_c));
+//                gpuErrchk(cudaEventSynchronize(stop_c));
+//
+//                float milliseconds = 0;
+//                cudaEventElapsedTime(&milliseconds, start_c, stop_c);
+
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
 
@@ -504,7 +528,21 @@ namespace SDDMM {
                 if(measurements != nullptr){
                     Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
                     measurements->durations.push_back(duration);
+                    local_print("Duration (CPU chrono): " + std::to_string(duration));
                 }
+
+//                local_print("Duration (GPU events): " + std::to_string(milliseconds) + " ms");
+
+                // clean up the streams
+                for (int i = 0; i < tiling_params.num_J_tiles * tiling_params.num_K_tiles; ++i) {
+                    cudaStreamDestroy(streams[i]);
+                }
+
+                // clean up the events
+//                gpuErrchk(cudaEventDestroy(start_c));
+//                gpuErrchk(cudaEventDestroy(stop_c));
+
+                local_print("Done processing!");
 
                 // read the result from device
                 std::vector<float> P_values = std::vector<float>(S_size);
