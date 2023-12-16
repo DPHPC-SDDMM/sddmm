@@ -1,0 +1,20 @@
+[INFO]
+experiment_name sparsity_small_K128
+variable sparsity
+N 10253
+M 10253
+K 128
+sparsity 0.999
+description Compare matrices with K=128 for varying sparsity on small dataset
+runtime 3
+n_warmup_iterations 30
+sequence_number 3
+[/INFO]
+[DATA]
+[L] Baseline
+[D] 309 317 319 311 308
+[L] cuSPARSE
+[D] 103 107 107 99 93
+[L] sm_l2
+[D] 201 228 226 219 190
+[/DATA]

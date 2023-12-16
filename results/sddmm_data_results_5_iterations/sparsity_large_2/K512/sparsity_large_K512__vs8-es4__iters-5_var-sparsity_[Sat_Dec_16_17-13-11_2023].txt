@@ -1,0 +1,20 @@
+[INFO]
+experiment_name sparsity_large_K512
+variable sparsity
+N 102539
+M 102539
+K 512
+sparsity 0.995
+description Compare matrices with K=512 for varying sparsity on large dataset
+runtime 390
+n_warmup_iterations 30
+sequence_number 2
+[/INFO]
+[DATA]
+[L] Baseline
+[D] 561389 565206 561998 561126 560043
+[L] cuSPARSE
+[D] 155126 155156 155109 156317 155123
+[L] sm_l2
+[D] 393331 393353 394633 394985 394601
+[/DATA]

@@ -1,0 +1,20 @@
+[INFO]
+experiment_name patents_main_companion
+variable K
+N 240547
+M 240547
+K 128
+sparsity 0.99999
+description Compare matrices with K=[32,128,256] for patents_main companion
+runtime 10
+n_warmup_iterations 30
+sequence_number 2
+[/INFO]
+[DATA]
+[L] Baseline
+[D] 2252 2255 2223 2587 2981
+[L] cuSPARSE
+[D] 1171 1159 1502 1233 1259
+[L] sm_l2
+[D] 1519 1517 1431 1438 1653
+[/DATA]
