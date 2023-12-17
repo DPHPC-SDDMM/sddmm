@@ -1,0 +1,20 @@
+[INFO]
+experiment_name sparsity_small_K32
+variable sparsity
+N 10253
+M 10253
+K 32
+sparsity 0.99
+description Compare matrices with K=32 for varying sparsity on small dataset
+runtime 7
+n_warmup_iterations 5
+sequence_number 1
+[/INFO]
+[DATA]
+[L] Baseline
+[D] 575 470 470 503 456 504 455 500 499 456 500 459 504 458 460 460 501 500 459 504 459 463 457 465 467 467 499 494 461 472
+[L] cuSPARSE
+[D] 149 159 160 160 159 158 161 162 160 133 161 137 162 160 135 135 136 161 141 140 135 133 140 134 132 142 140 142 141 134
+[L] sm_l2
+[D] 306 349 308 297 313 302 311 306 313 304 484 308 312 351 314 304 355 306 415 347 310 315 435 346 329 311 318 310 351 302
+[/DATA]
