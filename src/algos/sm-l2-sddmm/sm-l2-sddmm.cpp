@@ -177,9 +177,9 @@ namespace SDDMM {
 
             static TilingParams determine_tiling_params(Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B, const Types::COO& S) {
                 // GPU and format params
-//                Types::vec_size_t l2_cache_capacity = 6291456;  // 6MB 3080Ti
+                Types::vec_size_t l2_cache_capacity = 6291456;  // 6MB 3080Ti
 //                Types::vec_size_t shared_mem_size = 101376;  // 99KB 3080Ti
-                unsigned int l2_cache_capacity = 2097152;  // 2MB for testing
+                //unsigned int l2_cache_capacity = 2097152;  // 2MB for testing
                 unsigned int shared_mem_size = 49152;  // 48KB for testing
                 double c = 3.; // 3 for COO
 
