@@ -10,8 +10,8 @@ using namespace SDDMM;
 
 int main(int argc, char** argv) {
 
-    int n_warmup_iterations = 5;
-    int n_experiment_iterations = 30;
+    int n_warmup_iterations = 10;
+    int n_experiment_iterations = 100;
     
     // #######################################
     // large tests

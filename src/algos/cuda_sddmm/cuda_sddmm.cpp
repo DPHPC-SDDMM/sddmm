@@ -120,6 +120,10 @@ namespace SDDMM {
                 }
             }
 
+            delete[] out_values;
+            delete[] out_rows;
+            delete[] out_cols;
+
             out_sparse.values.shrink_to_fit(); // SDDMM may have less entries than A_sparse, due to zero inner products forming.
             out_sparse.rows.shrink_to_fit();
             out_sparse.cols.shrink_to_fit();
