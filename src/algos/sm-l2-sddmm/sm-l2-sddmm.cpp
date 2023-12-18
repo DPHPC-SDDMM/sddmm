@@ -18,13 +18,9 @@ inline void local_print(const std::string& message){
 #endif
 }
 
-SDDMM::Types::vec_size_t compute_tile_size_using_model(unsigned int L2_size, double c, double p) {
+SDDMM::Types::vec_size_t compute_tile_size_using_model(unsigned int L2_size, double c, float p) {
     // cast? precision?
     return sqrt(L2_size / (c * p));
-}
-
-int compute_k_slice_using_auto_tuning() {
-    return 32;  // TODO
 }
 
 namespace SDDMM {
@@ -55,10 +51,93 @@ namespace SDDMM {
             };
 
             struct Params {
-                // MatrixParams matrix_params;
                 TilingParams tiling_params;
                 SparseParams sparse_params;
             };
+
+            static Types::vec_size_t compute_k_slice_using_auto_tuning(
+                    unsigned int shared_mem_size,
+                    const SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,
+                    Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K,
+                    Types::vec_size_t Tj, Types::vec_size_t num_J_tiles
+                    ) {
+
+                if (K == 32) {
+                    return K;
+                }
+
+                local_print("Starting autotuning...");
+
+                auto* measurements = new Results::ExperimentData;
+                uint32_t repetitions = 3;
+
+                Types::vec_size_t best_Tk = 32;
+                Types::time_duration_unit best_measurement = std::numeric_limits<Types::time_duration_unit>::max();
+                for (Types::vec_size_t Tk = 32; Tk <= K; Tk += 32) {
+                    if (K % Tk == 0) {
+                        // compute the tiling params that depend on Tk
+                        Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
+                        Types::vec_size_t Ti = std::min(
+                                static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
+
+                        local_print("Trying Tk=" + std::to_string(Tk));
+                        local_print("count: " + std::to_string(num_K_tiles));
+                        local_print("Dimension Ti:");
+                        local_print("size: " + std::to_string(Ti));
+                        local_print("");
+
+                        TilingParams tiling_params{
+                                Ti,
+                                Tj,
+                                Tk,
+                                num_J_tiles,
+                                num_K_tiles
+                        };
+
+                        // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
+                        auto sparse_params = prepare_sparse(
+                                S,
+                                tiling_params.Tj,
+                                tiling_params.Ti,
+                                tiling_params.num_J_tiles
+                        );
+
+                        Params params{
+                                .tiling_params=tiling_params,
+                                .sparse_params=sparse_params
+                        };
+
+                        Types::time_duration_unit total_runtime = 0;
+                        for (int i = 0; i < repetitions; i++) {
+                            auto result = SDDMM::Algo::SML2SDDMM::run_sm_l2(
+                                    S, sparsity,
+                                    A, B,
+                                    // N, M, K
+                                    A.n, B.m, B.n,
+                                    params,
+                                    measurements
+                            );
+
+                            auto last_measurement = measurements->durations.back();
+                            total_runtime += last_measurement;
+                        }
+
+                        // check runtime
+                        auto avg_runtime = total_runtime / repetitions;
+                        local_print(std::to_string(avg_runtime));
+
+                        if (best_measurement > avg_runtime) {
+                            best_measurement = avg_runtime;
+                            best_Tk = Tk;
+                        }
+                    }
+                }
+
+                //local_print("Autotuning completed. Best Tk=" + std::to_string(best_Tk));
+
+                //// return the best value of Tk
+                //return best_Tk;
+            }
 
             static Params preparations(
                 SDDMM::Types::COO& S, 
@@ -75,14 +154,17 @@ namespace SDDMM {
                         N,
                         M,
                         K,
-                        sparsity
+                        sparsity,
+                        A,
+                        B,
+                        S
                 );
 
                 // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
                 auto sparse_params = prepare_sparse(
-                    S, 
-                    tiling_params.Tj, 
-                    tiling_params.Ti, 
+                    S,
+                    tiling_params.Tj,
+                    tiling_params.Ti,
                     tiling_params.num_J_tiles
                 );
 
@@ -93,11 +175,11 @@ namespace SDDMM {
                 };
             }
 
-            static TilingParams determine_tiling_params(Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K, double sparsity) {
+            static TilingParams determine_tiling_params(Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B, const Types::COO& S) {
                 // GPU and format params
-//                Types::vec_size_t l2_cache_capacity = 6291456;  // 6MB 3080Ti
+                Types::vec_size_t l2_cache_capacity = 6291456;  // 6MB 3080Ti
 //                Types::vec_size_t shared_mem_size = 101376;  // 99KB 3080Ti
-                unsigned int l2_cache_capacity = 2097152;  // 2MB for testing
+                //unsigned int l2_cache_capacity = 2097152;  // 2MB for testing
                 unsigned int shared_mem_size = 49152;  // 48KB for testing
                 double c = 3.; // 3 for COO
 
@@ -113,7 +195,15 @@ namespace SDDMM {
                 local_print("size: " + std::to_string(Tj) + ";  count: " + std::to_string(num_J_tiles));
                 local_print("");
 
-                Types::vec_size_t Tk = 32;
+//                Types::vec_size_t Tk = 32;
+                Types::vec_size_t Tk = compute_k_slice_using_auto_tuning(
+                    shared_mem_size,
+                    S,
+                    sparsity,
+                    A, B,
+                    N, M, K,
+                    Tj, num_J_tiles
+                    );
                 Types::vec_size_t num_K_tiles = (K + Tk - 1) / Tk;
                 Types::vec_size_t Ti = std::min(static_cast<Types::vec_size_t>(shared_mem_size / sizeof(float) / Tk), N);
                 local_print("Dimension Tk:");
@@ -222,7 +312,6 @@ namespace SDDMM {
                         S_tile_starts.push_back(S_tile_values.size());
                     } else {
                         // TODO properly process empty slices
-                        // => hmmmmmmm??
                         slice_sizes.push_back(0);
                     }
                 }
@@ -288,7 +377,7 @@ namespace SDDMM {
 
             static Types::COO run_sm_l2(
                 // MatrixParams& matrix_params,
-                SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,
+                const SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,
                 Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K,
                 Params& params,
                 Results::ExperimentData* measurements = nullptr
@@ -360,10 +449,26 @@ namespace SDDMM {
                 Types::vec_size_t tile_starts_start_ind = 0;
                 Types::vec_size_t active_rows_start_ind = 0;
 
-                auto start = std::chrono::high_resolution_clock::now();
-//                auto start_time = std::chrono::high_resolution_clock::now();
+                // create streams for parallel execution
+                auto stream_n = tiling_params.num_J_tiles * tiling_params.num_K_tiles;
+                std::vector<cudaStream_t> streams(stream_n);
+                for (int i = 0; i < stream_n; i++) {
+                    gpuErrchk(cudaStreamCreate(&streams[i]));
+                }
 
-                for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
+                auto start = std::chrono::high_resolution_clock::now();
+
+                // measure execution time
+//                cudaEvent_t start_c, stop_c;
+//                gpuErrchk(cudaEventCreate(&start_c));
+//                gpuErrchk(cudaEventCreate(&stop_c));
+//
+//                gpuErrchk(cudaEventRecord(start_c));
+
+                //for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
+                // some rounding error? => don't have time for that
+                auto num_J_tiles = sparse_params.active_rows_sizes.size();
+                for (int tile_j_id = 0; tile_j_id < num_J_tiles; tile_j_id++) {
                     local_print("Tile J id: " + std::to_string(tile_j_id) + "\n");
 
                     local_print("Calculating the number of threadblocks...");
@@ -379,6 +484,10 @@ namespace SDDMM {
                         // launch num_threadblocks with 512 threads in each
                         SML2SDDMM_Kernel::run_kernel(
                                 num_threadblocks,
+                                // execute each kernel in own stream
+//                                streams.at(tile_j_id * tiling_params.num_K_tiles + tile_k_id),
+                                // execute everything in a single stream
+                                streams.at(0),
                                 // S
                                 &rows_local_d[slice_start_ind],
                                 &cols_d[slice_start_ind],
@@ -408,6 +517,13 @@ namespace SDDMM {
                     active_rows_start_ind += sparse_params.active_rows_sizes.at(tile_j_id);
                 }
 
+
+//                gpuErrchk(cudaEventRecord(stop_c));
+//                gpuErrchk(cudaEventSynchronize(stop_c));
+//
+//                float milliseconds = 0;
+//                cudaEventElapsedTime(&milliseconds, start_c, stop_c);
+
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
 
@@ -415,7 +531,21 @@ namespace SDDMM {
                 if(measurements != nullptr){
                     Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();
                     measurements->durations.push_back(duration);
+                    local_print("Duration (CPU chrono): " + std::to_string(duration));
                 }
+
+//                local_print("Duration (GPU events): " + std::to_string(milliseconds) + " ms");
+
+                // clean up the streams
+                for (int i = 0; i < tiling_params.num_J_tiles * tiling_params.num_K_tiles; ++i) {
+                    cudaStreamDestroy(streams[i]);
+                }
+
+                // clean up the events
+//                gpuErrchk(cudaEventDestroy(start_c));
+//                gpuErrchk(cudaEventDestroy(stop_c));
+
+                local_print("Done processing!");
 
                 // read the result from device
                 std::vector<float> P_values = std::vector<float>(S_size);

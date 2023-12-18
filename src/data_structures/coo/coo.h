@@ -9,6 +9,8 @@
 // Data structures
 #include <tuple>
 #include <map>
+#include <vector>
+#include <execution>
 #include <algorithm> // std::sort
 #include <cassert>
 #include <chrono>
@@ -92,6 +94,10 @@ namespace SDDMM{
 
             void sort() {
                 // std::sort(data.begin(), data.end());
+            }
+
+            static bool no_filter_condition(float sparsity, Types::vec_size_t N, Types::vec_size_t M) {
+                return sparsity < 0.989f && N > 90000 && M > 90000;
             }
 
             /**
@@ -207,7 +213,8 @@ namespace SDDMM{
                 COO& result,
                 float sparsity,
                 bool verbose,
-                uint64_t report_sparsity
+                uint64_t report_sparsity,
+                bool eliminate_doubles
             ){
                 result.cols.clear();
                 result.rows.clear();
@@ -215,6 +222,8 @@ namespace SDDMM{
 
                 uint64_t total = static_cast<uint64_t>(std::ceil(n*m*(1.0f - sparsity)));
                 uint64_t gen_total = static_cast<uint64_t>(1.2f*total);
+                //if (!eliminate_doubles)
+                //    gen_total = static_cast<uint64_t>(total);
                 curandGenerator_t gen;
                 std::vector<float> n_rows(gen_total);
                 std::vector<float> n_cols(gen_total);
@@ -238,33 +247,80 @@ namespace SDDMM{
 
                 result.n = n;
                 result.m = m;
-                result.cols.reserve(total);
-                result.rows.reserve(total);
                 result.values.resize(total);
+                // doesn't matter which values we use here as long as we have enough of them
+                // => no filtering etc... necessary, just copy
                 memcpy(result.values.data(), n_rows.data(), total*sizeof(Types::expmt_t));
 
-                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
-                Types::sorted_coo_collector collector;
-                uint64_t i=0;
-                while(collector.size() < total && i <= gen_total) {
-                    if(i == gen_total){
-                        return false;
+                // try to multithreaded sort the stuff
+
+                if (!no_filter_condition(sparsity, n, m)) {
+                    result.cols.reserve(total);
+                    result.rows.reserve(total);
+                    if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
+                    Types::sorted_coo_collector collector;
+                    uint64_t i = 0;
+                    while (collector.size() < total && i <= gen_total) {
+                        if (i == gen_total) {
+                            return false;
+                        }
+                        collector.insert({ scale_rand(n_rows[i], n), scale_rand(n_cols[i], m) });
+                        i++;
+                        if (collector.size() % report_sparsity == 0) {
+                            if (verbose) TEXT::Gadgets::print_progress_percent(collector.size(), static_cast<double>(total), report_sparsity);
+                        }
                     }
-                    collector.insert({scale_rand(n_rows[i], n), scale_rand(n_cols[i], m)});
-                    i++;
-                    if(collector.size() % report_sparsity == 0){
-                        if(verbose) TEXT::Gadgets::print_progress_percent(collector.size(), static_cast<double>(total), report_sparsity);
+
+                    if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Split coords..."), TEXT::BRIGHT_BLUE);
+
+                    for (auto& p : collector) {
+                        result.rows.push_back(p.first);
+                        result.cols.push_back(p.second);
+                        if (result.rows.size() % report_sparsity == 0) {
+                            if (verbose) TEXT::Gadgets::print_progress_percent(result.rows.size(), static_cast<double>(total), report_sparsity);
+                        }
                     }
+                }
+                else {
+                    //// copy values
+                    //if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Infeasible to filter, just copy values and hope for the best..."), TEXT::HIGHLIGHT_CYAN);
+                    //result.cols.resize(total);
+                    //result.rows.resize(total);
+                    //memcpy(result.cols.data(), n_cols.data(), total * sizeof(Types::vec_size_t));
+                    //memcpy(result.rows.data(), n_rows.data(), total * sizeof(Types::vec_size_t));
                 }
 
-                if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Split coords..."), TEXT::BRIGHT_BLUE);
-                for(auto& p : collector){
-                    result.rows.push_back(p.first);
-                    result.cols.push_back(p.second);
-                    if(result.rows.size() % report_sparsity == 0){
-                        if(verbose) TEXT::Gadgets::print_progress_percent(result.rows.size(), static_cast<double>(total), report_sparsity);
-                    }
-                }
+                //if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
+                //std::vector<std::pair<Types::vec_size_t, Types::vec_size_t>> temp;
+                //temp.reserve(gen_total);
+                //for (uint64_t i = 0; i < gen_total; ++i) {
+                //    std::pair<Types::vec_size_t, Types::vec_size_t> p = { scale_rand(n_rows[i], n), scale_rand(n_cols[i], m) };
+                //    temp.insert(std::upper_bound(temp.begin(), temp.end(), p), p);
+                //    if (i % report_sparsity == 0) {
+                //        if (verbose) TEXT::Gadgets::print_progress_percent(i, static_cast<double>(gen_total), report_sparsity);
+                //    }
+                //}
+
+                //if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Split coords..."), TEXT::BRIGHT_BLUE);
+                //result.rows.push_back(temp[0].first);
+                //result.cols.push_back(temp[0].second);
+                //uint64_t c_ind = 0;
+                //uint64_t i = 1;
+                //while (c_ind < total-1 && i <= gen_total) {
+                //    if (i == gen_total) {
+                //        return false;
+                //    }
+                //    auto cur = temp[i];
+                //    if (result.rows[c_ind] != cur.first || result.cols[c_ind] != cur.second) {
+                //        result.rows.push_back(cur.first);
+                //        result.cols.push_back(cur.second);
+                //        c_ind++;
+                //        if (result.rows.size() % report_sparsity == 0) {
+                //            if (verbose) TEXT::Gadgets::print_progress_percent(result.rows.size(), static_cast<double>(total), report_sparsity);
+                //        }
+                //    }
+                //    i++;
+                //}
 
                 result.values.shrink_to_fit();
                 result.cols.shrink_to_fit();
@@ -293,7 +349,8 @@ namespace SDDMM{
                 Types::vec_size_t m, 
                 float sparsity = 1.0,
                 bool verbose = true,
-                uint64_t report_sparsity = 10000
+                uint64_t report_sparsity = 10000,
+                bool eliminate_doubles=true
             ){
                 if(verbose) TEXT::Gadgets::print_colored_line(100, '#', TEXT::BRIGHT_YELLOW);
                 if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("Generate sparse col maj [") + std::to_string(n) + "x" + std::to_string(m) + "], sparsity: " + std::to_string(sparsity), TEXT::BRIGHT_RED);
@@ -302,9 +359,9 @@ namespace SDDMM{
                 int tries = 100;
                 auto start = std::chrono::high_resolution_clock::now();
                 for(int t=1; t<=tries; ++t){
-                    if(_generate_row_major_curand(n, m, t, tries, result, sparsity, verbose, report_sparsity)){
+                    if(_generate_row_major_curand(n, m, t, tries, result, sparsity, verbose, report_sparsity, eliminate_doubles)){
                         auto stop = std::chrono::high_resolution_clock::now();
-                        if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("..Finished in [") + std::to_string(std::chrono::duration_cast<SDDMM::Types::time_measure_unit>(stop - start).count()/1000.0) + std::string("ms"), TEXT::BRIGHT_RED);
+                        if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("..Finished in [") + std::to_string(std::chrono::duration_cast<SDDMM::Types::time_measure_unit>(stop - start).count()/1000.0) + std::string("ms]"), TEXT::BRIGHT_RED);
                         return result;
                     }
 
@@ -444,10 +501,13 @@ namespace SDDMM{
                 const SDDMM::Types::Matrix& X, 
                 const float X_sparsity,
                 const SDDMM::Types::Matrix& Y,
-                const float Y_sparsity)
+                const float Y_sparsity,
+                uint64_t& out_size_written,
+                bool verbose = false
+            )
             {
                 auto last = path[path.size()-1];
-                assert(last == SDDMM::Defines::path_separator && "path must end with a path separator / or \\");
+                assert((last == '/' || last == '\\') && "path must end with a path separator / or \\");
 
                 auto created_at = std::chrono::system_clock::now();
                 auto created_at_t = std::chrono::system_clock::to_time_t(created_at);
@@ -482,6 +542,18 @@ namespace SDDMM{
                 output_file.write(_ptr_cast(sparse.rows.data()), sparse.rows.size() * sizeof(Types::vec_size_t));
                 output_file.write(_ptr_cast(sparse.cols.data()), sparse.cols.size() * sizeof(Types::vec_size_t));
 
+                uint64_t size0 = 3 * sizeof(Types::vec_size_t) + sizeof(float);
+                uint64_t size1 = sparse.values.size() * sizeof(Types::expmt_t);
+                uint64_t size2 = sparse.rows.size() * sizeof(Types::vec_size_t);
+                uint64_t size3 = sparse.cols.size() * sizeof(Types::vec_size_t);
+
+                if (verbose) {
+                    std::cout << "write: " << size0 << std::endl;
+                    std::cout << "write: " << size1 << std::endl;
+                    std::cout << "write: " << size2 << std::endl;
+                    std::cout << "write: " << size3 << std::endl;
+                }
+
                 // matrix X
                 s = X.data.size();
                 output_file.write(_float_ptr_cast(&X_sparsity), sizeof(float));
@@ -491,6 +563,14 @@ namespace SDDMM{
                 output_file.write(_uint_ptr_cast(X.is_row_major() ? &Constants::row_storage : &Constants::col_storage), sizeof(uint32_t));
                 output_file.write(_ptr_cast(X.data.data()), X.data.size() * sizeof(Types::expmt_t));
 
+                uint64_t size4 = 3 * sizeof(Types::vec_size_t) + sizeof(float) + sizeof(uint32_t);
+                uint64_t size5 = X.data.size() * sizeof(Types::expmt_t);
+                
+                if (verbose) {
+                    std::cout << "write: " << size4 << std::endl;
+                    std::cout << "write: " << size5 << std::endl;
+                }
+
                 // matrix Y
                 s = Y.data.size();
                 output_file.write(_float_ptr_cast(&Y_sparsity), sizeof(float));
@@ -499,8 +579,19 @@ namespace SDDMM{
                 output_file.write(_ptr_cast(&Y.m), sizeof(Types::vec_size_t));
                 output_file.write(_uint_ptr_cast(Y.is_row_major() ? &Constants::row_storage : &Constants::col_storage), sizeof(uint32_t));
                 output_file.write(_ptr_cast(Y.data.data()), Y.data.size() * sizeof(Types::expmt_t));
+                
+                uint64_t size6 = 3 * sizeof(Types::vec_size_t) + sizeof(float) + sizeof(uint32_t);
+                uint64_t size7 = Y.data.size() * sizeof(Types::expmt_t);
+                
+                if (verbose) {
+                    std::cout << "write: " << size6 << std::endl;
+                    std::cout << "write: " << size7 << std::endl;
+                    std::cout << "total: " << (size0 + size1 + size2 + size3 + size4 + size5 + size6 + size7) << std::endl;
+                }
 
                 output_file.close();
+
+                out_size_written = size0 + size1 + size2 + size3 + size4 + size5 + size6 + size7;
 
                 return path + name.str();
             }
@@ -513,7 +604,10 @@ namespace SDDMM{
                 SDDMM::Types::Matrix& out_X,
                 float& out_x_sparsity, 
                 SDDMM::Types::Matrix& out_Y,
-                float& out_y_sparsity)
+                float& out_y_sparsity,
+                uint64_t& out_size_read,
+                bool verbose = false
+                )
             {
                 std::ifstream input_file(path, std::ios::in | std::ios::binary);
                 input_file.seekg (0, input_file.end);
@@ -565,6 +659,18 @@ namespace SDDMM{
                 out_coo.rows.resize(s1);   memcpy(out_coo.rows.data(),   &buffer[f_index], s1*sizeof(Types::vec_size_t)); f_index += s1*sizeof(Types::vec_size_t);
                 out_coo.cols.resize(s1);   memcpy(out_coo.cols.data(),   &buffer[f_index], s1*sizeof(Types::vec_size_t)); f_index += s1*sizeof(Types::vec_size_t);
 
+                uint64_t size0 = sizeof(out_sparse_sparsity) + sizeof(s1) + sizeof(n1) + sizeof(m1);
+                uint64_t size1 = out_coo.values.size() * sizeof(Types::expmt_t);
+                uint64_t size2 = out_coo.rows.size() * sizeof(Types::vec_size_t);
+                uint64_t size3 = out_coo.cols.size() * sizeof(Types::vec_size_t);
+
+                if (verbose) {
+                    std::cout << "read: " << size0 << std::endl;
+                    std::cout << "read: " << size1 << std::endl;
+                    std::cout << "read: " << size2 << std::endl;
+                    std::cout << "read: " << size3 << std::endl;
+                }
+
                                       memcpy(&out_x_sparsity, &buffer[f_index], sizeof(float)); f_index += sizeof(float);
                 Types::vec_size_t s2; memcpy(&s2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
                 Types::vec_size_t n2; memcpy(&n2, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
@@ -575,6 +681,14 @@ namespace SDDMM{
                 out_X.set_matrix_format(t2 == Constants::col_storage ? Types::MatrixFormat::ColMajor : Types::MatrixFormat::RowMajor);
                 out_X.data.resize(s2);
                 memcpy(out_X.data.data(), &buffer[f_index], s2*sizeof(Types::expmt_t)); f_index += s2*sizeof(Types::expmt_t);
+                
+                uint64_t size4 = sizeof(out_x_sparsity) + sizeof(s2) + sizeof(n2) + sizeof(m2) + sizeof(t2);
+                uint64_t size5 = out_X.data.size() * sizeof(Types::expmt_t);
+                
+                if (verbose) {
+                    std::cout << "read: " << size4 << std::endl;
+                    std::cout << "read: " << size5 << std::endl;
+                }
 
                                       memcpy(&out_y_sparsity, &buffer[f_index], sizeof(float)); f_index += sizeof(float);
                 Types::vec_size_t s3; memcpy(&s3, &buffer[f_index], sizeof(Types::vec_size_t)); f_index += sizeof(Types::vec_size_t);
@@ -586,17 +700,38 @@ namespace SDDMM{
                 out_Y.set_matrix_format(t3 == Constants::col_storage ? Types::MatrixFormat::ColMajor : Types::MatrixFormat::RowMajor);
                 out_Y.data.resize(s3);
                 memcpy(out_Y.data.data(), &buffer[f_index], s3*sizeof(Types::expmt_t)); f_index += s3*sizeof(Types::expmt_t);
+                
+                uint64_t size6 = sizeof(out_y_sparsity) + sizeof(s3) + sizeof(n3) + sizeof(m3) + sizeof(t3);
+                uint64_t size7 = out_Y.data.size() * sizeof(Types::expmt_t);
+                
+                if (verbose) {
+                    std::cout << "read: " << size6 << std::endl;
+                    std::cout << "read: " << size7 << std::endl;
+                    std::cout << "total: " << (size0 + size1 + size2 + size3 + size4 + size5 + size6 + size7) << std::endl;
+                }
 
                 assert(f_index == length && "f_index must be the same as length at the end!!");
 
                 out_csr = out_coo.to_csr();
                 delete[] buffer;
+
+                out_size_read = size0 + size1 + size2 + size3 + size4 + size5 + size6 + size7;
             }
 
-            static COO read_matrix_market_file(const char* filepath)
+            static COO read_matrix_market_file(const char* filepath, uint64_t& out_size_read, bool verbose=false)
             {
+                // convert to whatever os we are on...
+                std::string temp = filepath;
+                if (Defines::path_separator == '/') {
+                    std::replace(temp.begin(), temp.end(), '\\', '/');
+                }
+                else {
+                    std::replace(temp.begin(), temp.end(), '/', '\\');
+                }
+                filepath = temp.c_str();
+
                 // Output variable
-                Types::COO output;;
+                Types::COO output;
 
                 Types::vec_size_t nr_nonzeroes;
 
@@ -639,12 +774,8 @@ namespace SDDMM{
 
                 // Read number of rows, columns and number of non-zero elements of the sparse matrix.
                 in >> output.n >> output.m >> nr_nonzeroes;
-
-                // Allocate memory for data.
-                // output.data.resize(nr_nonzeroes);
-                output.values.resize(nr_nonzeroes);
-                output.cols.resize(nr_nonzeroes);
-                output.rows.resize(nr_nonzeroes);
+                std::vector<triplet> triplets;
+                triplets.reserve(nr_nonzeroes);
 
                 Types::vec_size_t index = 0;
                 // The second check is made in case
@@ -657,13 +788,40 @@ namespace SDDMM{
                     else { in >> r_in >> c_in >> v; }
 
                     // adjust from 1-based to 0-based
-                    output.values[index++] = v;
-                    output.cols[index++] = c_in-1;
-                    output.rows[index++] = r_in-1;
+                    triplets.push_back({
+                        r_in-1,
+                        c_in-1, 
+                        v 
+                    });
+                    index++;
                     // output.data[index++] = {r_in-1, c_in-1, v};
                 }
 
                 in.close(); // Don't forget to close the file!
+
+                std::sort(triplets.begin(), triplets.end(), [](auto& e1, auto& e2) {
+                    //return e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y);
+                    return e1 < e2;
+                });
+
+                // Allocate memory for data.
+                // output.data.resize(nr_nonzeroes);
+                output.values.reserve(nr_nonzeroes);
+                output.cols.reserve(nr_nonzeroes);
+                output.rows.reserve(nr_nonzeroes);
+
+                for (auto& t : triplets) {
+                    output.rows.push_back(t.row);
+                    output.cols.push_back(t.col);
+                    output.values.push_back(t.value);
+                }
+
+                //std::vector<std::pair<int, int>> source = { {3, 16}, {2, 16}, {3, 2}, {9, 16}, {9, 0},{9, 5}, {9, 1}, {8, 5}, {6, 3}, {9, 2}, {5, 0}, {8, 3}, {9, 7}, {8, 3} };
+                //std::vector<std::pair<int, int>> target;
+
+                //for (auto& e : source) {
+                //    target.insert(std::upper_bound(target.begin(), target.end(), e), e);
+                //}
 
                 return output;
             }

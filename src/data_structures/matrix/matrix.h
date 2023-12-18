@@ -61,6 +61,7 @@ namespace SDDMM {
             Types::vec_size_t n, m;
 
             Matrix(Types::vec_size_t n, Types::vec_size_t m) : data(n * m, 0.0), n(n), m(m) {}
+            //Matrix(): n(), m() {};
 
             // modifiable access mat(i,j), so cannot be used in const matrices
             inline SDDMM::Types::expmt_t &operator()(const Types::vec_size_t& i, const Types::vec_size_t& j) {

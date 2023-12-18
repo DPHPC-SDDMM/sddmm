@@ -1,0 +1,20 @@
+[INFO]
+experiment_name patents_main
+variable K
+N 240547
+M 240547
+K 32
+sparsity 0.99999
+description Compare matrices with K=[32,128,256] for patents_main data set
+runtime 5
+n_warmup_iterations 30
+sequence_number 1
+[/INFO]
+[DATA]
+[L] Baseline
+[D] 360 367 363 361 361
+[L] cuSPARSE
+[D] 502 520 516 502 514
+[L] sm_l2
+[D] 277 276 298 408 275
+[/DATA]

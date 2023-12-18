@@ -1,0 +1,20 @@
+[INFO]
+experiment_name sparsity_large_K32
+variable sparsity
+N 102539
+M 102539
+K 32
+sparsity 0.99
+description Compare matrices with K=32 for varying sparsity on large dataset
+runtime 514
+n_warmup_iterations 30
+sequence_number 1
+[/INFO]
+[DATA]
+[L] Baseline
+[D] 37318 36386 35861 36377 36454
+[L] cuSPARSE
+[D] 19209 19121 19125 19193 19143
+[L] sm_l2
+[D] 8262 8248 8281 8376 8277
+[/DATA]

@@ -1,0 +1,20 @@
+[INFO]
+experiment_name imdb
+variable K
+N 428440
+M 896308
+K 256
+sparsity 0.99999
+description Compare matrices with K=[32,128,256] for IMDB data set
+runtime 44
+n_warmup_iterations 30
+sequence_number 3
+[/INFO]
+[DATA]
+[L] Baseline
+[D] 23667 22729 22572 22751 22742
+[L] cuSPARSE
+[D] 6712 6575 6660 7118 6739
+[L] sm_l2
+[D] 8178 8067 8075 8084 8170
+[/DATA]

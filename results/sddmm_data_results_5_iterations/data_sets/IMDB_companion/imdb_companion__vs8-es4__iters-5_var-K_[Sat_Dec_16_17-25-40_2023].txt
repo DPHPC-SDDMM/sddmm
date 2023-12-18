@@ -1,0 +1,20 @@
+[INFO]
+experiment_name imdb_companion
+variable K
+N 428440
+M 896308
+K 256
+sparsity 0.999979
+description Compare matrices with K=[32,128,256] for IMDB companion
+runtime 72
+n_warmup_iterations 30
+sequence_number 3
+[/INFO]
+[DATA]
+[L] Baseline
+[D] 47908 46302 47696 47597 47531
+[L] cuSPARSE
+[D] 13388 13735 13647 13316 13695
+[L] sm_l2
+[D] 19544 19682 19594 19579 19458
+[/DATA]

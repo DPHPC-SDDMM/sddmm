@@ -100,6 +100,8 @@ namespace SDDMM {
                                         &alpha, mat_X, mat_Y, &beta, mat_spA, Types::cuda_expmt_t,
                                         CUSPARSE_SDDMM_ALG_DEFAULT, dBuffer));
 
+            gpuErrchk(cudaDeviceSynchronize());
+
             auto end = std::chrono::high_resolution_clock::now();
             if(measurements != nullptr){
                 Types::time_duration_unit duration = std::chrono::duration_cast<Types::time_measure_unit>(end - start).count();

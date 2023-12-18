@@ -80,6 +80,8 @@ namespace SDDMM {
                 out_col_d
             );
 
+            gpuErrchk(cudaDeviceSynchronize());
+
             auto end = std::chrono::high_resolution_clock::now();
 
             if (measurements != nullptr) {
@@ -117,6 +119,10 @@ namespace SDDMM {
                     out_sparse.cols.push_back(out_cols[i]);
                 }
             }
+
+            delete[] out_values;
+            delete[] out_rows;
+            delete[] out_cols;
 
             out_sparse.values.shrink_to_fit(); // SDDMM may have less entries than A_sparse, due to zero inner products forming.
             out_sparse.rows.shrink_to_fit();
