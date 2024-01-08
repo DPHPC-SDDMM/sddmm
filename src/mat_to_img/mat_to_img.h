@@ -22,13 +22,6 @@ namespace SDDMM {
 	public:
         Image() {}
 
-        //void init(unsigned char* img, int img_width, int img_height) {
-        //    int64_t s = img_width * img_height * 3;
-        //    for (int64_t ind = 0; ind < s; ++ind) {
-        //        img[ind] = static_cast<char>(0);
-        //    }
-        //}
-
         // source: https://bottosson.github.io/posts/oklab/
         static void linear_srgb_to_oklab(unsigned char rgb_r, unsigned char rgb_g, unsigned char rgb_b, float& oklab_L, float& oklab_a, float& oklab_b)
         {
@@ -161,15 +154,18 @@ namespace SDDMM {
             float bs_end_m = (mat.m - remainder_m) / max_bin_nr_M;
             float bs_begin_m = bs_end_m + 1;
 
-
-            //double bin_size_w = std::floor(static_cast<double>(mat.m) / static_cast<double>(max_bin_nr_M));
-            //double bin_size_h = std::floor(static_cast<double>(mat.n) / static_cast<double>(max_bin_nr_N));
-
-            //int last_bin_size_w = max_bin_nr_N - static_cast<int>(std::floor(static_cast<double>(mat.m) / bin_size_w - bin_size_w));
-            //int last_bin_size_h = max_bin_nr_M - static_cast<int>(std::floor(static_cast<double>(mat.n) / bin_size_h - bin_size_h));
-
-            //int img_size_h = bs_begin_n * remainder_n + (max_bin_nr_N - remainder_n)* bs_end_n; //static_cast<int>(std::floor(mat.n / bin_size_h)) + 1;
-            //int img_size_w = bs_begin_m * remainder_m + (max_bin_nr_M - remainder_m)* bs_end_m; //static_cast<int>(std::floor(mat.m / bin_size_w)) + 1;
+            TEXT::Gadgets::print_colored_text_line(
+                std::string("Remainder n: ") + std::to_string(remainder_n), TEXT::BLUE);
+            TEXT::Gadgets::print_colored_text_line(
+                std::string("Large bin n: ") + std::to_string(bs_begin_n), TEXT::BLUE);
+            TEXT::Gadgets::print_colored_text_line(
+                std::string("Small bin n: ") + std::to_string(bs_end_n), TEXT::BLUE);
+            TEXT::Gadgets::print_colored_text_line(
+                std::string("Remainder m: ") + std::to_string(remainder_m), TEXT::BLUE);
+            TEXT::Gadgets::print_colored_text_line(
+                std::string("Large bin m: ") + std::to_string(bs_begin_m), TEXT::BLUE);
+            TEXT::Gadgets::print_colored_text_line(
+                std::string("Small bin m: ") + std::to_string(bs_end_m), TEXT::BLUE);
 
             if (bs_begin_n * remainder_n + (max_bin_nr_N - remainder_n) * bs_end_n != mat.n) {
                 TEXT::Gadgets::print_colored_text_line("Height out of bounds or too small!", TEXT::HIGHLIGHT_RED);
@@ -180,22 +176,12 @@ namespace SDDMM {
                 return false;
             }
 
-            // by default we always have a last bin size. If the required bin size divides the image sizes
-            // exactly, we have a full size as the last size
-            // (not doing this is a recipie for division-by-zero
-            //if (last_bin_size_w == 0) last_bin_size_w = bin_size_w;
-            //if (last_bin_size_h == 0) last_bin_size_h = bin_size_h;
-
             _histogram_buffer.clear();
             _histogram_buffer.shrink_to_fit();
             int img_size = max_bin_nr_N * max_bin_nr_M;
             _histogram_buffer.resize(img_size, 0);
             int64_t S = mat.cols.size();
 
-            //int ind_bin_size_n = 0;
-            //int ind_bin_size_m = 0;
-            //int bin_n_counter = 0;
-            //int bin_m_counter = 0;
             for (int64_t s = 0; s < S; ++s) {
                 double col = static_cast<double>(mat.cols[s]);
                 double row = static_cast<double>(mat.rows[s]);
@@ -215,14 +201,6 @@ namespace SDDMM {
                 else {
                     bin_m = static_cast<int>(std::floor(col / bs_begin_m));
                 }
-
-                //double bin_size_h = static_cast<double>(bin_size_n[col]);
-                //double bin_size_w = static_cast<double>(bin_size_m[row]);
-                //int bin_n = static_cast<int>(std::floor(row / bin_size_h));
-                //int bin_m = static_cast<int>(std::floor(col / bin_size_w));
-
-                //int cur_bin_size_n = bin_size_n[ind_bin_size_n];
-                //int cur_bin_size_m = bin_size_m[ind_bin_size_n];
 
                 int64_t ind = bin_n * max_bin_nr_M + bin_m;
                 if (ind >= _histogram_buffer.size()) {
@@ -254,12 +232,6 @@ namespace SDDMM {
                     else if (h >= remainder_n) cur /= normalize_bottom;
                     else if (w >= remainder_m) cur /= normalize_right;
                     else cur /= normalize_middle;
-
-                    //if (h == img_size_h - 1 && w == img_size_w - 1) 
-                    //    cur /= normalize_bottom_right;
-                    //else if (h == img_size_h - 1) cur /= normalize_bottom;
-                    //else if (w == img_size_w - 1) cur /= normalize_right;
-                    //else cur /= normalize_middle;
 
                     if (cur < 0) {
                         TEXT::Gadgets::print_colored_text_line("Warning: Image must consist of positive values!", TEXT::HIGHLIGHT_YELLOW);
