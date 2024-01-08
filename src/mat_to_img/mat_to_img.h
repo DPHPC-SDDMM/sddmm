@@ -69,23 +69,33 @@ namespace SDDMM {
         }
 
         bool get_img(std::string name, SDDMM::Types::Matrix& mat) {
-            return get_img(name, mat.n, mat.m, mat);
-        }
-
-        bool get_img(std::string name, uint64_t bin_nr_N, uint64_t bin_nr_M, SDDMM::Types::Matrix& mat) {
+            float sum = 0;
             float max = 0;
-            for (uint64_t n = 0; n < bin_nr_N; ++n) {
-                for (uint64_t m = 0; m < bin_nr_M; ++m) {
-                    if (max < mat.at(n, m)) {
-                        max = mat.at(n, m);
-                    }
+            for (uint64_t n = 0; n < mat.n; ++n) {
+                for (uint64_t m = 0; m < mat.m; ++m) {
+                    if (mat.at(n, m) > max) max = mat.at(n, m);
+                    sum += mat.at(n, m);
                 }
             }
 
-            return get_img(name, bin_nr_N, bin_nr_M, max, mat.data);
+            // turn value into percent of max
+            std::vector<float> data = mat.data;
+            for (Types::vec_size_t ind = 0; ind < mat.data.size(); ++ind) {
+                data[ind] = data[ind] / max;
+            }
+
+            float midpoint_value = sum / static_cast<float>(mat.n) / static_cast<float>(mat.m) / max;
+            std::cout << midpoint_value << std::endl;
+
+            return get_img(name, mat.n, mat.m, data, midpoint_value);
         }
 
-        bool get_img(std::string name, uint64_t bin_nr_N, uint64_t bin_nr_M, float max, std::vector<float> data){
+        bool get_img(std::string name, uint64_t bin_nr_N, uint64_t bin_nr_M, std::vector<float>& data, float midpoint_value){
+            if (midpoint_value < 0 || midpoint_value > 1.0f) {
+                TEXT::Gadgets::print_colored_text_line("Midpiont value must be between 0 and 1!", TEXT::HIGHLIGHT_RED);
+                return false;
+            }
+
             unsigned char max_r = 255;
             unsigned char max_g = 0;
             unsigned char max_b = 0;
@@ -98,15 +108,30 @@ namespace SDDMM {
             linear_srgb_to_oklab(max_r, max_g, max_b, max_oklab_L, max_oklab_a, max_oklab_b);
             linear_srgb_to_oklab(min_r, min_g, min_b, min_oklab_L, min_oklab_a, min_oklab_b);
 
+            // do some sort of gamma correction: ensure, midpoint percentage is half way between blue and red
+            // => 1 - exp(-a*x) => a = -ln(1-x)/x
+            // Note: this function is not completely straignt for x=0.5 but close enough
+            float a = -std::logf(1 - 0.5f) / midpoint_value;
+
             _img_buffer.clear();
             _img_buffer.shrink_to_fit();
             _img_buffer.reserve(bin_nr_N * bin_nr_M * 3);
             for (const float& val : data) {
-                float p = val / max;
+                if (val < 0 || val > 1.0f) {
+                    TEXT::Gadgets::print_colored_text_line("Image must consist of values between 0 and 1!", TEXT::HIGHLIGHT_RED);
+                    return false;
+                }
+
+                float p = 1.0f - std::expf(-a*val);
+                //float p = val;
+                if (p < 0.0f) p = 0.0f;
+                if (p > 1.0f) p = 1.0f;
+
                 float oklab_L, oklab_a, oklab_b;
                 oklab_lerp(p, min_oklab_L, min_oklab_a, min_oklab_b, max_oklab_L, max_oklab_a, max_oklab_b, oklab_L, oklab_a, oklab_b);
                 unsigned char r, g, b;
                 oklab_to_linear_srgb(oklab_L, oklab_a, oklab_b, r, g, b);
+                
                 _img_buffer.push_back(r);
                 _img_buffer.push_back(g);
                 _img_buffer.push_back(b);
@@ -117,7 +142,7 @@ namespace SDDMM {
 
             const int bytesPerPixel = 3;
             const bool isRGB = true;
-            const int quality = 90;
+            const int quality = 100;
             const bool downsample = false;
             const char* comment = name.c_str();
             bool ok = TooJpeg::writeJpeg(_output, _img_buffer.data(), bin_nr_M, bin_nr_N, isRGB, quality, downsample, comment);
@@ -127,35 +152,130 @@ namespace SDDMM {
             return true;
         }
 
-        bool get_img(std::string name, int bin_nr_N, int bin_nr_M, SDDMM::Types::COO& mat) {
-            double bin_size_w = std::ceil(static_cast<double>(mat.m) / static_cast<double>(bin_nr_M));
-            double bin_size_h = std::ceil(static_cast<double>(mat.n) / static_cast<double>(bin_nr_N));
+        bool get_img(std::string name, int max_bin_nr_N, int max_bin_nr_M, SDDMM::Types::COO& mat, float nz_probability) {
+
+            float remainder_n = mat.n % max_bin_nr_N;
+            float remainder_m = mat.m % max_bin_nr_M;
+            float bs_end_n = (mat.n - remainder_n) / max_bin_nr_N;
+            float bs_begin_n = bs_end_n + 1;
+            float bs_end_m = (mat.m - remainder_m) / max_bin_nr_M;
+            float bs_begin_m = bs_end_m + 1;
+
+
+            //double bin_size_w = std::floor(static_cast<double>(mat.m) / static_cast<double>(max_bin_nr_M));
+            //double bin_size_h = std::floor(static_cast<double>(mat.n) / static_cast<double>(max_bin_nr_N));
+
+            //int last_bin_size_w = max_bin_nr_N - static_cast<int>(std::floor(static_cast<double>(mat.m) / bin_size_w - bin_size_w));
+            //int last_bin_size_h = max_bin_nr_M - static_cast<int>(std::floor(static_cast<double>(mat.n) / bin_size_h - bin_size_h));
+
+            //int img_size_h = bs_begin_n * remainder_n + (max_bin_nr_N - remainder_n)* bs_end_n; //static_cast<int>(std::floor(mat.n / bin_size_h)) + 1;
+            //int img_size_w = bs_begin_m * remainder_m + (max_bin_nr_M - remainder_m)* bs_end_m; //static_cast<int>(std::floor(mat.m / bin_size_w)) + 1;
+
+            if (bs_begin_n * remainder_n + (max_bin_nr_N - remainder_n) * bs_end_n != mat.n) {
+                TEXT::Gadgets::print_colored_text_line("Height out of bounds or too small!", TEXT::HIGHLIGHT_RED);
+                return false;
+            }
+            if (bs_begin_m * remainder_m + (max_bin_nr_M - remainder_m) * bs_end_m != mat.m) {
+                TEXT::Gadgets::print_colored_text_line("Width out of bounds or too small!", TEXT::HIGHLIGHT_RED);
+                return false;
+            }
+
+            // by default we always have a last bin size. If the required bin size divides the image sizes
+            // exactly, we have a full size as the last size
+            // (not doing this is a recipie for division-by-zero
+            //if (last_bin_size_w == 0) last_bin_size_w = bin_size_w;
+            //if (last_bin_size_h == 0) last_bin_size_h = bin_size_h;
 
             _histogram_buffer.clear();
             _histogram_buffer.shrink_to_fit();
-            _histogram_buffer.resize(bin_nr_N * bin_nr_M, 0);
-            uint64_t S = mat.cols.size();
-            float max = 0;
-            for (uint64_t s = 0; s < S; ++s) {
+            int img_size = max_bin_nr_N * max_bin_nr_M;
+            _histogram_buffer.resize(img_size, 0);
+            int64_t S = mat.cols.size();
+
+            //int ind_bin_size_n = 0;
+            //int ind_bin_size_m = 0;
+            //int bin_n_counter = 0;
+            //int bin_m_counter = 0;
+            for (int64_t s = 0; s < S; ++s) {
                 double col = static_cast<double>(mat.cols[s]);
                 double row = static_cast<double>(mat.rows[s]);
-                int bin_n = static_cast<int>(std::floor(row / bin_size_h));
-                int bin_m = static_cast<int>(std::floor(col / bin_size_w));
 
-                uint64_t ind = bin_n * bin_nr_M + bin_m;
+                int bin_n = 0;
+                if (row - remainder_n * bs_begin_n >= 0) {
+                    bin_n = static_cast<int>(std::floor((row - remainder_n * bs_begin_n) / bs_end_n) + remainder_n);
+                }
+                else {
+                    bin_n = static_cast<int>(std::floor(row / bs_begin_n));
+                }
+
+                int bin_m = 0;
+                if (col - remainder_m * bs_begin_m >= 0) {
+                    bin_m = static_cast<int>(std::floor((col - remainder_m * bs_begin_m) / bs_end_m) + remainder_m);
+                }
+                else {
+                    bin_m = static_cast<int>(std::floor(col / bs_begin_m));
+                }
+
+                //double bin_size_h = static_cast<double>(bin_size_n[col]);
+                //double bin_size_w = static_cast<double>(bin_size_m[row]);
+                //int bin_n = static_cast<int>(std::floor(row / bin_size_h));
+                //int bin_m = static_cast<int>(std::floor(col / bin_size_w));
+
+                //int cur_bin_size_n = bin_size_n[ind_bin_size_n];
+                //int cur_bin_size_m = bin_size_m[ind_bin_size_n];
+
+                int64_t ind = bin_n * max_bin_nr_M + bin_m;
                 if (ind >= _histogram_buffer.size()) {
                     TEXT::Gadgets::print_colored_text_line("Histogram index out of bounds!", TEXT::HIGHLIGHT_RED);
                     return false;
                 }
+                
                 float cur = _histogram_buffer[ind];
-                cur++;
-                if (cur > max) {
-                    max = cur;
-                }
+
+                cur += 1;
+
                 _histogram_buffer[ind] = cur;
             }
 
-            return get_img(name, bin_nr_N, bin_nr_M, max, _histogram_buffer);
+            float normalize_middle = bs_begin_n * bs_begin_m;
+            float normalize_right = bs_begin_n * bs_end_m;
+            float normalize_bottom = bs_end_n * bs_begin_m;
+            float normalize_bottom_right = bs_end_n * bs_end_m;
+
+            for (int64_t h = 0; h < max_bin_nr_N; ++h) {
+                for (int64_t w = 0; w < max_bin_nr_M; ++w) {
+                    int64_t ind = h * max_bin_nr_M + w;
+                    if (ind > _histogram_buffer.size() - 1) {
+                        std::cout << "lol" << std::endl;
+                    }
+                    float cur = _histogram_buffer[ind];
+
+                    if (h >= remainder_n && w >= remainder_m) cur /= normalize_bottom_right;
+                    else if (h >= remainder_n) cur /= normalize_bottom;
+                    else if (w >= remainder_m) cur /= normalize_right;
+                    else cur /= normalize_middle;
+
+                    //if (h == img_size_h - 1 && w == img_size_w - 1) 
+                    //    cur /= normalize_bottom_right;
+                    //else if (h == img_size_h - 1) cur /= normalize_bottom;
+                    //else if (w == img_size_w - 1) cur /= normalize_right;
+                    //else cur /= normalize_middle;
+
+                    if (cur < 0) {
+                        TEXT::Gadgets::print_colored_text_line("Warning: Image must consist of positive values!", TEXT::HIGHLIGHT_YELLOW);
+                        cur = 0;
+                    }
+                    else if (cur > 1.0f) {
+                        TEXT::Gadgets::print_colored_text_line("Warning: Image must consist of values smaller or equal to 1!", TEXT::HIGHLIGHT_YELLOW);
+                        cur = 1.0f;
+                    }
+
+                    _histogram_buffer[ind] = cur;
+                }
+
+            }
+
+            return get_img(name, max_bin_nr_N, max_bin_nr_M, _histogram_buffer, nz_probability);
         }
 	};
 }

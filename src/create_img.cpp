@@ -32,22 +32,85 @@ std::vector<std::string> split(const std::string& matrix, const char delimiter) 
 
 int main(int argc, char** argv) {
 
-    ////TEXT::Gadgets::print_colored_text_line(std::string("Running test ") + std::string(argv[1]) + std::string("..."), TEXT::BLUE);
-    //int size_r = 1000;
-    //int size_c = 1200;
+    //std::string argv_1 = "hello";
+    //TEXT::Gadgets::print_colored_text_line(std::string("Running test ") + std::string(argv_1) + std::string("..."), TEXT::BLUE);
+    //int size_r = 5000;
+    //int size_c = 6000;
     //float sparsity = 0.9f;
     //TEXT::Gadgets::print_colored_text_line("...Generate matrix...", TEXT::BRIGHT_GREEN);
     //auto mat2 = SDDMM::Types::COO::generate_row_major_curand(size_r, size_c, sparsity);
     //TEXT::Gadgets::print_colored_text_line("...Generate matrix: finished", TEXT::BRIGHT_GREEN);
 
-    //int bins_r = static_cast<int>(std::roundf(size_r * (1 - sparsity) / 2.1));
-    //int bins_c = static_cast<int>(std::roundf(size_c * (1 - sparsity) / 2.1));
+    //int bins_r = 2048;
+    //int bins_c = static_cast<int>(std::ceilf(static_cast<float>(size_c) / static_cast<float>(size_r) * bins_r));
     //TEXT::Gadgets::print_colored_text_line(std::string("...Use bin count [") + std::to_string(bins_r) + std::string(",") + std::to_string(bins_c) + std::string("]"), TEXT::BRIGHT_GREEN);
-    ////std::string img_name = std::string("./__") + std::string(argv[1]) + std::string(".jpg");
-    //std::string img_name = "__lol.jpg";
+    //std::string img_name = std::string("./__") + std::string(argv_1) + std::string(".jpg");
     //TEXT::Gadgets::print_colored_text_line(std::string("...Generate image ") + img_name + std::string("..."), TEXT::BRIGHT_GREEN);
-    //bool success = Image().get_img(img_name, bins_r, bins_c, mat2);
+    //bool success = Image().get_img(img_name, bins_r, bins_c, mat2, 1.0f - sparsity);
     //TEXT::Gadgets::print_colored_text_line(std::string("...Generate image ") + img_name + std::string(": finished..."), TEXT::BRIGHT_GREEN);
+
+    //TEXT::Gadgets::print_colored_text_line("...Finished", TEXT::GREEN);
+    //TEXT::Gadgets::print_colored_text_line(std::string("Running test ") + std::string(argv_1) + std::string("..."), TEXT::BLUE);
+    //int size_r = 4000;
+    //int size_c = 6000;
+    //double nnz_c = 0;
+    //std::vector<float> mat2_data(size_r * size_c, 0);
+    //int j = 1;
+    //for (int r = 0; r < size_r; ++r) {
+    //    int i = 0;
+    //    for (int c = 0; c < j; ++c) {
+    //        mat2_data[r * size_c + c] = j + i;
+    //        nnz_c++;
+    //        i++;
+    //    }
+    //    j++;
+    //}
+
+    //for (int r = 0; r < size_r; ++r) {
+    //    int i = 0;
+    //    for (int c = size_c - 100; c < size_c; ++c) {
+    //        mat2_data[r * size_c + c] = size_c;
+    //        nnz_c++;
+    //        i++;
+    //    }
+    //}
+
+    //float nnz_prob = nnz_c / static_cast<double>(size_r) / static_cast<double>(size_c);
+    //SDDMM::Types::Matrix mat2 = SDDMM::Types::Matrix::deterministic_gen_row_major(size_r, size_c, mat2_data);
+    //SDDMM::Types::COO coo_mat = mat2.to_coo();
+    //std::string out_name = std::string("./__") + std::string(argv_1) + std::string(".jpg");
+
+    //int bins_r = 64;
+    //int bins_c = static_cast<int>(std::ceilf(static_cast<float>(size_c) / static_cast<float>(size_r) * bins_r));
+    //bool success = Image().get_img(out_name, bins_r, bins_c, coo_mat, nnz_prob);
+
+    //TEXT::Gadgets::print_colored_text_line("...Finished", TEXT::GREEN);
+    //return 0;
+
+    //TEXT::Gadgets::print_colored_text_line(std::string("Running test ") + std::string(argv_1) + std::string("..."), TEXT::BLUE);
+    //int size_r = 1000;
+    //int size_c = 2000;
+    //std::vector<float> mat2_data(size_r * size_c, 0);
+    //int j = 1;
+    //for (int r = 0; r < size_r; ++r) {
+    //    int i = 0;
+    //    for (int c = 0; c < j; ++c) {
+    //        mat2_data[r * size_c + c] = j + i;
+    //        i++;
+    //    }
+    //    j++;
+    //}
+
+    //for (int r = 0; r < size_r; ++r) {
+    //    int i = 0;
+    //    for (int c = size_c - 100; c < size_c; ++c) {
+    //        mat2_data[r * size_c + c] = size_c;
+    //        i++;
+    //    }
+    //}
+
+    //SDDMM::Types::Matrix mat2 = SDDMM::Types::Matrix::deterministic_gen_row_major(size_r, size_c, mat2_data);
+    //bool success = Image().get_img(std::string("./__") + std::string(argv_1) + std::string(".jpg"), mat2);
 
     //TEXT::Gadgets::print_colored_text_line("...Finished", TEXT::GREEN);
     //return 0;
@@ -74,8 +137,9 @@ int main(int argc, char** argv) {
     }
 
     if (argc == 2) {
-        if (std::string(argv[1]).compare("test1") == 0) {
-            TEXT::Gadgets::print_colored_text_line(std::string("Running test ") + std::string(argv[1]) + std::string("..."), TEXT::BLUE);
+        std::string argv_1 = argv[1];
+        if (argv_1.compare("test1") == 0) {
+            TEXT::Gadgets::print_colored_text_line(std::string("Running test ") + argv_1 + std::string("..."), TEXT::BLUE);
             int size_r = 1000;
             int size_c = 2000;
             std::vector<float> mat2_data(size_r * size_c, 0);
@@ -98,27 +162,65 @@ int main(int argc, char** argv) {
             }
 
             SDDMM::Types::Matrix mat2 = SDDMM::Types::Matrix::deterministic_gen_row_major(size_r, size_c, mat2_data);
-            bool success = Image().get_img(std::string("./__") + std::string(argv[1]) + std::string(".jpg"), mat2);
+            bool success = Image().get_img(std::string("./__") + argv_1 + std::string(".jpg"), mat2);
 
             TEXT::Gadgets::print_colored_text_line("...Finished", TEXT::GREEN);
             return 0;
         }
-        if (std::string(argv[1]).compare("test2") == 0) {
-            TEXT::Gadgets::print_colored_text_line(std::string("Running test ") + std::string(argv[1]) + std::string("..."), TEXT::BLUE);
-            int size_r = 1000;
-            int size_c = 1200;
+        else if (argv_1.compare("test2") == 0) {
+            TEXT::Gadgets::print_colored_text_line(std::string("Running test ") + argv_1 + std::string("..."), TEXT::BLUE);
+            int size_r = 5000;
+            int size_c = 6000;
             float sparsity = 0.9f;
             TEXT::Gadgets::print_colored_text_line("...Generate matrix...", TEXT::BRIGHT_GREEN);
             auto mat2 = SDDMM::Types::COO::generate_row_major_curand(size_r, size_c, sparsity);
             TEXT::Gadgets::print_colored_text_line("...Generate matrix: finished", TEXT::BRIGHT_GREEN);
 
-            int bins_r = static_cast<int>(std::roundf(size_r * (1 - sparsity) / 2.1));
-            int bins_c = static_cast<int>(std::roundf(size_c * (1 - sparsity) / 2.1));
+            int bins_r = 512;
+            int bins_c = static_cast<int>(std::ceilf(static_cast<float>(size_c) / static_cast<float>(size_r) * bins_r));
             TEXT::Gadgets::print_colored_text_line(std::string("...Use bin count [") + std::to_string(bins_r) + std::string(",") + std::to_string(bins_c) + std::string("]"), TEXT::BRIGHT_GREEN);
-            std::string img_name = std::string("./__") + std::string(argv[1]) + std::string(".jpg");
+            std::string img_name = std::string("./__") + argv_1 + std::string(".jpg");
             TEXT::Gadgets::print_colored_text_line(std::string("...Generate image ") + img_name + std::string("..."), TEXT::BRIGHT_GREEN);
-            bool success = Image().get_img(img_name, bins_r, bins_c , mat2);
+            bool success = Image().get_img(img_name, bins_r, bins_c, mat2, 1.0f - sparsity);
             TEXT::Gadgets::print_colored_text_line(std::string("...Generate image ") + img_name + std::string(": finished..."), TEXT::BRIGHT_GREEN);
+
+            TEXT::Gadgets::print_colored_text_line("...Finished", TEXT::GREEN);
+            return 0;
+        }
+        else if (argv_1.compare("test3") == 0) {
+            TEXT::Gadgets::print_colored_text_line(std::string("Running test ") + argv_1 + std::string("..."), TEXT::BLUE);
+            int size_r = 1000;
+            int size_c = 2000;
+            double nnz_c = 0;
+            std::vector<float> mat2_data(size_r * size_c, 0);
+            int j = 1;
+            for (int r = 0; r < size_r; ++r) {
+                int i = 0;
+                for (int c = 0; c < j; ++c) {
+                    mat2_data[r * size_c + c] = j + i;
+                    nnz_c++;
+                    i++;
+                }
+                j++;
+            }
+
+            for (int r = 0; r < size_r; ++r) {
+                int i = 0;
+                for (int c = size_c - 100; c < size_c; ++c) {
+                    mat2_data[r * size_c + c] = size_c;
+                    nnz_c++;
+                    i++;
+                }
+            }
+
+            float nnz_prob = nnz_c / static_cast<double>(size_r) / static_cast<double>(size_c);
+            SDDMM::Types::Matrix mat2 = SDDMM::Types::Matrix::deterministic_gen_row_major(size_r, size_c, mat2_data);
+            SDDMM::Types::COO coo_mat = mat2.to_coo();
+            std::string out_name = std::string("./__") + argv_1 + std::string(".jpg");
+
+            int bins_r = 512;
+            int bins_c = static_cast<int>(std::ceilf(static_cast<float>(size_c) / static_cast<float>(size_r) * bins_r));
+            bool success = Image().get_img(out_name, bins_r, bins_c, coo_mat, nnz_prob);
 
             TEXT::Gadgets::print_colored_text_line("...Finished", TEXT::GREEN);
             return 0;
