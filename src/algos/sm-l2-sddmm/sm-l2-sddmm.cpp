@@ -12,6 +12,18 @@
 // use this one to get some output that disrupts the output of the unit tests
 // #define LOCAL_PRINT
 
+/**
+* @brief This file contains an implementation of SM-L2 algo according to the paper
+* @inproceedings{nisa2018sampled,
+*   title={Sampled dense matrix multiplication for high-performance machine learning},
+*   author={Nisa, Israt and Sukumaran-Rajam, Aravind and Kurt, Sureyya Emre and Hong, Changwan and Sadayappan, P},
+*   booktitle={2018 IEEE 25th International Conference on High Performance Computing (HiPC)},
+*   pages={32--41},
+*   year={2018},
+*   organization={IEEE}
+* }
+*/
+
 inline void local_print(const std::string& message){
 #ifdef LOCAL_PRINT
     std::cout << message << std::endl;
@@ -55,6 +67,9 @@ namespace SDDMM {
                 SparseParams sparse_params;
             };
 
+            /**
+            * @brief Computes the tile size using the procedure outlined in the paper.
+            */
             static Types::vec_size_t compute_k_slice_using_auto_tuning(
                     unsigned int shared_mem_size,
                     const SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,
@@ -139,6 +154,27 @@ namespace SDDMM {
                 //return best_Tk;
             }
 
+            /**
+            * @brief Prepare all parameters for the SM-L2 algo. This function has to be run only once for a particular set of matrices.
+            *
+            * @param S: A sparse matrix using the COO matrix representation format.
+            * @param sparsity: A float between 0 and 1 indicating the percentage of zeros (0 means, no zeros, 1.0 means all zeros)
+            * @param N: Outer dimension of A [A^{NxK} and B^{KxM}]
+            * @param M: Outer dimension of B [A^{NxK} and B^{KxM}]
+            * @param K: Inner dimension of A^{NxK} and B^{KxM}
+            * @param A: The left-hand side (LHS) of the dense matrix product.
+            * @param B: The right-hand side (RHS) of the dense matrix product.
+            * @param measurements: Optional variable pointer which stores the time required to perform the operation. The duration time measure unit is defined in @ref "defines.h"
+            * @returns Params struct
+            *
+            * @warning Dimensionality of matrices are expected to match each operation used, i.e.
+            *  1) If X in R^{N x K}, then Y must be in R^{K x M}
+            *  2) A_sparse must be in R^{N x K}
+            *
+            * @sa
+            * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+            * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+            */
             static Params preparations(
                 SDDMM::Types::COO& S, 
                 float sparsity,
@@ -175,12 +211,33 @@ namespace SDDMM {
                 };
             }
 
+            /**
+            * @brief Determine the various parameters for the tiling in the SM-L2 algo.
+            *
+            * @param N: Outer dimension of A [A^{NxK} and B^{KxM}]
+            * @param M: Outer dimension of B [A^{NxK} and B^{KxM}]
+            * @param K: Inner dimension of A^{NxK} and B^{KxM}
+            * @param sparsity: A float between 0 and 1 indicating the percentage of zeros (0 means, no zeros, 1.0 means all zeros)
+            * @param A: The left-hand side (LHS) of the dense matrix product.
+            * @param B: The right-hand side (RHS) of the dense matrix product.
+            * @param S: A sparse matrix using the COO matrix representation format.
+            * @returns TilingParams
+            *
+            * @warning Dimensionality of matrices are expected to match each operation used, i.e.
+            *  1) If X in R^{N x K}, then Y must be in R^{K x M}
+            *  2) A_sparse must be in R^{N x K}
+            *
+            * @sa
+            * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+            * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+            */
             static TilingParams determine_tiling_params(Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B, const Types::COO& S) {
                 // GPU and format params
+                // These values need to be checked for the GPU the algo is run on.
                 Types::vec_size_t l2_cache_capacity = 6291456;  // 6MB 3080Ti
 //                Types::vec_size_t shared_mem_size = 101376;  // 99KB 3080Ti
                 //unsigned int l2_cache_capacity = 2097152;  // 2MB for testing
-                unsigned int shared_mem_size = 49152;  // 48KB for testing
+                unsigned int shared_mem_size = 49152;  // 48KB for testing => WARNING: if this value is too large, the program crashes!!!
                 double c = 3.; // 3 for COO
 
                 assert(l2_cache_capacity % 32 == 0 && shared_mem_size % 32 == 0 && "L2 cache capacity and shared memory size must be multiples of 32!");
@@ -221,6 +278,23 @@ namespace SDDMM {
                 };
             }
 
+            /**
+            * @brief Prepare the data for the SM-L2 algo.
+            *
+            * @param S: A sparse matrix using the COO matrix representation format.
+            * @param Tj: tilesize from TilingParams output of determine_tiling_params
+            * @param Ti: tilesize from TilingParams output of determine_tiling_params
+            * @param num_J_tiles: tile count from TilingParams output of determine_tiling_params
+            * @returns SparseParams
+            *
+            * @warning Dimensionality of matrices are expected to match each operation used, i.e.
+            *  1) If X in R^{N x K}, then Y must be in R^{K x M}
+            *  2) A_sparse must be in R^{N x K}
+            *
+            * @sa
+            * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+            * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+            */
             static SparseParams prepare_sparse(const Types::COO& S, Types::vec_size_t Tj, Types::vec_size_t Ti, Types::vec_size_t num_J_tiles) {
                 std::vector<SDDMM::Types::vec_size_t> rows;
                 std::vector<SDDMM::Types::vec_size_t> rows_local;
@@ -331,6 +405,23 @@ namespace SDDMM {
                 };
             }
 
+            /**
+            * @brief Compare the result of SM-L2 with the expected result.
+            *
+            * @param K: Inner dimension of dense matrices A and B
+            * @param expected_res: A sparse matrix using the COO matrix representation format with the correct result.
+            * @param res: A sparse matrix using the COO matrix representation format with the result of SM-L2 algo.
+            * @param params: the same Params struct that was used to run the SM-L2 algo
+            * @returns true/false
+            *
+            * @warning Dimensionality of matrices are expected to match each operation used, i.e.
+            *  1) If X in R^{N x K}, then Y must be in R^{K x M}
+            *  2) A_sparse must be in R^{N x K}
+            *
+            * @sa
+            * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+            * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+            */
             static bool check_result(
                 const Types::vec_size_t K,
                 const Types::COO& expected_res,
@@ -375,6 +466,28 @@ namespace SDDMM {
                 return true;
             }
 
+            /**
+            * @brief Run SM-L2 with the parametes generated by the preparations function.
+            *
+            * @param S: A sparse matrix using the COO matrix representation.
+            * @param sparsity: float between 0 and 1 indicating the amount of zeros (0 == no zeros, 1.0 == all zeros)
+            * @param A: The left-hand side (LHS) of the dense matrix product.
+            * @param B: The right-hand side (RHS) of the dense matrix product.
+            * @param N: Outer dimension of A [A^{NxK} and B^{KxM}]
+            * @param M: Outer dimension of B [A^{NxK} and B^{KxM}]
+            * @param K: Inner dimension of A^{NxK} and B^{KxM}
+            * @param params: the same Params struct that was used to run the SM-L2 algo
+            * @param measurements: Optional variable pointer which stores the time required to perform the operation. The duration time measure unit is defined in @ref "defines.h"
+            * @returns COO formated matrix with the result
+            *
+            * @warning Dimensionality of matrices are expected to match each operation used, i.e.
+            *  1) If X in R^{N x K}, then Y must be in R^{K x M}
+            *  2) A_sparse must be in R^{N x K}
+            *
+            * @sa
+            * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+            * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+            */
             static Types::COO run_sm_l2(
                 // MatrixParams& matrix_params,
                 const SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,

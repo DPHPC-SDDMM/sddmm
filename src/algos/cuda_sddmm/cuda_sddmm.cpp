@@ -12,6 +12,28 @@
 
 #include "cuda_sddmm.cuh"
 
+/**
+* @brief Computes the Sampled Dense-Dense Matrix Multiplication (SDDMM) operation using CUDA
+*
+* This is the naive version of CUDA SDDMM. It computes one inner product per CUDA thread.
+* 
+* @param S: A sparse matrix using the COO matrix representation format.
+* @param X_dense: The left-hand side (LHS) of the dense matrix product.
+* @param Y_dense: The right-hand side (RHS) of the dense matrix product.
+* @param measurements: Optional variable pointer which stores the time required to perform the operation. The duration time measure unit is defined in @ref "defines.h"
+* @returns (X_dense @ Y_dense) * S
+*
+* @remark Potential zero values arising during computations are ignored, so as to comply with the COO format.
+*
+* @warning Dimensionality of matrices are expected to match each operation used, i.e.
+*  1) If X in R^{n x k}, then Y must be in R^{k x m}
+*  2) A_sparse must be in R^{n x k}
+*
+* @sa
+* - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+* - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+*/
+
 namespace SDDMM {
     namespace Algo {
         Types::COO cuda_sddmm(

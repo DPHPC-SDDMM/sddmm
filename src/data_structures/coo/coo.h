@@ -100,71 +100,6 @@ namespace SDDMM{
                 return sparsity < 0.989f && N > 90000 && M > 90000;
             }
 
-            /**
-             * Generate a random Matrix represented in the COO format.
-             * For details about the COO format, you may read
-             * https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)
-             *
-             * @param n: Number of rows of the generated Matrix.
-             * @param m: Number of columns of the generated Matrix.
-             * @param sparsity: A percentage expressing the ratio of non-zero elements to all the elements (n * m).
-             * @param sort: Determines whether the output is returned in a sorted manner or not.
-             *              The sorting takes place first by ascending row and then by ascending column.
-             * @param distribution: Distribution according to which Matrix elements are generated.
-            */
-            // COO static generate(
-            //         Types::vec_size_t n, Types::vec_size_t m, float sparsity,
-            //         bool sort=true, const std::string& distribution = "uniform"
-            //     )
-            // {
-
-            //     // TODO: Implement numerous random distribution schemes.
-            //     // Currently, only the default (uniform) is implemented.
-
-            //     assert(sparsity >= 0. && sparsity <= 1. && "Expected a sparsity value from 0.0 to 1.0");
-
-            //     // Define the `output` data structure and allocate sufficient memory for it in advance.
-            //     COO output;
-            //     auto total_elements = n * m;
-            //     auto nr_elements = static_cast<Types::vec_size_t>(total_elements * sparsity);
-
-            //     // Define random generator
-            //     // and distribution functions for the random generation.
-            //     // NOTE: Source for random number generator:
-            //     // https://stackoverflow.com/questions/15461140/stddefault-random-engine-generate-values-between-0-0-and-1-0
-            //     std::random_device rd;
-            //     std::default_random_engine generator(rd());
-            //     std::uniform_int_distribution<Types::vec_size_t> row_distribution(0, n-1);
-            //     std::uniform_int_distribution<Types::vec_size_t> column_distribution(0, m-1);
-            //     // [-1, 1] values were selected because neural networks often deal with smaller values.
-            //     std::uniform_real_distribution<Types::expmt_t> value_distribution(-1.0, 1.0);
-
-            //     // Define the data structure (hash map) which will ensure
-            //     // that no (row, column) duplicates are inserted.
-            //     // NOTE: In practice, that probability will be fairly low.
-            //     std::map<Types::vec_size_t, Types::vec_size_t> row_to_column;
-
-            //     auto elements_remaining = nr_elements;
-
-            //     while (elements_remaining)
-            //     {
-            //         Types::vec_size_t row = row_distribution(generator);
-            //         Types::vec_size_t column = column_distribution(generator);
-            //         bool successful_insertion = std::get<1>(row_to_column.emplace(row, column));
-
-            //         if (successful_insertion)
-            //         {
-            //             Types::expmt_t value = value_distribution(generator); // Generate cell value.
-            //             output.data.push_back({row, column, value}); // Add element to output.
-            //             --elements_remaining; // Decrease counter of further elements required to add.
-            //         }
-            //     }
-
-            //     if (sort) { output.sort(); }
-
-            //     return output;
-            // }
-
             // pretty prints COO
             friend std::ostream &operator<<(std::ostream &os, const COO &mat) {
                 os << std::endl << "COO (" << mat.n << ", " << mat.m << "):" << std::endl;
@@ -205,6 +140,30 @@ namespace SDDMM{
             }
 
             private:
+            /**
+            * @brief Generate a randomized, uniformly distributed, sparse matrix S^{NxM} using cuRAND (https://docs.nvidia.com/cuda/curand/index.html). 
+            * This can be used to generate large random matrices for benchmarking.
+            * 
+            * The method uses cuRAND to generate a sufficient number of random (n_i, m_i) indices by genreating pairs of numbers in (0,1] then scaling
+            * them to the required size for an NxM matrix, then filtering indices that are generated twice (may happen, especially for very full and small matrices)
+            * using the binary tree version of the C++ std lib set. The downside is, that this takes a lot of time, the upside is that the resulting indices are
+            * already sorted (NOTE: sorting the indices is mandatory to be able to convert the COO matrix to CSR, which is the required input format for cuSPARSE SDDMM).
+            *
+            * @param n: dimension 1 of desired matrix
+            * @param m: dimensino 2 of desired matrix
+            * @param t: current try of the generator (used for some verbose output only)
+            * @param tries: number of retries in case to few random indices are generated
+            * @param sparsity: required amount of zeros (0 == no zeros, 1.0 all zeros)
+            * @param verbose: produce some progress output
+            * @param report_sparsity: after how many indices is the progress report updated (#gen_entries % report_sparsity ==) => print something
+            * @return generated random matrix in COO format
+            * 
+            * @warning This is only suitable to generate larger matrices of 90% or more zeros (sparsity >= 0.9). For less sparse matrices, luck is a real ingredient ;-)
+            *
+            * @sa
+            * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+            * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+            */
             static bool _generate_row_major_curand(
                 Types::vec_size_t n, 
                 Types::vec_size_t m, 
@@ -213,8 +172,7 @@ namespace SDDMM{
                 COO& result,
                 float sparsity,
                 bool verbose,
-                uint64_t report_sparsity,
-                bool eliminate_doubles
+                uint64_t report_sparsity
             ){
                 result.cols.clear();
                 result.rows.clear();
@@ -222,8 +180,7 @@ namespace SDDMM{
 
                 uint64_t total = static_cast<uint64_t>(std::ceil(n*m*(1.0f - sparsity)));
                 uint64_t gen_total = static_cast<uint64_t>(1.2f*total);
-                //if (!eliminate_doubles)
-                //    gen_total = static_cast<uint64_t>(total);
+
                 curandGenerator_t gen;
                 std::vector<float> n_rows(gen_total);
                 std::vector<float> n_cols(gen_total);
@@ -252,8 +209,7 @@ namespace SDDMM{
                 // => no filtering etc... necessary, just copy
                 memcpy(result.values.data(), n_rows.data(), total*sizeof(Types::expmt_t));
 
-                // try to multithreaded sort the stuff
-
+                // try to multithreaded sort the stuff (or maybe not ^^)
                 if (!no_filter_condition(sparsity, n, m)) {
                     result.cols.reserve(total);
                     result.rows.reserve(total);
@@ -281,46 +237,6 @@ namespace SDDMM{
                         }
                     }
                 }
-                else {
-                    //// copy values
-                    //if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Infeasible to filter, just copy values and hope for the best..."), TEXT::HIGHLIGHT_CYAN);
-                    //result.cols.resize(total);
-                    //result.rows.resize(total);
-                    //memcpy(result.cols.data(), n_cols.data(), total * sizeof(Types::vec_size_t));
-                    //memcpy(result.rows.data(), n_rows.data(), total * sizeof(Types::vec_size_t));
-                }
-
-                //if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Filter coords..."), TEXT::BRIGHT_BLUE);
-                //std::vector<std::pair<Types::vec_size_t, Types::vec_size_t>> temp;
-                //temp.reserve(gen_total);
-                //for (uint64_t i = 0; i < gen_total; ++i) {
-                //    std::pair<Types::vec_size_t, Types::vec_size_t> p = { scale_rand(n_rows[i], n), scale_rand(n_cols[i], m) };
-                //    temp.insert(std::upper_bound(temp.begin(), temp.end(), p), p);
-                //    if (i % report_sparsity == 0) {
-                //        if (verbose) TEXT::Gadgets::print_progress_percent(i, static_cast<double>(gen_total), report_sparsity);
-                //    }
-                //}
-
-                //if (verbose) TEXT::Gadgets::print_colored_text_line(std::string("...Split coords..."), TEXT::BRIGHT_BLUE);
-                //result.rows.push_back(temp[0].first);
-                //result.cols.push_back(temp[0].second);
-                //uint64_t c_ind = 0;
-                //uint64_t i = 1;
-                //while (c_ind < total-1 && i <= gen_total) {
-                //    if (i == gen_total) {
-                //        return false;
-                //    }
-                //    auto cur = temp[i];
-                //    if (result.rows[c_ind] != cur.first || result.cols[c_ind] != cur.second) {
-                //        result.rows.push_back(cur.first);
-                //        result.cols.push_back(cur.second);
-                //        c_ind++;
-                //        if (result.rows.size() % report_sparsity == 0) {
-                //            if (verbose) TEXT::Gadgets::print_progress_percent(result.rows.size(), static_cast<double>(total), report_sparsity);
-                //        }
-                //    }
-                //    i++;
-                //}
 
                 result.values.shrink_to_fit();
                 result.cols.shrink_to_fit();
@@ -344,13 +260,34 @@ namespace SDDMM{
 
             public:
 
+            /**
+            * @brief Generate a randomized, uniformly distributed, sparse matrix S^{NxM} using cuRAND (https://docs.nvidia.com/cuda/curand/index.html).
+            * This can be used to generate large random matrices for benchmarking.
+            *
+            * The method uses cuRAND to generate a sufficient number of random (n_i, m_i) indices by genreating pairs of numbers in (0,1] then scaling
+            * them to the required size for an NxM matrix, then filtering indices that are generated twice (may happen, especially for very full and small matrices)
+            * using the binary tree version of the C++ std lib set. The downside is, that this takes a lot of time, the upside is that the resulting indices are
+            * already sorted (NOTE: sorting the indices is mandatory to be able to convert the COO matrix to CSR, which is the required input format for cuSPARSE SDDMM).
+            *
+            * @param n: dimension 1 of desired matrix
+            * @param m: dimensino 2 of desired matrix
+            * @param sparsity: required amount of zeros (0 == no zeros, 1.0 all zeros)
+            * @param verbose: produce some progress output
+            * @param report_sparsity: after how many indices is the progress report updated (#gen_entries % report_sparsity ==) => print something
+            * @return generated random matrix in COO format
+            *
+            * @warning This is only suitable to generate larger matrices of 90% or more zeros (sparsity >= 0.9). For less sparse matrices, luck is a real ingredient ;-)
+            *
+            * @sa
+            * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+            * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+            */
             static COO generate_row_major_curand(
                 Types::vec_size_t n, 
                 Types::vec_size_t m, 
                 float sparsity = 1.0,
                 bool verbose = true,
-                uint64_t report_sparsity = 10000,
-                bool eliminate_doubles=true
+                uint64_t report_sparsity = 10000
             ){
                 if(verbose) TEXT::Gadgets::print_colored_line(100, '#', TEXT::BRIGHT_YELLOW);
                 if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("Generate sparse col maj [") + std::to_string(n) + "x" + std::to_string(m) + "], sparsity: " + std::to_string(sparsity), TEXT::BRIGHT_RED);
@@ -359,7 +296,7 @@ namespace SDDMM{
                 int tries = 100;
                 auto start = std::chrono::high_resolution_clock::now();
                 for(int t=1; t<=tries; ++t){
-                    if(_generate_row_major_curand(n, m, t, tries, result, sparsity, verbose, report_sparsity, eliminate_doubles)){
+                    if(_generate_row_major_curand(n, m, t, tries, result, sparsity, verbose, report_sparsity)){
                         auto stop = std::chrono::high_resolution_clock::now();
                         if(verbose) TEXT::Gadgets::print_colored_text_line(std::string("..Finished in [") + std::to_string(std::chrono::duration_cast<SDDMM::Types::time_measure_unit>(stop - start).count()/1000.0) + std::string("ms]"), TEXT::BRIGHT_RED);
                         return result;
@@ -370,6 +307,22 @@ namespace SDDMM{
                 return COO();
             }
 
+            /**
+            * @brief Generate a randomized, uniformly distributed, sorted sparse matrix S^{NxM} using the standard C++ random generator.
+            *
+            * @param n: dimension 1 of desired matrix
+            * @param m: dimensino 2 of desired matrix
+            * @param sparsity: required amount of zeros (0 == no zeros, 1.0 all zeros)
+            * @param min: smallest number in the matrix
+            * @param max: largest number in the matrix
+            * @param verbose: produce some progress output
+            * @param report_sparsity: after how many indices is the progress report updated (#gen_entries % report_sparsity ==) => print something
+            * @return generated random matrix in COO format
+            *
+            * @sa
+            * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+            * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+            */
             static COO generate_row_major_sorted(
                 Types::vec_size_t n, 
                 Types::vec_size_t m, 
@@ -382,6 +335,25 @@ namespace SDDMM{
                 return generate_row_major<Types::sorted_coo_collector>(n, m, sparsity, min, max, verbose, report_sparsity);
             }
 
+            /**
+            * @brief Generate a randomized, uniformly distributed, **unsorted** sparse matrix S^{NxM} using the standard C++ random generator.
+            *
+            * @param n: dimension 1 of desired matrix
+            * @param m: dimensino 2 of desired matrix
+            * @param sparsity: required amount of zeros (0 == no zeros, 1.0 all zeros)
+            * @param min: smallest number in the matrix
+            * @param max: largest number in the matrix
+            * @param verbose: produce some progress output
+            * @param report_sparsity: after how many indices is the progress report updated (#gen_entries % report_sparsity ==) => print something
+            * @return generated random matrix in COO format
+            *
+            * @warning This generation method is not suitable if the COO matrix has to be converted to CSR at some point since converting to CSR
+            * requires sorted indices.
+            * 
+            * @sa
+            * - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+            * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+            */
             static COO generate_row_major_unsorted(
                 Types::vec_size_t n, 
                 Types::vec_size_t m, 
@@ -494,6 +466,22 @@ namespace SDDMM{
                 return res;
             }
 
+            /**
+            * @brief Store a generated set of matrices for a Hadamard product (X @ Y).Hadamard(sparse) into a binary file, because regenerate matrices every time
+            * takes time and ruins reproducibility
+            *
+            * @param path: storage location for the binary file (must end with a path splitter like / or \\ depending on the operating system)
+            * @param sparse: COO matrix
+            * @param sparse_sparsity: the proportion of zeros in the sparse matrix (0 == no zeros, 1.0 == all zeros)
+            * @param X: left-hand dense matrix for the Hadamard product
+            * @param X_sparsity: the proportion of zeros in the matrix X (0 == no zeros, 1.0 == all zeros)
+            * @param Y: right-hand dense matrix for the Hadamard product
+            * @param Y_sparsity: the proportion of zeros in the matrix Y (0 == no zeros, 1.0 == all zeros)
+            * @out out_size_written: uint64 reference will contain the written number of bytes
+            * @return the full path of the generated binary file
+            *
+            * @warning Make sure to use the correct path splitter
+            */
             static std::string hadamard_to_bin_file(
                 std::string path, 
                 const SDDMM::Types::COO& sparse, 
@@ -596,6 +584,22 @@ namespace SDDMM{
                 return path + name.str();
             }
 
+            /**
+            * @brief Load a stored set of Hadamard matrices stored with hadamard_to_bin_file from a binary file.
+            *
+            * @param path: full path of the binary file or path relative to the executable (must end with a path splitter like / or \\ depending on the operating system)
+            * @out out_coo: loaded sparse matrix in COO format
+            * @out out_csr: loaded sparse matrix in CSR format
+            * @out out_sparse_sparsity: the proportion of zeros in the loaded sparse matrix (0 == no zeros, 1.0 == all zeros)
+            * @out out_X: loaded left-hand dense matrix X
+            * @out out_x_sparsity: the proportion of zeros in the matrix X (0 == no zeros, 1.0 == all zeros)
+            * @out out_Y: loaded right-hand dense matrix Y
+            * @out out_y_sparsity: the proportion of zeros in the matrix Y (0 == no zeros, 1.0 == all zeros)
+            * @out out_size_read: uint64 containing the number of bytes read from file
+            * @param verbose: set to true for some verbose output
+            *
+            * @warning Make sure to use the correct path splitter
+            */
             static void hadamard_from_bin_file(
                 std::string path, 
                 SDDMM::Types::COO& out_coo,
@@ -718,6 +722,15 @@ namespace SDDMM{
                 out_size_read = size0 + size1 + size2 + size3 + size4 + size5 + size6 + size7;
             }
 
+            /**
+            * @brief Load a matrix stored in matrix market format (https://math.nist.gov/MatrixMarket/formats.html)
+            *
+            * @param filepath: full path to the matrix file (NOTE: make sure to use the correct path splitter, even though, it should work...)
+            * @out out_size_read: uint64 containing the number of bytes read from file
+            * @return loaded matrix in COO format
+            *
+            * @warning Make sure to use the correct path splitter
+            */
             static COO read_matrix_market_file(const char* filepath, uint64_t& out_size_read, bool verbose=false)
             {
                 // convert to whatever os we are on...
@@ -815,13 +828,6 @@ namespace SDDMM{
                     output.cols.push_back(t.col);
                     output.values.push_back(t.value);
                 }
-
-                //std::vector<std::pair<int, int>> source = { {3, 16}, {2, 16}, {3, 2}, {9, 16}, {9, 0},{9, 5}, {9, 1}, {8, 5}, {6, 3}, {9, 2}, {5, 0}, {8, 3}, {9, 7}, {8, 3} };
-                //std::vector<std::pair<int, int>> target;
-
-                //for (auto& e : source) {
-                //    target.insert(std::upper_bound(target.begin(), target.end(), e), e);
-                //}
 
                 return output;
             }

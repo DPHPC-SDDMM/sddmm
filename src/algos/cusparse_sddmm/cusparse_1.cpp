@@ -11,6 +11,28 @@
 
 // https://docs.nvidia.com/cuda/cusparse/
 
+/**
+* @brief Computes the Sampled Dense-Dense Matrix Multiplication (SDDMM) operation using Nvidia's closed source SDDMM
+* https://docs.nvidia.com/cuda/cusparse/
+*
+* @param S: A sparse matrix using the CSR matrix representation format.
+* @param X_dense: The left-hand side (LHS) of the dense matrix product.
+* @param Y_dense: The right-hand side (RHS) of the dense matrix product.
+* @param measurements: Optional variable pointer which stores the time required to perform the operation. The duration time measure unit is defined in @ref "defines.h"
+* @returns (X_dense @ Y_dense) * S
+*
+* @remark cuSPARSE version of SDDMM is a literal sampled dense-dense matrix multiplication. It computes the inner products at the non-zero indices of the sparse matrix.
+* The actual values of the sparse matrix are ignored.
+*
+* @warning Dimensionality of matrices are expected to match each operation used, i.e.
+*  1) If X in R^{n x k}, then Y must be in R^{k x m}
+*  2) A_sparse must be in R^{n x k}
+*
+* @sa
+* - [COO matrix format](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO))
+* - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
+*/
+
 namespace SDDMM {
     namespace Algo {
         Types::CSR cuSPARSE_SDDMM(

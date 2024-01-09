@@ -19,7 +19,7 @@ namespace SDDMM {
             HackyPrivate::_jpegFile << byte;
         }
 
-	public:
+    public:
         Image() {}
 
         // source: https://bottosson.github.io/posts/oklab/

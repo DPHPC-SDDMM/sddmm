@@ -1,5 +1,5 @@
 /**
- * Some example from a cuda tutorial
+* @brief This is a sample from a CUDA tutorial
 */
 
 #include <math.h>
