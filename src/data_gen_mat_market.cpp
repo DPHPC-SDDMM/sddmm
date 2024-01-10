@@ -33,12 +33,6 @@ int main(int argc, char** argv) {
     std::string mm_path = std::string(argv[2]);
     Types::vec_size_t K = std::atoi(argv[3]);
 
-    Types::vec_size_t K_row = K;
-    bool eliminate_doubles = true;
-    if (argc == 7) {
-        K_row = std::atoi(argv[6]);
-    }
-
     std::cout << path << " " << mm_path << " " << K << std::endl;
 
     //if (argc >= 8) {
