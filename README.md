@@ -4,7 +4,7 @@
 The benchmarking framework is set up to work on Windows 11, Visual Studio Community Edition 2022, CMake and C++20 standard. It probably also works on Linux since GCC compiler tends to be more forgiving in terms of obeying to C++ specifications. Note, that if you run this on Linux, you have to double-check that the paths always use the correct kind of path separators.
 
 ### Steps to reproduce
-1. Install Nvidia CUDA framework
+1. Install Nvidia CUDA framework (https://developer.nvidia.com/cuda-downloads)
 2. Open the repository in Visual Studio and run CMake config
 3. If CMake config ends with an error, add the .cuda_arch file with the correct CUDA architecture as indicated in the CMake config output. Make sure, that there is NO newline after the architecture number and run the CMake config again
 4. Build all exes in Visual Studio (make sure it's set to release mode)
@@ -164,7 +164,7 @@ All of the following exes contain tests.
 ### Information for vscode and cmake
 https://code.visualstudio.com/docs/cpp/cmake-linux
 
-### Howto set build folders debug/release for builds
+### How to set build folders debug/release for builds
 * got vscode extension installation page
 * select CMake Tools
 * find **settings** cog-wheel next to installation buttions
