@@ -1,4 +1,4 @@
-# SDDMM Benchmarking of SM-L2 algorithm vs a naive version
+# SDDMM Benchmarking of SM-L2 algorithm vs a naive version and cuSPARSE
 
 ### Setup
 The benchmarking framework is set up to work on Windows 11, Visual Studio Community Edition 2022, CMake and C++20 standard. It probably also works on Linux since GCC compiler tends to be more forgiving in terms of obeying to C++ specifications. Note, that if you run this on Linux, you have to double-check that the paths always use the correct kind of path separators.
@@ -59,13 +59,20 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
 
 11. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains two Python scripts data.py and plots.py. Open plots.py and at the bottom call the plot(..) function with the correct path to your result files. The following evaluation plots will be generated.
 
-    Plot 1                                      |  Plot 2                                       |  Plot 3                              | Plot 4             
-   :-------------------------------------------:|:----------------------------------------------|:------------------------------------:|:-------------------------------------------:|
-   ![](sample_images/imdb-100-iters-plot1.png)  |  ![](sample_images/imdb-100-iters-plot2.png)  |  ![](sample_images/imdb-100-iters-plot3.png)  |   ![](sample_images/imdb-100-iters-plot4.png)
+   Plot 1                                       |  Plot 2                                       
+   :-------------------------------------------:|:---------------------------------------------:|
+   ![](sample_images/imdb-100-iters-plot1.png)  |  ![](sample_images/imdb-100-iters-plot2.png)  |
+
+   Plot 3                                       | Plot 4
+   :-------------------------------------------:|:---------------------------------------------:|
+   ![](sample_images/imdb-100-iters-plot3.png)  |   ![](sample_images/imdb-100-iters-plot4.png)
 
 
-### cuSPARSE examples
-https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuSPARSE
+# cuSPARSE
+The documentation for cuSPARSE can be found here: https://docs.nvidia.com/cuda/cusparse/index.html. More importantly, useful examples can be found here: https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuSPARSE.
+
+# cuRAND
+We use cuRAND to generate large scale sparse matrices. The official documentation can be found here: https://docs.nvidia.com/cuda/curand/index.html, some useful examples can be found here https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuRAND.
 
 # How to run and compile the code with VSCode
 ### Information for vscode and cmake
