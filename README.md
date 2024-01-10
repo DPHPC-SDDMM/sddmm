@@ -13,9 +13,9 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
 7. Run create_data_sets.bat, create_sparsity_large_2.bat and create_sparsity_small.bat indivisually inside cmd or Powershell to create all the test data. At the end of this step, each one of the subfolders inside data_sets and inside sparsity_large_2 and sparsity_small there should be a number of .binmat files that each contain two dense and one sparse matrix.
 8. (This step is optional) Run generate_all_images.bat. This will create distribution images of all the generated, large sparse matrices. The images are on a scale from blue to red, where blue indicates the lowest and red the highest probability to encounter a nonzero value. The images have the same name as their respective .binmat file and are located in the same folder as well.
 
-   Solarized dark             |  Solarized Ocean
-   :-------------------------:|:-------------------------:
-   ![](sample_images/imdb.jpg)  |  ![](sample_images/imdb.jpg)
+   Low sparsity uniform matrix  |  High sparsity uniform matrix
+   :---------------------------:|:------------------------------:|
+   ![](sample_images/imdb.jpg)  |  ![](sample_images/imdb.jpg)   | 
    
 10.  Run run_all_benchmarks.bat. This will run all the benchmark tests and generate in each one of the folders that contain .binmat files corresponding .txt files with the results. Each txt file is standalone and can be plotted individually.
 11. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains two Python scripts data.py and plots.py. Open plots.py and at the bottom call the plot(..) function with the correct path to your result files
