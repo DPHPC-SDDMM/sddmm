@@ -168,7 +168,7 @@ if __name__ == '__main__':
     # plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K128/")
     # plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K512/")
 
-    plot(30, "./sddmm_data_results_30_iterations/data_sets/IMDB/")
+    # plot(30, "./sddmm_data_results_30_iterations/data_sets/IMDB/")
     # plot(30, "./sddmm_data_results_30_iterations/data_sets/IMDB_companion/")
     # plot(30, "./sddmm_data_results_30_iterations/data_sets/patents/")
     # plot(30, "./sddmm_data_results_30_iterations/data_sets/patents_companion/")

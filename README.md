@@ -57,7 +57,12 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
    * each measurement consists of an L and a D part where the L contains the name of the algorithm and D the the time measurements for all the test runs
    * In this case, there were three algorithms 'Baseline', 'cuSPARSE' and 'sm_l2' and all of them were run 30 times with the same input data
 
-11. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains two Python scripts data.py and plots.py. Open plots.py and at the bottom call the plot(..) function with the correct path to your result files
+11. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains two Python scripts data.py and plots.py. Open plots.py and at the bottom call the plot(..) function with the correct path to your result files. The following evaluation plots will be generated.
+
+    Plot 1                                      |  Plot 2                                       |  Plot 3                              | Plot 4             
+   :-------------------------------------------:|:----------------------------------------------|:------------------------------------:|:-------------------------------------------:|
+   ![](sample_images/imdb-100-iters-plot1.png)  |  ![](sample_images/imdb-100-iters-plot2.png)  |  ![](sample_images/imdb-100-iters-plot3.png)  |   ![](sample_images/imdb-100-iters-plot4.png)
+
 
 ### cuSPARSE examples
 https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuSPARSE
