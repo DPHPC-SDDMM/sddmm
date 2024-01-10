@@ -22,6 +22,7 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
    ![](sample_images/imdb.jpg)  |  ![](sample_images/patents.jpg)  |  ![](sample_images/patents-main.jpg)
 
 10.  Run run_all_benchmarks.bat. This will run all the benchmark tests and generate in each one of the folders that contain .binmat files corresponding .txt files with the results. Each txt file belongs to a sequence of experiments and by itself will generate one data point in the output plots. One results data file looks as follows:
+```
     [INFO]
     experiment_name imdb
     variable K
@@ -42,19 +43,19 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
     [L] sm_l2
     [D] 1166 1021 1159 1138 1159 1158 1239 1169 1028 1180 1039 1168 1158 1273 1161 1180 1171 1138 1033 1025 1026 1162 1170 1161 1153 1178 1027 1159 1162 1153
     [/DATA]
-
-    * The INFO section contains all information on how the test was generated.
-      * **experiment_name** is the overall name of the benchmarking experiment
-      * **variable** field contains the name of the variable that was varied in the benchmark. In this case this was the inner dimension K. 
-      * **N, M, K** which are the dimensions of the matrices where dense A and B matrices are in NxK and KxM respetively and sparse matrix S is in NxM. 
-      * **sparsity** indicates in this case that 99.999% of all entries in the sparse matrix are zero. 
-      * **description** outlines the benchmark.
-      * **runtime** indicates the runtime of this particular data point, meaning how long in *seconds* it took to run all algorithms in the benchmark with this particular data for x amount of times (wher x == length(one of the arrays with the numbers below))
-      * **n_warmup_iterations** indicates how many times the data point was run without recording the data
-      * **sequence_numner** indicates the place this data file has inside the entire benchmark run with multiple data points. In this case, this is the first results file.
-    * The DATA section contains all the time measurements
-      * each measurement consists of an L and a D part where the L contains the name of the algorithm and D the the time measurements for all the test runs
-      * In this case, there were three algorithms 'Baseline', 'cuSPARSE' and 'sm_l2' and all of them were run 30 times with the same input data
+```
+ * The **[INFO]** section contains all information on how the test was generated.
+   * **experiment_name** is the overall name of the benchmarking experiment
+   * **variable** field contains the name of the variable that was varied in the benchmark. In this case this was the inner dimension K. 
+   * **N, M, K** which are the dimensions of the matrices where dense A and B matrices are in NxK and KxM respetively and sparse matrix S is in NxM. 
+   * **sparsity** indicates in this case that 99.999% of all entries in the sparse matrix are zero. 
+   * **description** outlines the benchmark.
+   * **runtime** indicates the runtime of this particular data point, meaning how long in *seconds* it took to run all algorithms in the benchmark with this particular data for x amount of times (wher x == length(one of the arrays with the numbers below))
+   * **n_warmup_iterations** indicates how many times the data point was run without recording the data
+   * **sequence_numner** indicates the place this data file has inside the entire benchmark run with multiple data points. In this case, this is the first results file.
+ * The **[DATA]** section contains all the time measurements
+   * each measurement consists of an L and a D part where the L contains the name of the algorithm and D the the time measurements for all the test runs
+   * In this case, there were three algorithms 'Baseline', 'cuSPARSE' and 'sm_l2' and all of them were run 30 times with the same input data
 
 11. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains two Python scripts data.py and plots.py. Open plots.py and at the bottom call the plot(..) function with the correct path to your result files
 
