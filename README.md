@@ -62,7 +62,7 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
 ### cuSPARSE examples
 https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuSPARSE
 
-# Howto run and compile the code with VSCode
+# How to run and compile the code with VSCode
 ### Information for vscode and cmake
 https://code.visualstudio.com/docs/cpp/cmake-linux
 
