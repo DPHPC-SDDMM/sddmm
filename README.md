@@ -15,8 +15,12 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
 
    Low sparsity uniform matrix  |  High sparsity uniform matrix
    :---------------------------:|:------------------------------:|
-   ![](sample_images/imdb.jpg)  |  ![](sample_images/imdb.jpg)   | 
+   ![](low-sparsity-uniform-distribution.jpg)  |  ![](high-sparsity-uniform-distribution.jpg)
    
+   IMDB           |  patents           |  patents_main
+   :-------------:|:-------------------|:----------------------:|
+   ![](imdb.jpg)  |  ![](patents.jpg)  |  ![](patents-main.jpg)
+
 10.  Run run_all_benchmarks.bat. This will run all the benchmark tests and generate in each one of the folders that contain .binmat files corresponding .txt files with the results. Each txt file is standalone and can be plotted individually.
 11. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains two Python scripts data.py and plots.py. Open plots.py and at the bottom call the plot(..) function with the correct path to your result files
 
