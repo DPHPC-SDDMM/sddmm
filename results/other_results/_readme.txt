@@ -1,0 +1,1 @@
+This folder contains largely irrelevant data that was used/generated during the developement process
