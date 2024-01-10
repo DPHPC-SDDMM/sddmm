@@ -148,6 +148,32 @@ This exe runs all the benchmarks (12 in total). The benchmarks are numbered betw
 .\GPU_SDDMMBenchmarks.exe 12
 ```
 
+#### Listing of the different benchmarks
+1. **Compare matrices with K=32 for varying sparsity on large dataset**
+   <br>(run all algos on sddmm_data/sparsity_large_2/K32)
+3. **Compare matrices with K=128 for varying sparsity on large dataset**
+   <br>(run all algos on sddmm_data/sparsity_large_2/K128)
+5. **Compare matrices with K=512 for varying sparsity on large dataset**
+   <br>(run all algos on sddmm_data/sparsity_large_2/K512)
+7. **Compare matrices with K=32 for varying sparsity on small dataset**
+   <br>(run all algos on sddmm_data/sparsity_small/K32)
+9. **Compare matrices with K=128 for varying sparsity on small dataset**
+    <br>(run all algos on sddmm_data/sparsity_small/K128)
+11. **Compare matrices with K=512 for varying sparsity on small dataset**
+    <br>(run all algos on sddmm_data/sparsity_small/K512)
+13. **Compare matrices with K=[32,128,256] for IMDB data set**
+    <br>(run all algos on sddmm_data/IMDB)
+15. **Compare matrices with K=[32,128,256] for IMDB companion**
+    <br>(run all algos on sddmm_data/IMDB_companion)
+17. **Compare matrices with K=[32,128,256] for patents_main data set**
+    <br>(run all algos on sddmm_data/patents_main)
+19. **Compare matrices with K=[32,128,256] for patents_main companion**
+    <br>(run all algos on sddmm_data/patents_main_companion)
+21. **Compare matrices with K=[32,128,256] for patents data set**
+    <br>(run all algos on sddmm_data/patents)
+23. **Compare matrices with K=[32,128,256] for patents companion**
+    <br>(run all algos on sddmm_data/patents_companion)
+
 ## Tests
 All of the following exes contain tests.
 * cuda_example_tests.exe
@@ -159,6 +185,16 @@ All of the following exes contain tests.
 * sml2_tests.exe
 * statistics_test_data.exe
 * test1.exe
+
+# How to extend the benchmarks
+Check out src/GPU_SDDMMBenchmarks.cpp. It is easy to just add more benchmarks in that file and recompile the project. Adding a new cpp file with a new structure requires adding the new executable in CMakeLists.txt as well. Anyone of the existing executables can serve as template. Watch out with linking Cuda::cudart and CUDA::cuda_driver if another library containing CUDA code is already linked. This is especially valid on Windows using the Visual Studio compiler that is much more sensitive with things like linking the same file or library multiple times. On Linux using GCC these things don't that much. Note that each subfolder that contains more than just .h files (as in .cpp files as well) requires a CMakeLists.txt file on it's own. Check out for example src/data_structures on how to do that. Each subfolder that creates a separate library needs an add_subdirectory statment in the toplevel CMakeLists.txt. 
+
+Don't forget to add 
+<br>set_property(TARGET [exe_name_placeholder] PROPERTY CUDA_ARCHITECTURES ${CUDA_ARCH}) 
+<br>and 
+<br>set_property(TARGET [exe_name_placeholder] PROPERTY CXX_STANDARD 20). 
+
+Forgetting the first one may lead to the CUDA compiler compiling the CUDA code for a different platform version which can impact performance or make it just not work at all. Forgetting the second one may lead to trouble while compiling the C++ code, depending on which compiler is used. GCC is more lenient here too compared to the Visual Studio compiler. 
 
 # How to run and compile the code with VSCode
 ### Information for vscode and cmake
