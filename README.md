@@ -12,19 +12,13 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
 6. Open the folder C:/sddmm_data/data_sets where you will see IMDB, patents and patents_main subfolders. Inside each of those folders is a readme.txt describing how to download and unpack the data for the existing large sparse matrices. At the end of this step, each one of the mm_market subfolders should directly contain the martix market data files.
 7. Run create_data_sets.bat, create_sparsity_large_2.bat and create_sparsity_small.bat indivisually inside cmd or Powershell to create all the test data. At the end of this step, each one of the subfolders inside data_sets and inside sparsity_large_2 and sparsity_small there should be a number of .binmat files that each contain two dense and one sparse matrix.
 8. (This step is optional) Run generate_all_images.bat. This will create distribution images of all the generated, large sparse matrices. The images are on a scale from blue to red, where blue indicates the lowest and red the highest probability to encounter a nonzero value. The images have the same name as their respective .binmat file and are located in the same folder as well.
-   <div style="display: flex;">
-        <div style="flex: 30%; padding: 3px;">
-            <img src="sample_images/imdb.jpg" alt="Grid" style="width:100%">
-        </div>
-        <div style="flex: 30%; padding: 3px;">
-            <img src="sample_images/imdb.jpg" alt="Independent" style="width:100%">
-        </div>
-        <div style="flex: 30%; padding: 3px;">
-            <img src="sample_images/imdb.jpg" alt="Independent" style="width:100%">
-        </div>
-    </div>
-9.  Run run_all_benchmarks.bat. This will run all the benchmark tests and generate in each one of the folders that contain .binmat files corresponding .txt files with the results. Each txt file is standalone and can be plotted individually.
-10. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains two Python scripts data.py and plots.py. Open plots.py and at the bottom call the plot(..) function with the correct path to your result files
+
+   Solarized dark             |  Solarized Ocean
+   :-------------------------:|:-------------------------:
+   ![](sample_images/imdb.jpg)  |  ![](sample_images/imdb.jpg)
+   
+10.  Run run_all_benchmarks.bat. This will run all the benchmark tests and generate in each one of the folders that contain .binmat files corresponding .txt files with the results. Each txt file is standalone and can be plotted individually.
+11. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains two Python scripts data.py and plots.py. Open plots.py and at the bottom call the plot(..) function with the correct path to your result files
 
 ### cuSPARSE examples
 https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuSPARSE
