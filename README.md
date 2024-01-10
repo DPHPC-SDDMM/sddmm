@@ -74,6 +74,71 @@ The documentation for cuSPARSE can be found here: https://docs.nvidia.com/cuda/c
 # cuRAND
 We use cuRAND to generate large scale sparse matrices. The official documentation can be found here: https://docs.nvidia.com/cuda/curand/index.html, some useful examples can be found here https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuRAND.
 
+# Walktrough of exe files
+Designations: one SDDMM product is $(A \bullet B) \odot S$ where $A \in N \times K$, $B \in K \times M$ and $S \in N \times M$, A and B are dense and S is a sparse matrix. K is the inner dimension of A and B, N is the outer dimension of A and M is the outer dimension of B.
+
+The **sparsity** refers to the percentage of zeros in the sparse matrix. If sparsity=0 the sparse matrix S will contain 0 non zero values (at least no zeros will be generated on purpose). If sparsity=1.0, all values of S will be zero. So with sparsity=0.99, 99% of the values in the sparse matrix are zero and 1% are non zero.
+
+The **output** of all the generators is a file with a .binmat extension. That is a custom made, binary dump. Loading a binary dump is much faster than generating huge matrices.
+
+**NOTE:** everytime a parameter is a path that points to a folder and not a file, the path **must** end with a valid path separator (windows has \, Linux has /)!
+
+**NOTE:** this framework was created and tested on Windows. If someone runs it on Linux, better double check that all paths are correct. That will generally be the case, if nothing crashes ^^.
+
+## Data Generators
+### data_gen.exe
+This exe can be used to generate two dense matrices A and B and a sparse matrix S by passing the inner dimension K, the sparsity of S and the required size in bytes for A and B. The goal is to generate matrices that are as large as possible in order to do useful benchmarking. The parameters are given as follows. The parameter K_row generally has the same meaning as K. The goal is to compare SDDMM between matrices with inner dimension K=32, K=128 and K=512. However, outer dimensions N and M should stay the same. But we only pass K and the sizes of A and B in bytes. This is where K_row comes in. We use K=512 for all three SDDMM data generations and get three times the same N and M but varying K. 
+
+If the user wants to generate A, B and S with given sizes in bytes for A and B, the exe will first show how large the matrices will be and ask the user to procede or not. Since we like to be able to run batch generations without interrupsions we need a parameter to skip that question. This is the last parameter that can take the values of either skip=true or skip=false, written exactly like that, no spaces! There is a string.compare(..) in there to check.
+
+```
+.\data_gen.exe [path to target folder] [K] [sizeof A in bytes] [sizeof B in bytes] [sparsity] [K_row] [skip=true|skip=false]
+```
+
+#### Example
+```
+.\data_gen.exe "C://sddmm_data/sparsity_large_2/K512/" 512 210000000 210000000 0.99 512 skip=true
+```
+
+### data_gen_mat_market.exe
+This exe can be used to generate two dense matrices A and B for an existing sparse matrix S. The matrix S has to be in matrix market format (http://math.nist.gov/MatrixMarket), thus it has a file ending .mtx. The last parameter is the inner dimension of A and B.
+```
+.\data_gen_mat_market.exe [path to target folder] [path to mtx file] [K]
+```
+
+#### Example
+```
+.\data_gen_mat_market.exe "C:/sddmm_data/data_sets/patents/" "C:/sddmm_data/data_sets/patents/mm_market/patents.mtx" 32
+```
+
+### data_gen_mat_market_companion.exe
+This exe can be used to generate a uniformly distributed, sparse companion matrix to an existing non-uniformly distributed sparse matrix. The parameters are the path to the target folder 
+
+```
+.\data_gen_mat_market_companion.exe "C:/sddmm_data/data_sets/patents_companion/" 32 3774768 3774768 0.9999989493 skip=true
+```
+
+```
+.\data_gen_mat_market_companion.exe "C:/sddmm_data/data_sets/patents_companion/" 32 3774768 3774768 0.9999989493 skip=true
+```
+
+## Image Generator
+### create_img.exe
+
+## Benchmarking
+### GPU_SDDMMBenchmarks.exe
+
+## Tests
+### cuda_example_tests.exe
+### cuda_tests.exe
+### file_storage_tests.exe
+### huge_file_mm_market_test.exe
+### huge_file_tests.exe
+### random_tests.exe
+### sml2_tests.exe
+### statistics_test_data.exe
+### test1.exe
+
 # How to run and compile the code with VSCode
 ### Information for vscode and cmake
 https://code.visualstudio.com/docs/cpp/cmake-linux
