@@ -25,6 +25,7 @@ namespace SDDMM {
         * @param mm_source_file: source file for the matrix market sparse matrix (Note: make sure to use the correct path separators for the operating system)
         * @param K: inner dimension that will be used for the two dense matrices A and B (N and M will be the ones from the loaded matrix market file)
         * @out out_size_written: size in bytes written to the binary file
+        * @param skip: [true/false] if true, ask-if-sizes-are-ok is skipped (can be used for generation scripts)
         * @returns string of the absolute path where the binary file was stored
         *
         * @warning Dimensionality of matrices are expected to match each operation used, i.e.
@@ -39,7 +40,8 @@ namespace SDDMM {
             std::string target_folder,
             std::string mm_source_file,
             Types::vec_size_t K,
-            uint64_t& out_size_written
+            uint64_t& out_size_written,
+            bool skip=false
         ) {
             if (!(target_folder.back() == '/' || target_folder.back() == '\\')) {
                 std::string msg = std::string("target_folder path must end with a valid path-separator (") +
@@ -72,11 +74,11 @@ namespace SDDMM {
 
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
             TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
-            //char ans = 'n';
-            //std::cin >> ans;
-            //if (!(ans == 'y')) {
-            //    return "";
-            //}
+            char ans = 'n';
+            std::cin >> ans;
+            if (skip || !(ans == 'y')) {
+                return "";
+            }
 
             return huge_generator_dense_gen(
                 target_folder, mm_matrix, K, S_sparsity, 0.0f, 0.0f, out_size_written
@@ -94,6 +96,7 @@ namespace SDDMM {
         * @param X_sparsity: required proportion of zeros in dense matrix X (0 == no zeros, 1.0 all zeros)
         * @param Y_sparsity: required proportion of zeros in dense matrix Y (0 == no zeros, 1.0 all zeros)
         * @out out_size_written: size in bytes written to the binary file
+        * @param skip: [true/false] if true, ask-if-sizes-are-ok is skipped (can be used for generation scripts)
         * @returns string of the absolute path where the binary file was stored
         *
         * @warning Dimensionality of matrices are expected to match each operation used, i.e.
@@ -108,7 +111,8 @@ namespace SDDMM {
             std::string target_folder,
             Types::COO& mm_coo_matrix,
             Types::vec_size_t K,
-            float S_sparsity, float X_sparsity, float Y_sparsity, uint64_t& out_size_written
+            float S_sparsity, float X_sparsity, float Y_sparsity, uint64_t& out_size_written,
+            bool skip = false
         ) {
             if (!(target_folder.back() == '/' || target_folder.back() == '\\')) {
                 std::string msg = std::string("target_folder path must end with a valid path-separator (") +
@@ -171,6 +175,7 @@ namespace SDDMM {
         * @param S_sparsity: proportion of zeros in sparse matrix (0 == no zeros, 1.0 all zeros)
         * @param K_row: inner dimension that will be used to calculate N and M of the dense matrices 
         *               (allow to create series of matrices with the same N and M but different sparsities)
+        * @param skip: [true/false] if true, ask-if-sizes-are-ok is skipped (can be used for generation scripts)
         * @out out_size_written: size in bytes written to the binary file
         * @returns string of the absolute path where the binary file was stored
         *
@@ -189,6 +194,7 @@ namespace SDDMM {
             Types::vec_size_t sizeof_Y_in_byte,
             float S_sparsity,
             Types::vec_size_t K_row,
+            bool skip,
             uint64_t& out_size_written
         ){
             if(!(target_folder.back() == '/' || target_folder.back() == '\\')){
@@ -228,11 +234,11 @@ namespace SDDMM {
 
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
             TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
-            //char ans = 'n';
-            //std::cin >> ans;
-            //if(!(ans == 'y')){
-            //    return "";
-            //}
+            char ans = 'n';
+            std::cin >> ans;
+            if(skip || !(ans == 'y')){
+                return "";
+            }
             
             return huge_generator_gen(
                 target_folder, N, M, K, S_sparsity, 0.0f, 0.0f, out_size_written
@@ -249,6 +255,7 @@ namespace SDDMM {
         * @param N: outer dimension of dense matrix A
         * @param M: outer dimension of dense matrix B
         * @param S_sparsity: proportion of zeros in sparse matrix (0 == no zeros, 1.0 all zeros)
+        * @param skip: [true/false] if true, ask-if-sizes-are-ok is skipped (can be used for generation scripts)
         * @out out_size_written: size in bytes written to the binary file
         * @returns string of the absolute path where the binary file was stored
         *
@@ -266,6 +273,7 @@ namespace SDDMM {
             Types::vec_size_t N,
             Types::vec_size_t M,
             float S_sparsity,
+            bool skip,
             uint64_t& out_size_written
         ) {
             if (!(target_folder.back() == '/' || target_folder.back() == '\\')) {
@@ -302,11 +310,11 @@ namespace SDDMM {
 
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
             TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
-            //char ans = 'n';
-            //std::cin >> ans;
-            //if (!(ans == 'y')) {
-            //    return "";
-            //}
+            char ans = 'n';
+            std::cin >> ans;
+            if (skip || !(ans == 'y')) {
+                return "";
+            }
 
             return huge_generator_gen(
                 target_folder, N, M, K, S_sparsity, 0.0f, 0.0f, out_size_written

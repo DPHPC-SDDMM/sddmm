@@ -10,7 +10,7 @@ using namespace SDDMM;
 
 int main(int argc, char** argv) {
 
-    if (argc != 6) {
+    if (argc != 7) {
         TEXT::Gadgets::print_colored_line(100, '=', TEXT::GREEN);
         std::cout << std::endl;
 
@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
         TEXT::Gadgets::print_colored_text_line("Param 3: sizeof N", TEXT::BLUE);
         TEXT::Gadgets::print_colored_text_line("Param 4: sizeof M", TEXT::BLUE);
         TEXT::Gadgets::print_colored_text_line("Param 5: sparsity of S (0.999 is 99.9% of entries are zero, 0.1 is 90% of entries are NOT zero)", TEXT::BLUE);
+        TEXT::Gadgets::print_colored_text_line("Param 6: skip=true or skip=false (skip asking the user if input is ok or not)", TEXT::BLUE);
 
         std::cout << std::endl;
         TEXT::Gadgets::print_colored_text_line("Check the indicated sizes before confirming...", TEXT::RED);
@@ -30,7 +31,7 @@ int main(int argc, char** argv) {
 
         return 0;
     }
-    std::cout << "lol" << std::endl;
+
     std::string path = std::string(argv[1]);
     Types::vec_size_t K = std::atoi(argv[2]);
     Types::vec_size_t N = std::atoi(argv[3]);
@@ -46,21 +47,11 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    Types::vec_size_t K_row = K;
-    bool eliminate_doubles = true;
-    if (argc == 7) {
-        K_row = std::atoi(argv[6]);
+    std::string skip_str = argv[6];
+    bool skip = false;
+    if (skip_str.compare("skip=true") == 0) {
+        skip = true;
     }
-
-    std::cout << path << " K:" << K << " N:" << N
-        << " M:" << M << " sparsity:" << std::setprecision(15) << S_sparsity
-        << " " << K_row
-        << std::endl;
-
-    //if (argc >= 8) {
-    //    int b = std::atoi(argv[7]);
-    //    if (b == 1) eliminate_doubles = false;
-    //}
 
     if (K % 32 != 0) {
         std::cout << std::endl;
@@ -71,7 +62,7 @@ int main(int argc, char** argv) {
     }
 
     uint64_t out_size_written;
-    std::string name = DataGenerator::huge_generator_companion(path, K, N, M, S_sparsity, out_size_written);
+    std::string name = DataGenerator::huge_generator_companion(path, K, N, M, S_sparsity, skip, out_size_written);
 
     TEXT::Gadgets::print_colored_text_line(std::to_string(out_size_written) + std::string(" bytes written..."), TEXT::BLUE);
     TEXT::Gadgets::print_colored_text_line(std::string("File [") + name + std::string("] saved!"), TEXT::BLUE);
