@@ -29,7 +29,7 @@ class Data:
             elif self.is_float(pp[1]):
                 self.params[pp[0]] = float(pp[1])
             else:
-                self.params[pp[0]] = pp[1]
+                self.params[pp[0]] = " ".join(pp[1:])
 
         temp = []
         for p in lines[start_data:end_data]:
