@@ -112,32 +112,53 @@ This exe can be used to generate two dense matrices A and B for an existing spar
 ```
 
 ### data_gen_mat_market_companion.exe
-This exe can be used to generate a uniformly distributed, sparse companion matrix to an existing non-uniformly distributed sparse matrix. The parameters are the path to the target folder 
+This exe can be used to generate a uniformly distributed, sparse companion matrix to an existing non-uniformly distributed sparse matrix. The parameters are the path to the target folder, the inner dimension for the generated dense A and B, outer dimensions N and M that should match the dimensions of the existing sparse matrix, and the sparsity that should also match the sparsity of the existing sparse matrix. Finally there is the skipping parameter that hast to be either skip=true or skip=false that lets the user skip the intermediate check if the sizes of the matrices that will be generated are ok.
 
 ```
-.\data_gen_mat_market_companion.exe "C:/sddmm_data/data_sets/patents_companion/" 32 3774768 3774768 0.9999989493 skip=true
+.\data_gen_mat_market_companion.exe [path to target folder] [K] [N] [M] [sparsity] [skip=true|skip=false]
 ```
 
+#### Example
 ```
 .\data_gen_mat_market_companion.exe "C:/sddmm_data/data_sets/patents_companion/" 32 3774768 3774768 0.9999989493 skip=true
 ```
 
 ## Image Generator
 ### create_img.exe
+This exe takes a .binmat file as input and generates an image of the distribution of the sparse matrix as showcased further up in the _Steps to reproduce_ section. It takes the path to a folder that contains the .binmat file and an integer that will be the **height** of the generated image. The **width** is calculated using the given height to match the aspect ratio of the sparse matrix. An image will be generated for all the .binmat files inside the given folder.
+
+```
+.\create_img.exe [path to folder with .binmat files] [height of generated image]
+```
+
+#### Example
+```
+.\create_img.exe "C://sddmm_data/data_sets/patents_main_companion/" 512
+```
 
 ## Benchmarking
 ### GPU_SDDMMBenchmarks.exe
+This exe runs all the benchmarks (12 in total). The benchmarks are numbered between 1 and 12, thus the only parameter this exe takes is an integer between 1 and 12.
+```
+.\GPU_SDDMMBenchmarks.exe [benchmark num]
+```
+
+#### Example
+```
+.\GPU_SDDMMBenchmarks.exe 12
+```
 
 ## Tests
-### cuda_example_tests.exe
-### cuda_tests.exe
-### file_storage_tests.exe
-### huge_file_mm_market_test.exe
-### huge_file_tests.exe
-### random_tests.exe
-### sml2_tests.exe
-### statistics_test_data.exe
-### test1.exe
+All of the following exes contain tests.
+* cuda_example_tests.exe
+* cuda_tests.exe
+* file_storage_tests.exe
+* huge_file_mm_market_test.exe
+* huge_file_tests.exe
+* random_tests.exe
+* sml2_tests.exe
+* statistics_test_data.exe
+* test1.exe
 
 # How to run and compile the code with VSCode
 ### Information for vscode and cmake
