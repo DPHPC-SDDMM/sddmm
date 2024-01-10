@@ -53,6 +53,8 @@ int main(int argc, char** argv) {
         skip = true;
     }
 
+    std::cout << skip << std::endl;
+
     if (K % 32 != 0) {
         std::cout << std::endl;
         TEXT::Gadgets::print_colored_line(100, '>', TEXT::HIGHLIGHT_YELLOW);

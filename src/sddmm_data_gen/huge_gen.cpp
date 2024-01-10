@@ -74,10 +74,12 @@ namespace SDDMM {
 
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
             TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
-            char ans = 'n';
-            std::cin >> ans;
-            if (skip || !(ans == 'y')) {
-                return "";
+            if (!skip) {
+                char ans = 'n';
+                std::cin >> ans;
+                if (!(ans == 'y')) {
+                    return "";
+                }
             }
 
             return huge_generator_dense_gen(
@@ -234,10 +236,12 @@ namespace SDDMM {
 
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
             TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
-            char ans = 'n';
-            std::cin >> ans;
-            if(skip || !(ans == 'y')){
-                return "";
+            if (!skip) {
+                char ans = 'n';
+                std::cin >> ans;
+                if (!(ans == 'y')) {
+                    return "";
+                }
             }
             
             return huge_generator_gen(
@@ -310,10 +314,12 @@ namespace SDDMM {
 
             TEXT::Gadgets::print_colored_line(100, '=', TEXT::RED);
             TEXT::Gadgets::print_colored_text_line("Proceed? [y/n]", TEXT::RED);
-            char ans = 'n';
-            std::cin >> ans;
-            if (skip || !(ans == 'y')) {
-                return "";
+            if (!skip) {
+                char ans = 'n';
+                std::cin >> ans;
+                if (!(ans == 'y')) {
+                    return "";
+                }
             }
 
             return huge_generator_gen(

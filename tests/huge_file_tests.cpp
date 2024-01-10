@@ -33,7 +33,7 @@ UTEST(HugeFile, Huge_Generator){
     uint64_t out_size_written;
     std::string name = SDDMM::DataGenerator::huge_generator(
         std::string("C://sddmm_data") + SDDMM::Defines::path_separator,
-        K, sizeof_X_in_byte, sizeof_Y_in_byte, S_sparsity, K_row, out_size_written
+        K, sizeof_X_in_byte, sizeof_Y_in_byte, S_sparsity, K_row, false, out_size_written
     );
 
     std::cout << "Finish create and store" << std::endl;
