@@ -1,0 +1,1 @@
+This is the data folder template. Place it directly on the C drive, then compile all exe files and place them 

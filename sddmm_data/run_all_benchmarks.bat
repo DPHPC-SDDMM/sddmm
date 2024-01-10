@@ -1,0 +1,12 @@
+.\GPU_SDDMMBenchmarks.exe 1
+.\GPU_SDDMMBenchmarks.exe 2
+.\GPU_SDDMMBenchmarks.exe 3
+.\GPU_SDDMMBenchmarks.exe 4
+.\GPU_SDDMMBenchmarks.exe 5
+.\GPU_SDDMMBenchmarks.exe 6
+.\GPU_SDDMMBenchmarks.exe 7
+.\GPU_SDDMMBenchmarks.exe 8
+.\GPU_SDDMMBenchmarks.exe 9
+.\GPU_SDDMMBenchmarks.exe 10
+.\GPU_SDDMMBenchmarks.exe 11
+.\GPU_SDDMMBenchmarks.exe 12
