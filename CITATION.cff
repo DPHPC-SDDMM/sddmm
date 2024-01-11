@@ -1,20 +1,20 @@
 cff-version: 1.1.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: Woojin
-  given-names: Ban
+- family-names: "Woojin"
+  given-names: "Ban"
   orcid: "https://orcid.org/0000-0000-0000-0000"
-- family-names: Khavrona
-  given-names: Yevhen
+- family-names: "Khavrona"
+  given-names: "Yevhen"
   orcid: "https://orcid.org/0000-0000-0000-0000"
-- family-names: Manatschal
-  given-names: Dumeni
+- family-names: "Manatschal"
+  given-names: "Dumeni"
   orcid: "https://orcid.org/0000-0000-0000-0000"
-- family-names: Stavratis
-  given-names: Konstantinos
+- family-names: "Stavratis"
+  given-names: "Konstantinos"
   orcid: "https://orcid.org/0000-0000-0000-0000"
-- family-names: Wüst
-  given-names: Dominic
+- family-names: "WÃ¼st"
+  given-names: "Dominic"
   orcid: https://orcid.org/0000-0000-0000-0000	
 title:DPHPC-SDDMM/sddmm: Test release 4
 version: 1.0.4
