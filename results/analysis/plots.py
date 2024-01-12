@@ -120,7 +120,7 @@ def plot_result_data(iterations, name, result_data, save_name=""):
     plt.scatter(x=data["x_data_base"], y=result_data['base']['elapsed_time'])
     plt.scatter(x=data["x_data_cusparse"], y=result_data['cuSparse']['elapsed_time'])
     plt.scatter(x=data["x_data_sml2"], y=result_data['sm_l2']['elapsed_time'])
-    plt.xticks(data["x_data_vals"], data["x_data_ticks"], size='large')
+    plt.xticks(data["x_data_vals"], data["x_data_ticks"], fontsize=16)
     plt.xlabel(data["x_label"])
     plt.ylabel('Time in [ns]')
     # plt.title('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
@@ -147,17 +147,17 @@ def plot_box_plot(iterations, name, result_data, save_name=""):
     plt.autoscale()
     axs[0].set_title('Baseline')
     s = sns.boxplot(x=data["x_data_base"], y=result_data['base']['elapsed_time'], whis=0.5, ax=axs[0])
-    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])], fontsize=16)
     s.set_xlabel(data["x_label"])
 
     axs[1].set_title('cuSPARSE')
     s = sns.boxplot(x=data["x_data_cusparse"], y=result_data['cuSparse']['elapsed_time'], whis=0.5, ax=axs[1])
-    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])], fontsize=16)
     s.set_xlabel(data["x_label"])
 
     axs[2].set_title('SM_L2')
     s = sns.boxplot(x=data["x_data_sml2"], y=result_data['sm_l2']['elapsed_time'], whis=0.5, ax=axs[2])
-    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])], fontsize=16)
     s.set_xlabel(data["x_label"])
 
     plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=0.4)
@@ -180,17 +180,17 @@ def plot_violin_plot(iterations, name, result_data, save_name=""):
 
     axs[0].set_title('Baseline')
     s = sns.violinplot(x=data["x_data_base"], y=result_data['base']['elapsed_time'], ax=axs[0])
-    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])], fontsize=16)
     s.set_xlabel(data["x_label"])
 
     axs[1].set_title('cuSPARSE')
     s = sns.violinplot(x=data["x_data_cusparse"], y=result_data['cuSparse']['elapsed_time'], ax=axs[1])
-    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])], fontsize=16)
     s.set_xlabel(data["x_label"])
 
     axs[2].set_title('SM_L2')
     s = sns.violinplot(x=data["x_data_sml2"], y=result_data['sm_l2']['elapsed_time'], ax=axs[2])
-    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])], fontsize=16)
     s.set_xlabel(data["x_label"])
 
     plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=0.4)
