@@ -59,16 +59,30 @@ def make_quantreg(result_df):
 def format_to_exp(value):
     temp = '%E' % (value)
     temp_l = temp.split('.')
-    ints = str(10*int(temp_l[0]))
     back_l = temp_l[1].split('E')
-    expon = str(int(back_l[1])+1)
+    expon = int(back_l[1])
     back_l_stripped = back_l[0].rstrip('0')
-    if back_l_stripped != '':
-        commas = str(round(int(back_l_stripped)/10))
-        value_str = ints + "." + commas + "E" + expon
+    if back_l_stripped == '':
+        val_int = int(temp_l[0])
+        if val_int == 1:
+            val = ''
+            fstr = "$10^{" + str(expon) + "}$"
+        else:
+            val = str(val_int)
+            fstr = "$" + str(val) + " \cdot 10^{" + str(expon) + "}$"
+            # fstr = "${} \cdot 10^{\{\}}$"
     else:
-        commas = ''
-        value_str = ints + "E" + expon
+        val = round(float('0.' + str(back_l_stripped)) + int(temp_l[0]),2)
+        # fstr = "${} \cdot 10^{\{\}}$"
+        fstr = "$" + str(val) + " \cdot 10^{" + str(expon) + "}$"
+
+    value_str = fstr
+    # if back_l_stripped != '':
+    #     commas = str(round(int(back_l_stripped)/10))
+    #     value_str = fstr.format(val, expon) #r'$' + ints + r"." + commas + r"\\cdot 10e{" + expon + r'}$'
+    # else:
+    #     commas = ''
+    #     value_str = r'$' + ints + r"\\cdot 10e{" + expon + r'}$'
     return value_str
 
 def get_data(result_data):
@@ -240,18 +254,18 @@ def plot(iterations, base_path, save_name=""):
 
 
 if __name__ == '__main__':
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB/", "imdb")
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB_companion/", "imdb-companion")
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents/", "patents")
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_companion/", "patents-companion")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB/", "imdb")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB_companion/", "imdb-companion")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents/", "patents")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_companion/", "patents-companion")
     plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main/", "patents-main")
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main_companion/", "patents-main-companion")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K32/", "sparsity-large-2-k32")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K128/", "sparsity-large-2-k128")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K512/", "sparsity-large-2-k512")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K32/", "sparsity-small-k32")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K128/", "sparsity-small-k128")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K512/", "sparsity-small-k512")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main_companion/", "patents-main-companion")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K32/", "sparsity-large-2-k32")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K128/", "sparsity-large-2-k128")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K512/", "sparsity-large-2-k512")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K32/", "sparsity-small-k32")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K128/", "sparsity-small-k128")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K512/", "sparsity-small-k512")
 
     # plot(30, "./sddmm_data_results_30_iterations/data_sets/IMDB/")
     # plot(30, "./sddmm_data_results_30_iterations/data_sets/IMDB_companion/")
