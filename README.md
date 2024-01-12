@@ -5,7 +5,7 @@ In this work, we present a performance comparison of three GPU-based SDDMM algor
 
 The uniformly distributed, large, sparse matrices are generated with a generator described later on. The non-uniformly distributed large, sparse matrices are downloaded from https://sparse.tamu.edu/Pajek?filterrific%5Bsorted_by%5D=rows_asc. All used matrices can be dowloaded from page 4 of this website.
 
-![](sample_images/low-sparsity-uniform-distribution.jpg)
+![](sample_images/matrix-source.png)
 
 Following is a concise description on how to compile and run the code as well as a listing of all produced benchmarks and the resulting plots.
 
@@ -198,6 +198,9 @@ All of the following exes contain tests.
 ## All Benchmarking result plots
 
 ### Experiment 1
+
+Vary non-zero density ($10^{−3}$, $5^{−3}$, $10^{−4}$, $5^{−4}$, $10^{−5}$), $A ∈ {N × K}$, $B \in \{K \times M\}$ and $S \in \{N \times M\}$ for two different sizes N1 = M1 = 102539 and N2 = M2 = 10253. The experiment was repeated for inner dimension $K \in \{32, 128, 512\}$.
+
 ### Experiment 2
 
 Vary the distribution using three different, existing sparse matrices IMDB, patents main and patents (their distributions are shown in the _Steps to reproduce_ section and concise descriptions of the matrices themselves are given on ). The experiment was repeated for inner dimension K ∈ {32, 128, 256}.
