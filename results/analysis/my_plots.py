@@ -75,7 +75,7 @@ fig.subplots_adjust(hspace=0.5, wspace=0.2)
 for i, dataset_str in enumerate(dataset_unique_names):
     for j, K in enumerate(K_unique_values):
         # Create the boxplots in each subfigure.
-        sns.boxplot(data=df[(df['ds_name'] == dataset_str) & (df['K'] == K)],
+        s = sns.boxplot(data=df[(df['ds_name'] == dataset_str) & (df['K'] == K)],
                     x = 'algorithm',
                     y='runtime',
                     hue='is_companion',
@@ -83,6 +83,12 @@ for i, dataset_str in enumerate(dataset_unique_names):
                     ax=axes[i, j],
                     showfliers=False # Do not plot the outliers.
         )
+        # s.set_title(s.get_title(), fontsize=22)
+        s.set_yticklabels(s.get_yticklabels(), fontsize=16)
+        s.set_xticklabels(s.get_xticklabels(), fontsize=16)
+        s.set_ylabel(s.get_ylabel(), fontsize=16)
+        # s.set_xlabel(s.get_xlabel(), fontsize=20)
+
         # Set custom title for each subplot
         # for easier readability.
         axes[i, j].set_title(f'Dataset: {dataset_str}, K = {K}')
@@ -100,4 +106,10 @@ for i, dataset_str in enumerate(dataset_unique_names):
         for alg in range(len(df['algorithm'].unique())):
             axes[i, j].axvline(x=alg + 0.5, color='gray', linestyle='--')  # Adjust the position of the vertical lines
 
-plt.show()
+# save_name = "3x3-plot"
+save_name = "3x3-plot"
+if save_name == "":
+    plt.show()
+else:
+    save_name += ".png"
+    plt.savefig(save_name, bbox_inches="tight")
