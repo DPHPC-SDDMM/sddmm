@@ -198,9 +198,12 @@ All of the following exes contain tests.
 ## All Benchmarking result plots
 
 ### Experiment 1
+
+Vary non-zero density ($10^{−3}$, $5^{−3}$, $10^{−4}$, $5^{−4}$, $10^{−5}$), $A \in \{N \times K\}$, $B \in \{K \times M\}$ and $S \in \{N \times M\}$ for two different sizes N1 = M1 = 102539 and N2 = M2 = 10253. The experiment was repeated for inner dimension $K \in \{32, 128, 512\}$.
+
 ### Experiment 2
 
-Vary the distribution using three different, existing sparse matrices IMDB, patents main and patents (their distributions are shown in the _Steps to reproduce_ section and concise descriptions of the matrices themselves are given on ). The experiment was repeated for inner dimension K ∈ {32, 128, 256}.
+Vary the distribution using three different, existing sparse matrices IMDB, patents main and patents (their distributions are shown in the _Steps to reproduce_ section and concise descriptions of the matrices themselves are given on ). The experiment was repeated for inner dimension $K \in \{32, 128, 256\}$.
 
 ### Experiment 3
 
