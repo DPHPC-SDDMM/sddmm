@@ -5,7 +5,7 @@ In this work, we present a performance comparison of three GPU-based SDDMM algor
 
 The uniformly distributed, large, sparse matrices are generated with a generator described later on. The non-uniformly distributed large, sparse matrices are downloaded from https://sparse.tamu.edu/Pajek?filterrific%5Bsorted_by%5D=rows_asc. All used matrices can be dowloaded from page 4 of this website.
 
-![](sample_images/low-sparsity-uniform-distribution.jpg)
+![](sample_images/matrix-source.png)
 
 Following is a concise description on how to compile and run the code as well as a listing of all produced benchmarks and the resulting plots.
 
