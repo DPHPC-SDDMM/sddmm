@@ -240,7 +240,7 @@ patents, K=[32, 128, 256]                |  patents, K=[32, 128, 256]           
 
 Compare each algorithm between the non-uniformly distributed, sparse matrices IMDB, patents main and patents to uniformly distributed companion matrices with the same dimensions N and M . The experiment was repeated for inner dimension $K \in \{32, 128, 256\}$.The plot can be reproduced by running the script **./analysis/my_plots.py** from inside the folder _./analysis_.
 
-
+![](sample_images/3x3-plot.png)
 
 ## How to extend the benchmarks
 Check out src/GPU_SDDMMBenchmarks.cpp. It is easy to just add more benchmarks in that file and recompile the project. Adding a new cpp file with a new structure requires adding the new executable in CMakeLists.txt as well. Anyone of the existing executables can serve as template. Watch out with linking Cuda::cudart and CUDA::cuda_driver if another library containing CUDA code is already linked. This is especially valid on Windows using the Visual Studio compiler that is much more sensitive with things like linking the same file or library multiple times. On Linux using GCC these things don't matter that much. Note that each subfolder that contains more than just .h files (as in .cpp files as well) requires a CMakeLists.txt file on its own. Check out for example src/data_structures on how to do that. Each subfolder that creates a separate library needs an add_subdirectory statment in the toplevel CMakeLists.txt. 
