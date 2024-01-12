@@ -27,7 +27,7 @@ def get_result_data(base_path, result_mode):
         variable.extend(result.data[result_mode].size * [result.params[result.params["variable"]]])
         elapsed_time.extend(result.data[result_mode])
 
-    return pd.DataFrame({result.params["variable"]: variable, 'elapsed_time': elapsed_time, 'variable': result.params["variable"]})
+    return pd.DataFrame({result.params["variable"]: variable, 'elapsed_time': elapsed_time, 'variable': result.params["variable"], 'description': result.params["description"]})
 
 
 def fit_model(model, q):
@@ -99,7 +99,7 @@ def get_data(result_data):
         "x_data_sml2" : x_data_sml2
     }
 
-def plot_result_data(iterations, name, result_data):
+def plot_result_data(iterations, name, result_data, save_name=""):
     data = get_data(result_data)
 
     plt.scatter(x=data["x_data_base"], y=result_data['base']['elapsed_time'])
@@ -108,17 +108,26 @@ def plot_result_data(iterations, name, result_data):
     plt.xticks(data["x_data_vals"], data["x_data_ticks"], size='large')
     plt.xlabel(data["x_label"])
     plt.ylabel('Time in [ns]')
-    plt.title('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
+    # plt.title('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
+    title = result_data["base"]["description"][0].replace("sparsity", "density")
+    plt.title(title + " (" + str(iterations) + " iterations)")
     plt.legend(['Baseline', 'cuSparse', 'sm_l2'])
 
-    plt.show()
+    if save_name == "":
+        plt.show()
+    else:
+        save_name += "_scatter"
+        save_name += ".png"
+        plt.savefig(save_name, bbox_inches="tight")
 
 
-def plot_box_plot(iterations, name, result_data):
+def plot_box_plot(iterations, name, result_data, save_name=""):
     data = get_data(result_data)
 
     fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(25, 15))
-    fig.suptitle('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
+    # fig.suptitle('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
+    title = result_data["base"]["description"][0].replace("sparsity", "density")
+    fig.suptitle(title + " (" + str(iterations) + " iterations)")
 
     plt.autoscale()
     axs[0].set_title('Baseline')
@@ -137,15 +146,22 @@ def plot_box_plot(iterations, name, result_data):
     s.set_xlabel(data["x_label"])
 
     plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=0.4)
-    plt.show()
+    if save_name == "":
+        plt.show()
+    else:
+        save_name += "_box"
+        save_name += ".png"
+        plt.savefig(save_name, bbox_inches="tight")
 
 
-def plot_violin_plot(iterations, name, result_data):
+def plot_violin_plot(iterations, name, result_data, save_name=""):
     data = get_data(result_data)
 
     # fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(25, 15), sharex='all', sharey='all')
     fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(25, 15))
-    fig.suptitle('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
+    # fig.suptitle('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
+    title = result_data["base"]["description"][0].replace("sparsity", "density")
+    fig.suptitle(title + " (" + str(iterations) + " iterations)")
 
     axs[0].set_title('Baseline')
     s = sns.violinplot(x=data["x_data_base"], y=result_data['base']['elapsed_time'], ax=axs[0])
@@ -163,7 +179,12 @@ def plot_violin_plot(iterations, name, result_data):
     s.set_xlabel(data["x_label"])
 
     plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=0.4)
-    plt.show()
+    if save_name == "":
+        plt.show()
+    else:
+        save_name += "_violin"
+        save_name += ".png"
+        plt.savefig(save_name, bbox_inches="tight")
 
 
 def plot_quantreg(iterations, name, quantreg_result):
@@ -190,7 +211,7 @@ def plot_quantreg(iterations, name, quantreg_result):
     plt.show()
 
 
-def plot(iterations, base_path):
+def plot(iterations, base_path, save_name=""):
     # read result data
     result_data = {
         'base': get_result_data(base_path, 'Baseline'),
@@ -199,13 +220,13 @@ def plot(iterations, base_path):
     }
 
     # plot result data
-    plot_result_data(iterations, base_path.split("/")[-2], result_data)
+    plot_result_data(iterations, base_path.split("/")[-2], result_data, save_name)
 
     # plot boxplot
-    plot_box_plot(iterations, base_path.split("/")[-2], result_data)
+    plot_box_plot(iterations, base_path.split("/")[-2], result_data, save_name)
 
     # plot violin plot
-    plot_violin_plot(iterations, base_path.split("/")[-2], result_data)
+    plot_violin_plot(iterations, base_path.split("/")[-2], result_data, save_name)
 
     # plot percentile
     # quantreg_result = {
@@ -218,13 +239,13 @@ def plot(iterations, base_path):
 
 
 if __name__ == '__main__':
-    plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB/")
+    # plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB/")
     # plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB_companion/")
     # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents/")
     # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_companion/")
     # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main/")
     # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main_companion/")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K32/")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K32/")
     # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K128/")
     # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K512/")
     # plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K32/")
