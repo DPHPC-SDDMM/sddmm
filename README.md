@@ -218,10 +218,19 @@ K=32, N2=M2=10253                                     |  K=128, N2=M2=10253     
 
 Vary the distribution using three different, existing sparse matrices IMDB, patents main and patents (their distributions are shown in the _Steps to reproduce_ section and concise descriptions of the matrices themselves are given on ). The experiment was repeated for inner dimension $K \in \{32, 128, 256\}$.
 
-
-IMDB, K=[32, 128, 256]                  |  K=[32, 128, 256]                    |  K=[32, 128, 256]
+IMDB, K=[32, 128, 256]                  |  IMDB, K=[32, 128, 256]              |  IMDB, K=[32, 128, 256]
 :--------------------------------------:|:-------------------------------------|:---------------------------------------:|
 ![](results/analysis/imdb-scatter.png)  |  ![](results/analysis/imdb-box.png)  |  ![](results/analysis/imdb-violin.png)
+
+
+patent_main, K=[32, 128, 256]           |  patent_main, K=[32, 128, 256]       |  patent_main, K=[32, 128, 256]
+:--------------------------------------:|:-------------------------------------|:---------------------------------------:|
+![](results/analysis/patent-main-scatter.png)  |  ![](results/analysis/patent-main-box.png)  |  ![](results/analysis/patent-main-violin.png)
+
+
+patent, K=[32, 128, 256]                |  patent, K=[32, 128, 256]            |  patent, K=[32, 128, 256]
+:--------------------------------------:|:-------------------------------------|:---------------------------------------:|
+![](results/analysis/patent-scatter.png)  |  ![](results/analysis/patent-box.png)  |  ![](results/analysis/patent-violin.png)
 
 ### Experiment 3
 
