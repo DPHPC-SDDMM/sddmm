@@ -219,11 +219,9 @@ K=32, N2=M2=10253                                     |  K=128, N2=M2=10253     
 Vary the distribution using three different, existing sparse matrices IMDB, patents main and patents (their distributions are shown in the _Steps to reproduce_ section and concise descriptions of the matrices themselves are given on ). The experiment was repeated for inner dimension $K \in \{32, 128, 256\}$.
 
 
-K=32, N1=M1=102539                                     |  K=128, N1=M1=102539                                    |  K=256, N1=M1=102539
+IMDB                                     |                                      | 
 :----------------------------------------------------:|:-------------------------------------------------------|:----------------------------------------------------:|
-![](results/analysis/sparsity-small-k32-scatter.png)  |  ![](results/analysis/sparsity-small-k128-scatter.png)  |  ![](results/analysis/sparsity-small-k512-scatter.png)
-![](results/analysis/sparsity-small-k32-box.png)      |  ![](results/analysis/sparsity-small-k128-box.png)  |  ![](results/analysis/sparsity-small-k512-box.png)
-![](results/analysis/sparsity-small-k32-violin.png)  |  ![](results/analysis/sparsity-small-k128-violin.png)  |  ![](results/analysis/sparsity-small-k512-violin.png)
+![](results/analysis/imdb-scatter.png)  |  ![](results/analysis/imdb-box.png)  |  ![](results/analysis/sparsity-small-k512-scatter.png)
 
 ### Experiment 3
 
