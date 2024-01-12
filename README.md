@@ -61,12 +61,12 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
    * **description** outlines the benchmark.
    * **runtime** indicates the runtime of this particular data point, meaning how long in *seconds* it took to run all algorithms in the benchmark with this particular data for x amount of times (wher x == length(one of the arrays with the numbers below))
    * **n_warmup_iterations** indicates how many times the data point was run without recording the data
-   * **sequence_numner** indicates the place this data file has inside the entire benchmark run with multiple data points. In this case, this is the first results file.
+   * **sequence_number** indicates the place this data file has inside the entire benchmark run with multiple data points. In this case, this is the first results file.
  * The **[DATA]** section contains all the time measurements
    * each measurement consists of an L and a D part where the L contains the name of the algorithm and D the the time measurements for all the test runs
    * In this case, there were three algorithms 'Baseline', 'cuSPARSE' and 'sm_l2' and all of them were run 30 times with the same input data
 
-11. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains two Python scripts data.py and plots.py. Open plots.py and at the bottom call the plot(..) function with the correct path to your result files. The following evaluation plots will be generated.
+11. Copy all the results files (all desired .txt files from all data subfolders) into ./results/analysis/[some_expressive_folder_name]. ./results/analysis contains three Python scripts `data.py`, `plots.py` and `my_plots.py`. Open `plots.py` and at the bottom call the `plot(..)` function with the correct path to your result files. The following evaluation plots will be generated.
 
    Plot 1                                       |  Plot 2                                       
    :-------------------------------------------:|:---------------------------------------------:|
@@ -203,7 +203,7 @@ Run Python scripts /results/analysis/plots.py (uncomment which results to plot) 
 
 ### Experiment 1
 
-Vary non-zero density ($10^{−3}$, $5^{−3}$, $10^{−4}$, $5^{−4}$, $10^{−5}$), $A \in \{N \times K\}$, $B \in \{K \times M\}$ and $S \in \{N \times M\}$ for two different sizes N1 = M1 = 102539 and N2 = M2 = 10253. The experiment was repeated for inner dimension $K \in \{32, 128, 512\}$.
+Vary non-zero density ($10^{−2}$, $5 \cdot 10^{−3}$, $10^{−3}$, $5 \cdot 10^{−4}$, $10^{−4}$), $A \in \{N \times K\}$, $B \in \{K \times M\}$ and $S \in \{N \times M\}$ for two different sizes N1 = M1 = 102539 and N2 = M2 = 10253. The experiment was repeated for inner dimension $K \in \{32, 128, 512\}$.
 
 
 K=32, N1=M1=102539                                     |  K=128, N1=M1=102539                                    |  K=512, N1=M1=102539
@@ -243,7 +243,7 @@ Compare each algorithm between the non-uniformly distributed, sparse matrices IM
 ![](sample_images/3x3-plot-2.png)
 
 ## How to extend the benchmarks
-Check out src/GPU_SDDMMBenchmarks.cpp. It is easy to just add more benchmarks in that file and recompile the project. Adding a new cpp file with a new structure requires adding the new executable in CMakeLists.txt as well. Anyone of the existing executables can serve as template. Watch out with linking Cuda::cudart and CUDA::cuda_driver if another library containing CUDA code is already linked. This is especially valid on Windows using the Visual Studio compiler that is much more sensitive with things like linking the same file or library multiple times. On Linux using GCC these things don't that much. Note that each subfolder that contains more than just .h files (as in .cpp files as well) requires a CMakeLists.txt file on it's own. Check out for example src/data_structures on how to do that. Each subfolder that creates a separate library needs an add_subdirectory statment in the toplevel CMakeLists.txt. 
+Check out src/GPU_SDDMMBenchmarks.cpp. It is easy to just add more benchmarks in that file and recompile the project. Adding a new cpp file with a new structure requires adding the new executable in CMakeLists.txt as well. Anyone of the existing executables can serve as template. Watch out with linking Cuda::cudart and CUDA::cuda_driver if another library containing CUDA code is already linked. This is especially valid on Windows using the Visual Studio compiler that is much more sensitive with things like linking the same file or library multiple times. On Linux using GCC these things don't matter that much. Note that each subfolder that contains more than just .h files (as in .cpp files as well) requires a CMakeLists.txt file on its own. Check out for example src/data_structures on how to do that. Each subfolder that creates a separate library needs an add_subdirectory statment in the toplevel CMakeLists.txt. 
 
 Don't forget to add 
 <br>set_property(TARGET [exe_name_placeholder] PROPERTY CUDA_ARCHITECTURES ${CUDA_ARCH}) 
@@ -260,7 +260,7 @@ This part may be helpful to run the code on Linux.
 https://code.visualstudio.com/docs/cpp/cmake-linux
 
 ### How to set build folders debug/release for builds
-* got vscode extension installation page
+* go to VScode extension installation page
 * select CMake Tools
 * find **settings** cog-wheel next to installation buttions
 * at option **Build Directory** set value to ${workspaceFolder}/build/${buildType}
@@ -271,7 +271,7 @@ https://code.visualstudio.com/docs/cpp/cmake-linux
 * Relevant are
     * CMake: build, CMake: clean, CMake: Delete Cache and Reconfigure
 * Deleting the "build" folder will cause CMake to have to rebuild everything
-* In the first build run, matplotplusplus and all listed targets have to be built
+* In the first build run all listed targets have to be built
 * In subsequent build runs, only the missing stuff will be built
 * Note, that the switch for Debug/Release mode is at the **bottom** of VSCode in a tiny box named "CMake: [Debug/Release]: Ready" XD
 
