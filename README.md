@@ -204,9 +204,7 @@ Vary non-zero density ($10^{−3}$, $5^{−3}$, $10^{−4}$, $5^{−4}$, $10^{�
 K=32, N2=M2=10253                                     |  K=128, N2=M2=10253                                    |  K=512, N2=M2=10253
 :----------------------------------------------------:|:-------------------------------------------------------|:----------------------------------------------------:|
 ![](results/analysis/sparsity-small-k32-scatter.png)  |  ![](results/analysis/sparsity-small-k128-scatter.png)  |  ![](results/analysis/sparsity-small-k512-scatter.png)
-:----------------------------------------------------:|:-------------------------------------------------------|:----------------------------------------------------:|
 ![](results/analysis/sparsity-small-k32-box.png)  |  ![](results/analysis/sparsity-small-k128-box.png)  |  ![](results/analysis/sparsity-small-k512-box.png)
-:----------------------------------------------------:|:-------------------------------------------------------|:----------------------------------------------------:|
 ![](results/analysis/sparsity-small-k32-violin.png)  |  ![](results/analysis/sparsity-small-k128-violin.png)  |  ![](results/analysis/sparsity-small-k512-violin.png)
 
 ### Experiment 2
