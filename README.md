@@ -223,14 +223,14 @@ IMDB, K=[32, 128, 256]                  |  IMDB, K=[32, 128, 256]              |
 ![](results/analysis/imdb-scatter.png)  |  ![](results/analysis/imdb-box.png)  |  ![](results/analysis/imdb-violin.png)
 
 
-patent_main, K=[32, 128, 256]           |  patent_main, K=[32, 128, 256]       |  patent_main, K=[32, 128, 256]
+patents_main, K=[32, 128, 256]           |  patents_main, K=[32, 128, 256]       |  patents_main, K=[32, 128, 256]
 :--------------------------------------:|:-------------------------------------|:---------------------------------------:|
-![](results/analysis/patent-main-scatter.png)  |  ![](results/analysis/patent-main-box.png)  |  ![](results/analysis/patent-main-violin.png)
+![](results/analysis/patents-main-scatter.png)  |  ![](results/analysis/patents-main-box.png)  |  ![](results/analysis/patents-main-violin.png)
 
 
-patent, K=[32, 128, 256]                |  patent, K=[32, 128, 256]            |  patent, K=[32, 128, 256]
+patents, K=[32, 128, 256]                |  patents, K=[32, 128, 256]            |  patents, K=[32, 128, 256]
 :--------------------------------------:|:-------------------------------------|:---------------------------------------:|
-![](results/analysis/patent-scatter.png)  |  ![](results/analysis/patent-box.png)  |  ![](results/analysis/patent-violin.png)
+![](results/analysis/patents-scatter.png)  |  ![](results/analysis/patents-box.png)  |  ![](results/analysis/patents-violin.png)
 
 ### Experiment 3
 
