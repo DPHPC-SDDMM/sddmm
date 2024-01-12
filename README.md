@@ -3,6 +3,21 @@
 ## About this work
 In this work, we present a performance comparison of three GPU-based SDDMM algorithms for handling very sparse matrices: a straightforward naive implementation, the SM-L2 algorithm featuring tiling and other advanced techniques and NVIDIA’s cuSPARSE. To enable and aid in benchmarking, we developed a suite of tools for creating, storing and visualising matrices. We employ a diverse range of benchmarks, leveraging both synthetically generated matrices and real-world matrices from the SuiteSparse Matrix collection by the University of Florida. The matrices varied in size and distribution, including very large, non-uniformly distributed matrices, offering a robust benchmarking foundation for our evaluations. Additionally, we present the results of profiling the SM L2 algorithm that identify performance bottlenecks and suggest potential areas for improvement.
 
+The uniformly distributed, large, sparse matrices are generated with a generator described later on. The non-uniformly distributed large, sparse matrices are downloaded from https://sparse.tamu.edu/Pajek?filterrific%5Bsorted_by%5D=rows_asc. All used matrices can be dowloaded from page 4 of this website.
+
+   Low sparsity uniform matrix                               
+   :--------------------------------------------------------:
+   ![](sample_images/low-sparsity-uniform-distribution.jpg) 
+   Low sparsity uniform matrix                               
+   :--------------------------------------------------------:
+   ![](sample_images/low-sparsity-uniform-distribution.jpg) 
+   Low sparsity uniform matrix                               
+   :--------------------------------------------------------:
+   ![](sample_images/low-sparsity-uniform-distribution.jpg) 
+   Low sparsity uniform matrix                               
+   :--------------------------------------------------------:
+   ![](sample_images/low-sparsity-uniform-distribution.jpg) 
+
 Following is a concise description on how to compile and run the code as well as a listing of all produced benchmarks and the resulting plots.
 
 ## Setup
