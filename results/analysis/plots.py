@@ -240,12 +240,12 @@ def plot(iterations, base_path, save_name=""):
 
 
 if __name__ == '__main__':
-    plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB/", "imdb")
-    plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB_companion/", "imdb-companion")
-    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents/", "patents")
-    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_companion/", "patents-companion")
-    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main/", "patents_main")
-    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main_companion/", "patents-main-companion")
+    # plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB/", "imdb")
+    # plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB_companion/", "imdb-companion")
+    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents/", "patents")
+    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_companion/", "patents-companion")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main/", "patents-main")
+    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main_companion/", "patents-main-companion")
     # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K32/", "sparsity-large-2-k32")
     # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K128/", "sparsity-large-2-k128")
     # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K512/", "sparsity-large-2-k512")
