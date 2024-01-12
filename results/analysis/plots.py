@@ -5,7 +5,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import statsmodels.formula.api as smf
+import matplotlib.text as plt_txt
 import matplotlib.pyplot as plt
+from decimal import Decimal
 
 import data
 
@@ -15,17 +17,17 @@ def get_result_data(base_path, result_mode):
     # read result data (sparsity, elapsed_time)
     #
     result_path = base_path
-    k = []
+    variable = []
     elapsed_time = []
     name = []
     for result_file in [f for f in listdir(result_path) if isfile(join(result_path, f))]:
         if result_file == "readme.txt":
             continue
         result = data.Data(result_path[1:], result_file)
-        k.extend(result.data[result_mode].size * [result.params['K']])
+        variable.extend(result.data[result_mode].size * [result.params[result.params["variable"]]])
         elapsed_time.extend(result.data[result_mode])
 
-    return pd.DataFrame({'k': k, 'elapsed_time': elapsed_time})
+    return pd.DataFrame({result.params["variable"]: variable, 'elapsed_time': elapsed_time, 'variable': result.params["variable"]})
 
 
 def fit_model(model, q):
@@ -34,7 +36,7 @@ def fit_model(model, q):
 
 
 def make_quantreg(result_df):
-    reg_exp = "elapsed_time ~ k"
+    reg_exp = "elapsed_time ~ " + result_df["variable"][0]
 
     #
     # create quantile regression model
@@ -54,12 +56,57 @@ def make_quantreg(result_df):
 
     return coeff
 
+def format_to_exp(value):
+    temp = '%E' % (value)
+    temp_l = temp.split('.')
+    ints = str(10*int(temp_l[0]))
+    back_l = temp_l[1].split('E')
+    expon = str(int(back_l[1])+1)
+    back_l_stripped = back_l[0].rstrip('0')
+    if back_l_stripped != '':
+        commas = str(round(int(back_l_stripped)/10))
+        value_str = ints + "." + commas + "E" + expon
+    else:
+        commas = ''
+        value_str = ints + "E" + expon
+    return value_str
+
+def get_data(result_data):
+    variable = result_data["base"]["variable"][0]
+    if variable == "sparsity":
+        x_label = "density"
+        x_data_vals = pd.unique(result_data['base'][variable])
+        x_data_ticks = [format_to_exp(val) for val in 1 - pd.unique(result_data['base'][variable])]
+
+        x_data_base = result_data['base'][variable]
+        x_data_cusparse = result_data['cuSparse'][variable]
+        x_data_sml2 = result_data['sm_l2'][variable]
+    elif variable == "K":
+        x_label = "K"
+        x_data_vals = pd.unique(result_data['base'][variable])
+        x_data_ticks = pd.unique(result_data['base'][variable])
+
+        x_data_base = result_data['base'][variable]
+        x_data_cusparse = result_data['cuSparse'][variable]
+        x_data_sml2 = result_data['sm_l2'][variable]
+
+    return {
+        "x_label" : x_label,
+        "x_data_vals" : x_data_vals,
+        "x_data_ticks" : x_data_ticks,
+        "x_data_base" : x_data_base,
+        "x_data_cusparse" : x_data_cusparse,
+        "x_data_sml2" : x_data_sml2
+    }
 
 def plot_result_data(iterations, name, result_data):
-    plt.scatter(x=result_data['base']['k'], y=result_data['base']['elapsed_time'])
-    plt.scatter(x=result_data['cuSparse']['k'], y=result_data['cuSparse']['elapsed_time'])
-    plt.scatter(x=result_data['sm_l2']['k'], y=result_data['sm_l2']['elapsed_time'])
-    plt.xlabel('K')
+    data = get_data(result_data)
+
+    plt.scatter(x=data["x_data_base"], y=result_data['base']['elapsed_time'])
+    plt.scatter(x=data["x_data_cusparse"], y=result_data['cuSparse']['elapsed_time'])
+    plt.scatter(x=data["x_data_sml2"], y=result_data['sm_l2']['elapsed_time'])
+    plt.xticks(data["x_data_vals"], data["x_data_ticks"], size='large')
+    plt.xlabel(data["x_label"])
     plt.ylabel('Time in [ns]')
     plt.title('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
     plt.legend(['Baseline', 'cuSparse', 'sm_l2'])
@@ -68,36 +115,52 @@ def plot_result_data(iterations, name, result_data):
 
 
 def plot_box_plot(iterations, name, result_data):
+    data = get_data(result_data)
+
     fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(25, 15))
     fig.suptitle('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
 
     plt.autoscale()
     axs[0].set_title('Baseline')
-    sns.boxplot(x=result_data['base']['k'], y=result_data['base']['elapsed_time'], whis=0.5, ax=axs[0])
+    s = sns.boxplot(x=data["x_data_base"], y=result_data['base']['elapsed_time'], whis=0.5, ax=axs[0])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xlabel(data["x_label"])
 
     axs[1].set_title('cuSPARSE')
-    sns.boxplot(x=result_data['cuSparse']['k'], y=result_data['cuSparse']['elapsed_time'], whis=0.5, ax=axs[1])
+    s = sns.boxplot(x=data["x_data_cusparse"], y=result_data['cuSparse']['elapsed_time'], whis=0.5, ax=axs[1])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xlabel(data["x_label"])
 
     axs[2].set_title('SM_L2')
-    sns.boxplot(x=result_data['sm_l2']['k'], y=result_data['sm_l2']['elapsed_time'], whis=0.5, ax=axs[2])
+    s = sns.boxplot(x=data["x_data_sml2"], y=result_data['sm_l2']['elapsed_time'], whis=0.5, ax=axs[2])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xlabel(data["x_label"])
 
     plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=0.4)
     plt.show()
 
 
 def plot_violin_plot(iterations, name, result_data):
+    data = get_data(result_data)
+
     # fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(25, 15), sharex='all', sharey='all')
     fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(25, 15))
     fig.suptitle('Experiment Result: ' + name + " (" + str(iterations) + " iterations)")
 
     axs[0].set_title('Baseline')
-    sns.violinplot(x=result_data['base']['k'], y=result_data['base']['elapsed_time'], ax=axs[0])
+    s = sns.violinplot(x=data["x_data_base"], y=result_data['base']['elapsed_time'], ax=axs[0])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xlabel(data["x_label"])
 
     axs[1].set_title('cuSPARSE')
-    sns.violinplot(x=result_data['cuSparse']['k'], y=result_data['cuSparse']['elapsed_time'], ax=axs[1])
+    s = sns.violinplot(x=data["x_data_cusparse"], y=result_data['cuSparse']['elapsed_time'], ax=axs[1])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xlabel(data["x_label"])
 
     axs[2].set_title('SM_L2')
-    sns.violinplot(x=result_data['sm_l2']['k'], y=result_data['sm_l2']['elapsed_time'], ax=axs[2])
+    s = sns.violinplot(x=data["x_data_sml2"], y=result_data['sm_l2']['elapsed_time'], ax=axs[2])
+    s.set_xticklabels([plt_txt.Text(ind,x,y) for ind,x,y in zip(range(len(data["x_data_vals"])), data["x_data_vals"], data["x_data_ticks"])])
+    s.set_xlabel(data["x_label"])
 
     plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=0.4)
     plt.show()
@@ -145,12 +208,12 @@ def plot(iterations, base_path):
     plot_violin_plot(iterations, base_path.split("/")[-2], result_data)
 
     # plot percentile
-    quantreg_result = {
-        'base': make_quantreg(result_data['base']),
-        'cuSparse': make_quantreg(result_data['cuSparse']),
-        'sm_l2': make_quantreg(result_data['sm_l2'])
-    }
-    plot_quantreg(iterations, base_path.split("/")[-2], quantreg_result)
+    # quantreg_result = {
+    #     'base': make_quantreg(result_data['base']),
+    #     'cuSparse': make_quantreg(result_data['cuSparse']),
+    #     'sm_l2': make_quantreg(result_data['sm_l2'])
+    # }
+    # plot_quantreg(iterations, base_path.split("/")[-2], quantreg_result)
 
 
 
