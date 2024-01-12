@@ -1,9 +1,14 @@
 # SDDMM Benchmarking of SM-L2 algorithm vs a naive version and cuSPARSE
 
-### Setup
+## About this work
+In this work, we present a performance comparison of three GPU-based SDDMM algorithms for handling very sparse matrices: a straightforward naive implementation, the SM-L2 algorithm featuring tiling and other advanced techniques and NVIDIA’s cuSPARSE. To enable and aid in benchmarking, we developed a suite of tools for creating, storing and visualising matrices. We employ a diverse range of benchmarks, leveraging both synthetically generated matrices and real-world matrices from the SuiteSparse Matrix collection by the University of Florida. The matrices varied in size and distribution, including very large, non-uniformly distributed matrices, offering a robust benchmarking foundation for our evaluations. Additionally, we present the results of profiling the SM L2 algorithm that identify performance bottlenecks and suggest potential areas for improvement.
+
+Following is a concise description on how to compile and run the code as well as a listing of all produced benchmarks and the resulting plots.
+
+## Setup
 The benchmarking framework is set up to work on Windows 11, Visual Studio Community Edition 2022, CMake and C++20 standard. It probably also works on Linux since GCC compiler tends to be more forgiving in terms of obeying to C++ specifications. Note, that if you run this on Linux, you have to double-check that the paths always use the correct kind of path separators.
 
-### Steps to reproduce
+## Steps to reproduce
 1. Install Nvidia CUDA framework (https://developer.nvidia.com/cuda-downloads)
 2. Open the repository in Visual Studio and run CMake config
 3. If CMake config ends with an error, add the .cuda_arch file with the correct CUDA architecture as indicated in the CMake config output. Make sure, that there is NO newline after the architecture number and run the CMake config again
@@ -68,13 +73,13 @@ The benchmarking framework is set up to work on Windows 11, Visual Studio Commun
    ![](sample_images/imdb-100-iters-plot3.png)  |   ![](sample_images/imdb-100-iters-plot4.png)
 
 
-# cuSPARSE
+## cuSPARSE
 The documentation for cuSPARSE can be found here: https://docs.nvidia.com/cuda/cusparse/index.html. More importantly, useful examples can be found here: https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuSPARSE.
 
-# cuRAND
+## cuRAND
 We use cuRAND to generate large scale sparse matrices. The official documentation can be found here: https://docs.nvidia.com/cuda/curand/index.html, some useful examples can be found here https://github.com/NVIDIA/CUDALibrarySamples/tree/master/cuRAND.
 
-# Walktrough of exe files
+## Walktrough of exe files
 Designations: one SDDMM product is $(A \bullet B) \odot S$ where $A \in N \times K$, $B \in K \times M$ and $S \in N \times M$, A and B are dense and S is a sparse matrix. K is the inner dimension of A and B, N is the outer dimension of A and M is the outer dimension of B.
 
 The **sparsity** refers to the percentage of zeros in the sparse matrix. If sparsity=0 the sparse matrix S will contain 0 non zero values (at least no zeros will be generated on purpose). If sparsity=1.0, all values of S will be zero. So with sparsity=0.99, 99% of the values in the sparse matrix are zero and 1% are non zero.
@@ -186,7 +191,20 @@ All of the following exes contain tests.
 * statistics_test_data.exe
 * test1.exe
 
-# How to extend the benchmarks
+## All Benchmarking result plots
+
+### Experiment 1
+### Experiment 2
+
+Vary the distribution using three different, existing sparse matrices IMDB, patents main and patents (their distributions are shown in the _Steps to reproduce_ section and concise descriptions of the matrices themselves are given on ). The experiment was repeated for inner dimension K ∈ {32, 128, 256}.
+
+### Experiment 3
+
+Compare each algorithm between the non-uniformly distributed, sparse matrices IMDB, patents main and patents to uniformly distributed companion matrices with the same dimensions N and M . The experiment was repeated for inner dimension $K \in \{32, 128, 256\}$.The plot can be reproduced by running the script **./analysis/my_plots.py** from inside the folder _./analysis_.
+
+![](sample_images/3x3-plot-2.png)
+
+## How to extend the benchmarks
 Check out src/GPU_SDDMMBenchmarks.cpp. It is easy to just add more benchmarks in that file and recompile the project. Adding a new cpp file with a new structure requires adding the new executable in CMakeLists.txt as well. Anyone of the existing executables can serve as template. Watch out with linking Cuda::cudart and CUDA::cuda_driver if another library containing CUDA code is already linked. This is especially valid on Windows using the Visual Studio compiler that is much more sensitive with things like linking the same file or library multiple times. On Linux using GCC these things don't that much. Note that each subfolder that contains more than just .h files (as in .cpp files as well) requires a CMakeLists.txt file on it's own. Check out for example src/data_structures on how to do that. Each subfolder that creates a separate library needs an add_subdirectory statment in the toplevel CMakeLists.txt. 
 
 Don't forget to add 
@@ -196,7 +214,10 @@ Don't forget to add
 
 Forgetting the first one may lead to the CUDA compiler compiling the CUDA code for a different platform version which can impact performance or make it just not work at all. Forgetting the second one may lead to trouble while compiling the C++ code, depending on which compiler is used. GCC is more lenient here too compared to the Visual Studio compiler. 
 
-# How to run and compile the code with VSCode
+## How to run and compile the code with VSCode
+
+This part may be helpful to run the code on Linux.
+
 ### Information for vscode and cmake
 https://code.visualstudio.com/docs/cpp/cmake-linux
 
