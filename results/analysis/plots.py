@@ -102,6 +102,7 @@ def get_data(result_data):
 def plot_result_data(iterations, name, result_data, save_name=""):
     data = get_data(result_data)
 
+    plt.figure(figsize=(25, 15))
     plt.scatter(x=data["x_data_base"], y=result_data['base']['elapsed_time'])
     plt.scatter(x=data["x_data_cusparse"], y=result_data['cuSparse']['elapsed_time'])
     plt.scatter(x=data["x_data_sml2"], y=result_data['sm_l2']['elapsed_time'])
@@ -239,18 +240,18 @@ def plot(iterations, base_path, save_name=""):
 
 
 if __name__ == '__main__':
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB/")
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB_companion/")
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents/")
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_companion/")
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main/")
-    # plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main_companion/")
-    plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K32/")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K128/")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K512/")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K32/")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K128/")
-    # plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K512/")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB/", "imdb")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/IMDB_companion/", "imdb_companion")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents/", "patents")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_companion/", "patents_companion")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main/", "patents_main")
+    plot(100, "./sddmm_data_results_100_iterations/data_sets/patents_main_companion/", "patents_main_companion")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K32/", "sparsity_large_2_k32")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K128/", "sparsity_large_2_k128")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_large_2/K512/", "sparsity_large_2_k512")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K32/", "sparsity_small_k32")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K128/", "sparsity_small_k128")
+    plot(100, "./sddmm_data_results_100_iterations/sparsity_small/K512/", "sparsity_small_k512")
 
     # plot(30, "./sddmm_data_results_30_iterations/data_sets/IMDB/")
     # plot(30, "./sddmm_data_results_30_iterations/data_sets/IMDB_companion/")
