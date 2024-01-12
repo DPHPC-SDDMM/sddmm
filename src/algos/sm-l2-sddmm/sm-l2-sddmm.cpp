@@ -31,7 +31,6 @@ inline void local_print(const std::string& message){
 }
 
 SDDMM::Types::vec_size_t compute_tile_size_using_model(unsigned int L2_size, double c, float p) {
-    // cast? precision?
     return sqrt(L2_size / (c * p));
 }
 
@@ -109,7 +108,7 @@ namespace SDDMM {
                                 num_K_tiles
                         };
 
-                        // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
+                        // assumptions: sparse matrix not empty, no empty slices
                         auto sparse_params = prepare_sparse(
                                 S,
                                 tiling_params.Tj,
@@ -147,11 +146,6 @@ namespace SDDMM {
                         }
                     }
                 }
-
-                //local_print("Autotuning completed. Best Tk=" + std::to_string(best_Tk));
-
-                //// return the best value of Tk
-                //return best_Tk;
             }
 
             /**
@@ -183,9 +177,6 @@ namespace SDDMM {
                 SDDMM::Types::Matrix& B
             ) {
                 // calculate tile sizes
-                // A.n = N,
-                // B.m = M,
-                // B.n == A.m = K,
                 auto tiling_params = determine_tiling_params(
                         N,
                         M,
@@ -196,7 +187,7 @@ namespace SDDMM {
                         S
                 );
 
-                // assumptions: sparse matrix not empty, no empty slices (for now), K multiple of 32
+                // assumptions: sparse matrix not empty, no empty slices
                 auto sparse_params = prepare_sparse(
                     S,
                     tiling_params.Tj,
@@ -205,7 +196,6 @@ namespace SDDMM {
                 );
 
                 return Params {
-                    // .matrix_params=matrix_params,
                     .tiling_params=tiling_params,
                     .sparse_params=sparse_params
                 };
@@ -233,11 +223,9 @@ namespace SDDMM {
             */
             static TilingParams determine_tiling_params(Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B, const Types::COO& S) {
                 // GPU and format params
-                // These values need to be checked for the GPU the algo is run on.
+                // These values need to be checked for the GPU the algo is runs on
                 Types::vec_size_t l2_cache_capacity = 6291456;  // 6MB 3080Ti
-//                Types::vec_size_t shared_mem_size = 101376;  // 99KB 3080Ti
-                //unsigned int l2_cache_capacity = 2097152;  // 2MB for testing
-                unsigned int shared_mem_size = 49152;  // 48KB for testing => WARNING: if this value is too large, the program crashes!!!
+                unsigned int shared_mem_size = 49152; // 48KB, roughly 1/2 of SM memory
                 double c = 3.; // 3 for COO
 
                 assert(l2_cache_capacity % 32 == 0 && shared_mem_size % 32 == 0 && "L2 cache capacity and shared memory size must be multiples of 32!");
@@ -252,7 +240,6 @@ namespace SDDMM {
                 local_print("size: " + std::to_string(Tj) + ";  count: " + std::to_string(num_J_tiles));
                 local_print("");
 
-//                Types::vec_size_t Tk = 32;
                 Types::vec_size_t Tk = compute_k_slice_using_auto_tuning(
                     shared_mem_size,
                     S,
@@ -307,7 +294,6 @@ namespace SDDMM {
                 std::vector<SDDMM::Types::vec_size_t> S_tile_starts;
 
                 for (int j = 0; j < num_J_tiles; j++) {
-                    // SDDMM::Types::COO S_tile;
                     std::vector<Types::expmt_t> S_tile_values;
                     std::vector<Types::vec_size_t> S_tile_cols;
                     std::vector<Types::vec_size_t> S_tile_rows;
@@ -355,7 +341,6 @@ namespace SDDMM {
                         for (int i = 1; i < S_tile_values.size(); i++) {
                             if (S_tile_rows[i] != active_rows.back()) {
                                 a++;
-                                // active_rows.push_back(S_tile.data[i].row);
                                 active_rows.push_back(S_tile_rows[i]);
 
                                 c++;
@@ -385,7 +370,6 @@ namespace SDDMM {
 
                         S_tile_starts.push_back(S_tile_values.size());
                     } else {
-                        // TODO properly process empty slices
                         slice_sizes.push_back(0);
                     }
                 }
@@ -489,7 +473,6 @@ namespace SDDMM {
             * - [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices))
             */
             static Types::COO run_sm_l2(
-                // MatrixParams& matrix_params,
                 const SDDMM::Types::COO& S, float sparsity, SDDMM::Types::Matrix& A, SDDMM::Types::Matrix& B,
                 Types::vec_size_t N, Types::vec_size_t M, Types::vec_size_t K,
                 Params& params,
@@ -571,15 +554,6 @@ namespace SDDMM {
 
                 auto start = std::chrono::high_resolution_clock::now();
 
-                // measure execution time
-//                cudaEvent_t start_c, stop_c;
-//                gpuErrchk(cudaEventCreate(&start_c));
-//                gpuErrchk(cudaEventCreate(&stop_c));
-//
-//                gpuErrchk(cudaEventRecord(start_c));
-
-                //for (int tile_j_id = 0; tile_j_id < tiling_params.num_J_tiles; tile_j_id++) {
-                // some rounding error? => don't have time for that
                 auto num_J_tiles = sparse_params.active_rows_sizes.size();
                 for (int tile_j_id = 0; tile_j_id < num_J_tiles; tile_j_id++) {
                     local_print("Tile J id: " + std::to_string(tile_j_id) + "\n");
@@ -597,8 +571,6 @@ namespace SDDMM {
                         // launch num_threadblocks with 512 threads in each
                         SML2SDDMM_Kernel::run_kernel(
                                 num_threadblocks,
-                                // execute each kernel in own stream
-//                                streams.at(tile_j_id * tiling_params.num_K_tiles + tile_k_id),
                                 // execute everything in a single stream
                                 streams.at(0),
                                 // S
@@ -630,13 +602,6 @@ namespace SDDMM {
                     active_rows_start_ind += sparse_params.active_rows_sizes.at(tile_j_id);
                 }
 
-
-//                gpuErrchk(cudaEventRecord(stop_c));
-//                gpuErrchk(cudaEventSynchronize(stop_c));
-//
-//                float milliseconds = 0;
-//                cudaEventElapsedTime(&milliseconds, start_c, stop_c);
-
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
 
@@ -647,16 +612,10 @@ namespace SDDMM {
                     local_print("Duration (CPU chrono): " + std::to_string(duration));
                 }
 
-//                local_print("Duration (GPU events): " + std::to_string(milliseconds) + " ms");
-
                 // clean up the streams
                 for (int i = 0; i < tiling_params.num_J_tiles * tiling_params.num_K_tiles; ++i) {
                     cudaStreamDestroy(streams[i]);
                 }
-
-                // clean up the events
-//                gpuErrchk(cudaEventDestroy(start_c));
-//                gpuErrchk(cudaEventDestroy(stop_c));
 
                 local_print("Done processing!");
 

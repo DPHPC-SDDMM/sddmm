@@ -42,36 +42,18 @@ namespace SDDMM {
 
                 __syncthreads();
 
-                // process non-zero elements
-
-            //    // 1 thread per 1 element (no V_WARPs)
-            //    for (auto idx = t_id + tile_start; idx < tile_end; idx += blockDim.x){
-            //        float sum = 0;
-            //        auto sh_rID = S_tile_rows[idx] - tile_no * Ti;
-            //
-            //        for (auto l = 0; l < Tk; l++) {
-            //            sum += sh_actv_A[sh_rID * Tk + l] * B[S_tile_cols[idx] * K + l + tile_k_id * Tk];
-            //        }
-            //
-            //        P_tile_values[idx] += sum;
-            //
-            //        if (tile_k_id == num_Tks - 1) {
-            //            P_tile_values[idx] *= S_tile_values[idx];
-            //        }
-            //    }
-
                 // V_WARPs + vectorisation (float4) + unrolling (2x)
                 for (auto idx = t_id / V_WARP_SIZE + tile_start; idx < tile_end; idx += blockDim.x / V_WARP_SIZE) {
                     auto sh_r_id = S_tile_rows[idx] - tile_no * Ti;
-            //        auto lane_id = t_id % V_WARP_SIZE;
 
                     // unroll the loop and vectorize
                     float sum1 = 0;
                     float sum2 = 0;
 
+                    // unrolling factor * vector size
+                    int u_factor = 8;
+
                     // divide the row-col product calculation into chunks (each of size Tk / V_WARP_SIZE)
-                    int u_factor = 8; // unrolling factor * vector size
-            //        int u_factor = 2;
                     for (auto l = lane_id * Tk / V_WARP_SIZE; l < (lane_id + 1) * Tk / V_WARP_SIZE - u_factor + 1; l += u_factor) {
                         float4 sh1 = *((float4*)& sh_actv_A[sh_r_id * Tk + l]);
                         float4 B1 = *((float4*)& B[S_tile_cols[idx] * K + l + tile_k_id * Tk]);
@@ -80,32 +62,19 @@ namespace SDDMM {
                         float4 sh2 = *((float4*)& sh_actv_A[sh_r_id * Tk + l + 4]);
                         float4 B2 = *((float4*)& B[S_tile_cols[idx] * K + l + tile_k_id * Tk + 4]);
                         sum2 += sh2.w * B2.w + sh2.x * B2.x + sh2.y * B2.y + sh2.z * B2.z;
-
-                        // no vectorisation and/or no unrolling
-            //            float sh1 = sh_actv_A[sh_r_id * Tk + l];
-            //            float B1 = B[S_tile_cols[idx] * K + l + tile_k_id * Tk];
-            //            sum1 += (sh1 * B1);
-            //
-            //            float sh2 = sh_actv_A[sh_r_id * Tk + l + 1];
-            //            float B2 = B[S_tile_cols[idx] * K + l + tile_k_id * Tk + 1];
-            //            sum2 += (sh2 * B2);
                     }
 
                     // reduce in a virtual warp
                     for (int vws = V_WARP_SIZE / 2; vws > 0; vws /= 2) {
                         // set the first V_WARP_SIZE bits to 1 so that only threads within a V_WARP participate in reduction
                         unsigned mask = (1 << V_WARP_SIZE) - 1;
-            //            unsigned mask = 0xffffffff;
 
                         // __shfl_xor is deprecated in cuda >=  9.0
                         sum1 += __shfl_xor_sync(mask, sum1, vws);
                         sum2 += __shfl_xor_sync(mask, sum2, vws);
-                        // ===================================================
                     }
 
-                    // P_tile_values[idx] = S_tile_values[idx] * (sum1 + sum2);
                     P_tile_values[idx] += (sum1 + sum2);
-            //        P_tile_values[idx] += (sum1);
 
                     // in the last K-tile, multiple with S
                     if (tile_k_id == num_k_tiles - 1) {
