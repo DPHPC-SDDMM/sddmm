@@ -201,6 +201,14 @@ All of the following exes contain tests.
 
 Vary non-zero density ($10^{−3}$, $5^{−3}$, $10^{−4}$, $5^{−4}$, $10^{−5}$), $A \in \{N \times K\}$, $B \in \{K \times M\}$ and $S \in \{N \times M\}$ for two different sizes N1 = M1 = 102539 and N2 = M2 = 10253. The experiment was repeated for inner dimension $K \in \{32, 128, 512\}$.
 
+K=32, N2=M2=10253                                     |  K=128, N2=M2=10253                                    |  K=512, N2=M2=10253
+:----------------------------------------------------:|:-------------------------------------------------------|:----------------------------------------------------:|
+![](results/analysis/sparsity-small-k32-scatter.png)  |  ![](results/analysis/sparsity-small-k128-scatter.png)  |  ![](results/analysis/sparsity-small-k512-scatter.png)
+:----------------------------------------------------:|:-------------------------------------------------------|:----------------------------------------------------:|
+![](results/analysis/sparsity-small-k32-box.png)  |  ![](results/analysis/sparsity-small-k128-box.png)  |  ![](results/analysis/sparsity-small-k512-box.png)
+:----------------------------------------------------:|:-------------------------------------------------------|:----------------------------------------------------:|
+![](results/analysis/sparsity-small-k32-violin.png)  |  ![](results/analysis/sparsity-small-k128-violin.png)  |  ![](results/analysis/sparsity-small-k512-violin.png)
+
 ### Experiment 2
 
 Vary the distribution using three different, existing sparse matrices IMDB, patents main and patents (their distributions are shown in the _Steps to reproduce_ section and concise descriptions of the matrices themselves are given on ). The experiment was repeated for inner dimension $K \in \{32, 128, 256\}$.
